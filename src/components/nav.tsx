@@ -1,6 +1,7 @@
 
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -41,16 +42,9 @@ export function Nav() {
     <Sidebar>
       <SidebarHeader>
         <div className="flex items-center gap-2">
-           <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              className="h-8 w-8 text-primary"
-              fill="currentColor"
-            >
-              <path d="M16.14,3.86,12,8,7.86,3.86a2,2,0,0,0-2.83,0h0a2,2,0,0,0,0,2.83L9.17,11,5,15.14a2,2,0,0,0,0,2.83h0a2,2,0,0,0,2.83,0L12,14l4.14,4.14a2,2,0,0,0,2.83,0h0a2,2,0,0,0,0-2.83L14.83,11,19,6.86a2,2,0,0,0,0-2.83h0A2,2,0,0,0,16.14,3.86Z" />
-            </svg>
+            <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={32} height={32} data-ai-hint="logo" />
           <h1 className="text-xl font-bold font-headline text-foreground">
-            FitManager
+            Dinax
           </h1>
         </div>
       </SidebarHeader>
