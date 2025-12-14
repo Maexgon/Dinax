@@ -101,7 +101,7 @@ export default function PaymentsPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">$4,250</div>
-                    <p className="text-xs text-green-600">+12%</p>
+                    <p className="text-xs text-primary/80">+12%</p>
                 </CardContent>
             </Card>
             <Card>
@@ -123,7 +123,7 @@ export default function PaymentsPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold">125</div>
-                    <p className="text-xs text-green-600">+5%</p>
+                    <p className="text-xs text-primary/80">+5%</p>
                 </CardContent>
             </Card>
         </div>
@@ -146,11 +146,11 @@ export default function PaymentsPage() {
                 <CardContent>
                     <Table>
                         <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-[35%]">{t.payments.student}</TableHead>
-                                <TableHead className="w-[25%]">{t.payments.currentPlan}</TableHead>
-                                <TableHead className="w-[25%]">{t.payments.days}</TableHead>
-                                <TableHead className="text-right w-[15%]">{t.payments.status}</TableHead>
+                            <TableRow className="bg-primary hover:bg-primary/90">
+                                <TableHead className="w-[35%] text-primary-foreground rounded-tl-lg">{t.payments.student}</TableHead>
+                                <TableHead className="w-[25%] text-primary-foreground">{t.payments.currentPlan}</TableHead>
+                                <TableHead className="w-[25%] text-primary-foreground">{t.payments.days}</TableHead>
+                                <TableHead className="text-right w-[15%] text-primary-foreground rounded-tr-lg">{t.payments.status}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -275,3 +275,5 @@ export default function PaymentsPage() {
     </div>
   );
 }
+
+    

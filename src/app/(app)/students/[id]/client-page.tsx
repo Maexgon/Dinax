@@ -175,8 +175,8 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                                      <div className="space-y-1">
                                         <label className="text-xs text-muted-foreground">{t.studentDetail.tags}</label>
                                         <div className="flex flex-wrap gap-2">
-                                            <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">Hipertrofia <X className="ml-1 h-3 w-3"/></Badge>
-                                            <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">Principiante <X className="ml-1 h-3 w-3"/></Badge>
+                                            <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 dark:bg-primary/20 dark:text-primary/90 dark:border-primary/30">Hipertrofia <X className="ml-1 h-3 w-3"/></Badge>
+                                            <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 dark:bg-primary/20 dark:text-primary/90 dark:border-primary/30">Principiante <X className="ml-1 h-3 w-3"/></Badge>
                                             <Button variant="outline" size="sm" className="text-muted-foreground"><Plus className="mr-1 h-3 w-3"/>{t.studentDetail.addTag}</Button>
                                         </div>
                                      </div>
@@ -184,7 +184,7 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                                         <label className="text-xs text-muted-foreground">{t.studentDetail.privateNotes}</label>
                                         <Textarea className="bg-muted" rows={4} defaultValue="El cliente prefiere entrenar por las tardes. Tiene ligera molestia en hombro derecho (ver ficha médica)."/>
                                          <Card className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm p-2">
-                                            <div className="flex items-center gap-2 text-green-600">
+                                            <div className="flex items-center gap-2 text-primary/90">
                                                 <CheckCircle2 className="h-4 w-4" />
                                                 <div>
                                                     <p className="font-semibold text-xs">{t.studentDetail.allSet}</p>
@@ -227,3 +227,5 @@ export default function StudentDetailClientPage({ student }: { student: Student 
     </div>
   );
 }
+
+    

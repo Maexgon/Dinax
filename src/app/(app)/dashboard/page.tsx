@@ -61,7 +61,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">24</div>
-            <p className="text-xs text-green-600">
+            <p className="text-xs text-primary/80">
               {t.dashboard.newStudents}
             </p>
           </CardContent>
@@ -85,19 +85,19 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">2.450€</div>
-            <p className="text-xs text-green-600">
+            <p className="text-xs text-primary/80">
               +12%
             </p>
           </CardContent>
         </Card>
-        <Card className="border-orange-300 bg-orange-50/50">
+        <Card className="border-orange-300 bg-orange-50/50 dark:border-primary/20 dark:bg-primary/10">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t.dashboard.pendingPayments}</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">3</div>
-            <p className="text-xs text-orange-600">
+            <p className="text-xs text-orange-600 dark:text-primary/90">
               {t.dashboard.actionRequired}
             </p>
           </CardContent>
@@ -143,7 +143,7 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                         <Badge variant="secondary" className="bg-green-100 text-green-700">{t.dashboard.inProgress}</Badge>
+                         <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-primary/20 dark:text-primary/90">{t.dashboard.inProgress}</Badge>
                         <Button variant="ghost" size="icon" className="rounded-full bg-primary h-8 w-8 text-primary-foreground">
                             <Play className="h-4 w-4" />
                         </Button>
@@ -216,8 +216,8 @@ export default function Dashboard() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex items-start gap-3">
-                         <div className="h-5 w-5 rounded-full bg-green-100 flex items-center justify-center">
-                            <Check className="h-3 w-3 text-green-600" />
+                         <div className="h-5 w-5 rounded-full bg-orange-100 dark:bg-primary/20 flex items-center justify-center">
+                            <Check className="h-3 w-3 text-orange-600 dark:text-primary/90" />
                         </div>
                         <p className="text-sm" dangerouslySetInnerHTML={{ __html: t.dashboard.sofiaCompleted.replace(/\*\*(.*?)\*\*/g, '<span class="font-semibold">$1</span>') }} />
                         

@@ -100,3 +100,5 @@ export default function AIGoalSuggester({ studentProfile }: AIGoalSuggesterProps
     </Card>
   );
 }
+
+    
