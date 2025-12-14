@@ -27,6 +27,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useLanguage } from '@/context/language-context';
+import { cn } from '@/lib/utils';
 
 const coachAvatar = PlaceHolderImages.find(p => p.id === 'student-1');
 
@@ -48,13 +49,16 @@ export function Nav() {
     <Sidebar>
       <SidebarRail />
       <SidebarHeader className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className={cn("flex items-center gap-2", state === 'collapsed' && 'justify-center')}>
             <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={32} height={32} data-ai-hint="logo" />
-            {state === 'expanded' && (
-              <h1 className="text-xl font-bold font-headline text-sidebar-foreground">
+            <span
+                className={cn(
+                  'text-xl font-bold font-headline text-sidebar-foreground',
+                  'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
+                )}
+              >
                 Dinax
-              </h1>
-            )}
+              </span>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -68,7 +72,13 @@ export function Nav() {
               >
                 <Link href={item.href}>
                   <item.icon />
-                  <span>{item.label}</span>
+                  <span
+                    className={cn(
+                      'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
+                    )}
+                  >
+                    {item.label}
+                  </span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -81,22 +91,26 @@ export function Nav() {
              <SidebarMenuButton asChild tooltip={t.nav.settings}>
                 <Link href="#">
                   <Settings />
-                  <span>{t.nav.settings}</span>
+                  <span className={cn(
+                      'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
+                    )}>
+                    {t.nav.settings}
+                  </span>
                 </Link>
               </SidebarMenuButton>
           </SidebarMenuItem>
            <SidebarMenuItem>
-            <div className="flex items-center gap-3 p-2">
+            <div className={cn("flex items-center gap-3 p-2", state === 'collapsed' && 'justify-center')}>
                 <Avatar className="h-10 w-10">
                     <AvatarImage src={coachAvatar?.imageUrl} alt={t.nav.coachSara} data-ai-hint={coachAvatar?.imageHint} />
                     <AvatarFallback>CS</AvatarFallback>
                 </Avatar>
-                {state === 'expanded' && (
-                    <div>
-                        <p className="font-semibold text-sm text-sidebar-foreground">{t.nav.coachSara}</p>
-                        <p className="text-xs text-sidebar-foreground/80">{t.nav.proAccount}</p>
-                    </div>
-                )}
+                <div className={cn(
+                      'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
+                    )}>
+                    <p className="font-semibold text-sm text-sidebar-foreground">{t.nav.coachSara}</p>
+                    <p className="text-xs text-sidebar-foreground/80">{t.nav.proAccount}</p>
+                </div>
             </div>
            </SidebarMenuItem>
         </SidebarMenu>
