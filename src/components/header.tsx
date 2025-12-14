@@ -2,89 +2,39 @@
 
 import React from 'react';
 import Link from 'next/link';
-import {
-  Dumbbell,
-  Home,
-  Users,
-  ClipboardList,
-  Calendar,
-  CreditCard,
-  Settings,
-  CircleUser,
-} from 'lucide-react';
+import { Bell, PlusCircle, Search } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
-import {
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-
-const pathToBreadcrumb: { [key: string]: string } = {
-  '/dashboard': 'Dashboard',
-  '/students': 'Students',
-  '/plans': 'Training Plans',
-  '/schedule': 'Schedule',
-  '/payments': 'Payments & Services',
-  '/ai-goals': 'AI Goal Setter',
-};
-
+import { Input } from './ui/input';
 
 export function Header() {
   const pathname = usePathname();
-  const pathSegments = pathname.split('/').filter(Boolean);
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-card px-4 lg:h-[60px] lg:px-6">
-       <SidebarTrigger className="shrink-0 md:hidden" />
+      <SidebarTrigger className="shrink-0 md:hidden" />
       <div className="flex-1">
-        <nav className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
-           <Link href="/dashboard" className="font-semibold text-foreground">
-             <Dumbbell className="h-6 w-6" />
-             <span className="sr-only">GymEdge</span>
-           </Link>
-          {pathSegments.map((segment, index) => {
-             const href = `/${pathSegments.slice(0, index + 1).join('/')}`;
-             const name = pathToBreadcrumb[href] || segment.charAt(0).toUpperCase() + segment.slice(1);
-             const isLast = index === pathSegments.length - 1;
-             return (
-               <React.Fragment key={href}>
-                 <span>/</span>
-                 <Link
-                   href={href}
-                   className={`${isLast ? 'text-foreground' : 'text-muted-foreground'}`}
-                 >
-                   {name}
-                 </Link>
-               </React.Fragment>
-             );
-           })}
-        </nav>
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Buscar alumnos, rutinas..."
+            className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
+          />
+        </div>
       </div>
-
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon" className="rounded-full">
-            <CircleUser className="h-5 w-5" />
-            <span className="sr-only">Toggle user menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem>Logout</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" className="rounded-full">
+          <Bell className="h-5 w-5" />
+          <span className="sr-only">Toggle notifications</span>
+        </Button>
+        <Button>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Nuevo Cliente
+        </Button>
+      </div>
     </header>
   );
 }
