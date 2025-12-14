@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 
 export default function PaymentsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(mockStudents[0]);
 
   const getStatusVariant = (status: 'Paid' | 'Pending' | 'Overdue'): { variant: "default" | "secondary" | "destructive" | "outline" | null | undefined, text: string } => {
