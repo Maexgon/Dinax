@@ -116,7 +116,7 @@ export default function PaymentsPage() {
                                             <Image src={student.avatarUrl} alt={student.name} width={40} height={40} className="rounded-full" data-ai-hint={student.avatarHint}/>
                                             <div>
                                                 <p className="font-semibold">{student.name}</p>
-                                                <p className="text-xs text-muted-foreground">{t.payments.memberSince} {new Date(student.joinDate).toLocaleDateString(language, { year: 'numeric' })}</p>
+                                                <p className="text-xs text-muted-foreground">{t.payments.memberSince} {student.joinDate.split('-')[0]}</p>
                                             </div>
                                         </div>
                                     </TableCell>
