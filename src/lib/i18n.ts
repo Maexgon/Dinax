@@ -103,7 +103,38 @@ export const translations = {
         createNewPlan: "Crear Nuevo Plan",
         mesocycles: "Mesociclos",
         microcycles: "Microciclos",
-        focus: "Foco"
+        focus: {
+            legs: "Enfoque Piernas",
+            rest: "Descanso / Recuperación",
+            push: "Enfoque Empuje",
+            pull: "Enfoque Tirón",
+        },
+        planFor: "Plan para:",
+        planObjective: "Hipertrofia • Fase: Construcción (Semana 1/4)",
+        sendToClient: "Enviar al Cliente",
+        savePlan: "Guardar Plan",
+        searchExercises: "Buscar ejercicios...",
+        all: "Todos",
+        strength: "Fuerza",
+        cardio: "Cardio",
+        plyo: "Plyo",
+        mostPopular: "MÁS POPULARES",
+        activeRecovery: "Recuperación Activa",
+        recoveryDescription: "Se recomienda estiramiento ligero o 30 minutos de caminata.",
+        dragExercises: "Arrastra ejercicios aquí",
+        weekScheduleTitle: "Planificación Semana 1",
+        weekScheduleDescription: "4 Entrenamientos • 3 Días de Descanso • Volumen estimado: Alto",
+        estDuration: "Duración Est.",
+        intensity: "Intensidad",
+        intensityHigh: "Alta",
+        weeklyTargets: "Objetivos Semanales",
+        day: {
+            monday: "Lunes",
+            tuesday: "Martes",
+            wednesday: "Miércoles",
+            thursday: "Jueves",
+            friday: "Viernes",
+        }
     },
     payments: {
         title: "Gestión de Pagos",
@@ -256,7 +287,38 @@ export const translations = {
         createNewPlan: "Create New Plan",
         mesocycles: "Mesocycles",
         microcycles: "Microcycles",
-        focus: "Focus"
+        focus: {
+            legs: "Legs Focus",
+            rest: "Rest / Recovery",
+            push: "Push Focus",
+            pull: "Pull Focus",
+        },
+        planFor: "Plan for:",
+        planObjective: "Hypertrophy • Phase: Building (Week 1/4)",
+        sendToClient: "Send to Client",
+        savePlan: "Save Plan",
+        searchExercises: "Search exercises...",
+        all: "All",
+        strength: "Strength",
+        cardio: "Cardio",
+        plyo: "Plyo",
+        mostPopular: "MOST POPULAR",
+        activeRecovery: "Active Recovery",
+        recoveryDescription: "Light stretching or a 30-minute walk is recommended.",
+        dragExercises: "Drag exercises here",
+        weekScheduleTitle: "Week 1 Schedule",
+        weekScheduleDescription: "4 Workouts • 3 Rest Days • Estimated volume: High",
+        estDuration: "Est. Duration",
+        intensity: "Intensity",
+        intensityHigh: "High",
+        weeklyTargets: "Weekly Targets",
+        day: {
+            monday: "Monday",
+            tuesday: "Tuesday",
+            wednesday: "Wednesday",
+            thursday: "Thursday",
+            friday: "Friday",
+        }
     },
     payments: {
         title: "Payment Management",
@@ -310,3 +372,5 @@ export const translations = {
 export type Language = keyof typeof translations;
 
 export const getTranslations = (lang: Language) => translations[lang];
+
+    

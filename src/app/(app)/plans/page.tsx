@@ -58,7 +58,7 @@ const ExerciseCard = ({ exercise }: { exercise: Exercise }) => {
     )
 }
 
-const DaySchedule = ({ day, focus, exercises }: { day: string, focus: string, exercises?: Exercise[] }) => {
+const DaySchedule = ({ day, focus, exercises, t }: { day: string, focus: string, exercises?: Exercise[], t: any }) => {
     
     if (!exercises || exercises.length === 0) {
         return (
@@ -73,8 +73,8 @@ const DaySchedule = ({ day, focus, exercises }: { day: string, focus: string, ex
                      <div className="flex items-center justify-center h-16 w-16 rounded-full bg-background mx-auto">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 text-primary"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
                     </div>
-                    <h4 className="font-semibold mt-4">Active Recovery</h4>
-                    <p className="text-sm text-muted-foreground mt-1">Light stretching or 30 mins walk recommended.</p>
+                    <h4 className="font-semibold mt-4">{t.plans.activeRecovery}</h4>
+                    <p className="text-sm text-muted-foreground mt-1">{t.plans.recoveryDescription}</p>
                 </CardContent>
             </Card>
         )
@@ -93,7 +93,7 @@ const DaySchedule = ({ day, focus, exercises }: { day: string, focus: string, ex
                     <ExerciseCard key={index} exercise={ex} />
                 ))}
                 <Button variant="outline" className="w-full border-dashed">
-                    <Plus className="mr-2 h-4 w-4" /> Drag exercises here
+                    <Plus className="mr-2 h-4 w-4" /> {t.plans.dragExercises}
                 </Button>
             </CardContent>
         </Card>
@@ -106,11 +106,11 @@ export default function PlansPage() {
     const student = mockStudents[1];
 
     const weekSchedule = [
-        { day: 'Monday', focus: 'Legs Focus', exercises: plan.microcycles[0].workouts.find(w => w.day === 'Monday')?.exercises },
-        { day: 'Tuesday', focus: 'Rest / Recovery', exercises: [] },
-        { day: 'Wednesday', focus: 'Push Focus', exercises: plan.microcycles[0].workouts.find(w => w.day === 'Wednesday')?.exercises },
-        { day: 'Thursday', focus: 'Rest / Recovery', exercises: [] },
-        { day: 'Friday', focus: 'Pull Focus', exercises: plan.microcycles[0].workouts.find(w => w.day === 'Friday')?.exercises },
+        { day: t.plans.day.monday, focus: t.plans.focus.legs, exercises: plan.microcycles[0].workouts.find(w => w.day === 'Monday')?.exercises },
+        { day: t.plans.day.tuesday, focus: t.plans.focus.rest, exercises: [] },
+        { day: t.plans.day.wednesday, focus: t.plans.focus.push, exercises: plan.microcycles[0].workouts.find(w => w.day === 'Wednesday')?.exercises },
+        { day: t.plans.day.thursday, focus: t.plans.focus.rest, exercises: [] },
+        { day: t.plans.day.friday, focus: t.plans.focus.pull, exercises: plan.microcycles[0].workouts.find(w => w.day === 'Friday')?.exercises },
     ]
 
   return (
@@ -122,18 +122,18 @@ export default function PlansPage() {
             <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-2xl font-bold font-headline">Plan for: {student.name}</h1>
+            <h1 className="text-2xl font-bold font-headline">{t.plans.planFor} {student.name}</h1>
             <p className="text-muted-foreground">
-              Hypertrophy • Phase: Building (Week 1/4)
+              {t.plans.planObjective}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
             <Button variant="outline">
-                <Forward className="mr-2 h-4 w-4" /> Send to Client
+                <Forward className="mr-2 h-4 w-4" /> {t.plans.sendToClient}
             </Button>
             <Button>
-                <Save className="mr-2 h-4 w-4" /> Save Plan
+                <Save className="mr-2 h-4 w-4" /> {t.plans.savePlan}
             </Button>
         </div>
       </header>
@@ -143,15 +143,15 @@ export default function PlansPage() {
         <div className="lg:col-span-1 bg-card p-4 rounded-lg flex flex-col">
             <div className="relative mb-4">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder="Search exercises..." className="pl-8" />
+                <Input placeholder={t.plans.searchExercises} className="pl-8" />
             </div>
             <div className="flex gap-2 mb-4">
-                <Button size="sm" variant="secondary">All</Button>
-                <Button size="sm" variant="ghost">Strength</Button>
-                <Button size="sm" variant="ghost">Cardio</Button>
-                <Button size="sm" variant="ghost">Plyo</Button>
+                <Button size="sm" variant="secondary">{t.plans.all}</Button>
+                <Button size="sm" variant="ghost">{t.plans.strength}</Button>
+                <Button size="sm" variant="ghost">{t.plans.cardio}</Button>
+                <Button size="sm" variant="ghost">{t.plans.plyo}</Button>
             </div>
-            <h3 className="text-sm font-semibold mb-2">MOST POPULAR</h3>
+            <h3 className="text-sm font-semibold mb-2">{t.plans.mostPopular}</h3>
             <div className="space-y-2 overflow-y-auto">
                 {popularExercises.map((ex, index) => (
                     <Card key={index}>
@@ -175,17 +175,17 @@ export default function PlansPage() {
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                     <div>
-                        <CardTitle>Week 1 Schedule</CardTitle>
-                        <CardDescription>4 Workouts • 3 Rest Days • Estimated volume: High</CardDescription>
+                        <CardTitle>{t.plans.weekScheduleTitle}</CardTitle>
+                        <CardDescription>{t.plans.weekScheduleDescription}</CardDescription>
                     </div>
                     <div className="flex gap-4 text-center">
                         <div>
-                            <p className="text-xs text-muted-foreground">Est. Duration</p>
+                            <p className="text-xs text-muted-foreground">{t.plans.estDuration}</p>
                             <p className="font-bold">5h 30m</p>
                         </div>
                         <div>
-                            <p className="text-xs text-muted-foreground">Intensity</p>
-                            <Badge variant="destructive">High</Badge>
+                            <p className="text-xs text-muted-foreground">{t.plans.intensity}</p>
+                            <Badge variant="destructive">{t.plans.intensityHigh}</Badge>
                         </div>
                     </div>
                 </CardHeader>
@@ -193,15 +193,15 @@ export default function PlansPage() {
 
             <div className="space-y-6">
                 {weekSchedule.map((dayData, index) => (
-                    <DaySchedule key={index} day={dayData.day} focus={dayData.focus} exercises={dayData.exercises} />
+                    <DaySchedule key={index} day={dayData.day} focus={dayData.focus} exercises={dayData.exercises} t={t} />
                 ))}
             </div>
 
             <Card className="mt-6 sticky bottom-4 bg-background/80 backdrop-blur-sm">
                 <CardContent className="p-4 flex items-center justify-between">
                     <div >
-                        <p className="font-semibold">Weekly Targets</p>
-                        <p className="text-sm text-muted-foreground">75% completed</p>
+                        <p className="font-semibold">{t.plans.weeklyTargets}</p>
+                        <p className="text-sm text-muted-foreground">75% {t.dashboard.completed}</p>
                     </div>
                     <div className="w-24 h-2 bg-muted rounded-full">
                         <div className="w-3/4 h-2 bg-primary rounded-full"></div>
@@ -213,3 +213,5 @@ export default function PlansPage() {
     </div>
   );
 }
+
+    
