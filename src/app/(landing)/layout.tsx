@@ -1,0 +1,112 @@
+import React from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Menu, Moon, Rocket } from 'lucide-react';
+
+const navLinks = [
+  { href: '#', label: 'Sobre Nosotros' },
+  { href: '#', label: 'Precios' },
+];
+
+const DinaxLogo = () => (
+  <div className="flex items-center gap-2">
+    <Image src="https://picsum.photos/seed/logo/32/32" alt="Dinax Logo" width={32} height={32} className="rounded-sm" data-ai-hint="logo" />
+    <span className="text-xl font-bold font-headline">Dinax</span>
+  </div>
+);
+
+export default function LandingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-h-screen flex-col bg-background text-foreground dark">
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
+          <div className="mr-4 hidden md:flex">
+            <Link href="/" className="mr-6">
+              <DinaxLogo />
+            </Link>
+            <nav className="flex items-center gap-6 text-sm">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.label}
+                  href={link.href}
+                  className="transition-colors hover:text-foreground/80 text-foreground/60"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Toggle Menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="dark w-[300px]">
+                <div className="flex flex-col gap-6 p-6">
+                  <Link href="/">
+                    <DinaxLogo />
+                  </Link>
+                  <nav className="flex flex-col gap-4">
+                    {navLinks.map((link) => (
+                      <Link
+                        key={link.label}
+                        href={link.href}
+                        className="text-foreground/80 hover:text-foreground"
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </nav>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+
+          <div className="flex flex-1 items-center justify-end space-x-4">
+            <nav className="hidden items-center space-x-2 md:flex">
+               <Button variant="ghost" asChild>
+                  <Link href="/dashboard">Login</Link>
+                </Button>
+              <Button asChild>
+                  <Link href="#">
+                  Register
+                  <Rocket className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button variant="outline" size="icon">
+                <Moon className="h-4 w-4" />
+              </Button>
+            </nav>
+          </div>
+        </div>
+      </header>
+      <main className="flex-1">{children}</main>
+      <footer className="dark border-t">
+        <div className="container mx-auto flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
+          <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+            <DinaxLogo />
+            <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+              © 2023 Dinax Inc. Todos los derechos reservados.
+            </p>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <Link href="#">Términos</Link>
+            <Link href="#">Privacidad</Link>
+            <Link href="#">Soporte</Link>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
