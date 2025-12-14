@@ -12,7 +12,7 @@ const navLinks = [
 
 const DinaxLogo = () => (
   <div className="flex items-center gap-2">
-    <Image src="https://picsum.photos/seed/logo/32/32" alt="Dinax Logo" width={32} height={32} className="rounded-sm" data-ai-hint="logo" />
+    <Image src="https://i.ibb.co/hFzPcKNp/dinax.jpg" alt="Dinax Logo" width={32} height={32} className="rounded-sm" data-ai-hint="logo" />
     <span className="text-xl font-bold font-headline">Dinax</span>
   </div>
 );
