@@ -1,4 +1,4 @@
-import { Student, TrainingPlan, Payment, CalendarEvent, Service, Workout } from './types';
+import { Student, TrainingPlan, Payment, CalendarEvent, Service, Workout, Note } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImage = (id: string) => {
@@ -241,4 +241,25 @@ export const weightData = [
     { date: "2024-05-01", weight: 84.6 },
     { date: "2024-06-01", weight: 84.2 },
     { date: "2024-07-01", weight: 85.0 },
-]
+];
+
+const coachImage = getImage('student-1');
+
+export const mockNotes: Note[] = [
+  {
+    id: 'note-1',
+    coachName: 'Coach Sara',
+    coachAvatarUrl: coachImage.url,
+    coachAvatarHint: coachImage.hint,
+    date: '2024-07-15T10:30:00Z',
+    content: 'El cliente muestra una mejora significativa en la sentadilla. Aumentar el peso la próxima semana. Ligera molestia en el hombro derecho al hacer press de banca, monitorizar.'
+  },
+  {
+    id: 'note-2',
+    coachName: 'Coach Sara',
+    coachAvatarUrl: coachImage.url,
+    coachAvatarHint: coachImage.hint,
+    date: '2024-07-08T11:00:00Z',
+    content: 'Buena energía hoy. Foco en la técnica de peso muerto. Recordarle la importancia de la hidratación.'
+  }
+];

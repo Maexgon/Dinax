@@ -32,12 +32,17 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
 
 import { useLanguage } from '@/context/language-context';
 import type { Student } from '@/lib/types';
+import { mockNotes } from '@/lib/data';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function StudentDetailClientPage({ student }: { student: Student }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   return (
     <div className="space-y-6">
@@ -217,8 +222,39 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                 </TabsContent>
                  <TabsContent value="progress">
                      <Card>
-                        <CardHeader><CardTitle>{t.studentDetail.progress}</CardTitle></CardHeader>
-                        <CardContent><p>Progress charts and data will be shown here.</p></CardContent>
+                        <CardHeader>
+                          <CardTitle>{t.studentDetail.progress}</CardTitle>
+                          <CardDescription>Progress charts and data will be shown here.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-8">
+                            <p>Progress charts will be shown here.</p>
+                            <Separator />
+                             <div>
+                                <div className="flex justify-between items-center mb-4">
+                                  <h3 className="text-lg font-semibold">{t.studentDetail.trackingNotes}</h3>
+                                  <Button variant="outline"><Plus className="mr-2 h-4 w-4"/> {t.studentDetail.addNote}</Button>
+                                </div>
+                                <div className="space-y-6">
+                                  {mockNotes.map((note) => (
+                                    <div key={note.id} className="flex items-start gap-4">
+                                      <Avatar className="h-10 w-10 border">
+                                        <AvatarImage src={note.coachAvatarUrl} alt={note.coachName} data-ai-hint={note.coachAvatarHint}/>
+                                        <AvatarFallback>{note.coachName.charAt(0)}</AvatarFallback>
+                                      </Avatar>
+                                      <div className="flex-1">
+                                        <div className="flex items-center justify-between">
+                                          <p className="font-semibold">{note.coachName}</p>
+                                          <p className="text-xs text-muted-foreground">
+                                            {format(new Date(note.date), "PPP p", { locale: language === 'es' ? es : undefined })}
+                                          </p>
+                                        </div>
+                                        <p className="text-sm text-muted-foreground mt-1">{note.content}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                        </CardContent>
                     </Card>
                 </TabsContent>
             </Tabs>
@@ -227,5 +263,3 @@ export default function StudentDetailClientPage({ student }: { student: Student 
     </div>
   );
 }
-
-    

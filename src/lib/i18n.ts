@@ -89,7 +89,9 @@ export const translations = {
         message: "Mensaje",
         objective: "Objetivo",
         profileCompleted: "Perfil Completado",
-        missingMedicalHistory: "Falta: Historial médico detallado"
+        missingMedicalHistory: "Falta: Historial médico detallado",
+        trackingNotes: "Notas de Seguimiento",
+        addNote: "Añadir Nota"
     },
     schedule: {
         title: "Agenda",
@@ -272,7 +274,9 @@ export const translations = {
         message: "Message",
         objective: "Objective",
         profileCompleted: "Profile Completed",
-        missingMedicalHistory: "Missing: Detailed medical history"
+        missingMedicalHistory: "Missing: Detailed medical history",
+        trackingNotes: "Tracking Notes",
+        addNote: "Add Note"
     },
     schedule: {
         title: "Schedule",

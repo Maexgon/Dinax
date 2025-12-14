@@ -18,6 +18,15 @@ export type Student = {
   };
 };
 
+export type Note = {
+  id: string;
+  coachName: string;
+  coachAvatarUrl: string;
+  coachAvatarHint: string;
+  date: string; // ISO string
+  content: string;
+};
+
 export type Exercise = {
     name: string;
     category?: string;
@@ -74,3 +83,4 @@ export type CalendarEvent = {
   studentName: string;
   studentAvatar?: string;
 };
+
