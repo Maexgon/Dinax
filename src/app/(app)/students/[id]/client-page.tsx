@@ -360,7 +360,7 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                                     <div className="flex items-center justify-between">
                                         <p className="font-semibold">{note.coachName}</p>
                                         <p className="text-xs text-muted-foreground">
-                                        {format(new Date(note.date), "PPP p", { locale: language === 'es' ? es : undefined })}
+                                        {format(new Date(note.date), "PPP", { locale: language === 'es' ? es : undefined })}
                                         </p>
                                     </div>
                                     <p className="text-sm text-muted-foreground mt-1">{note.content}</p>
