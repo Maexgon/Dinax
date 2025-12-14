@@ -19,6 +19,24 @@ import {
   X,
   CheckCircle2,
   ChevronRight,
+  VenetianMask,
+  Calculator,
+  Percent,
+  Gauge,
+  FileWarning,
+  AlertTriangle,
+  Target,
+  Move,
+  ArrowDownToLine,
+  PersonStanding,
+  Hand,
+  Timer,
+  Repeat,
+  ShieldCheck,
+  TrendingUp,
+  Activity,
+  Zap,
+  Award,
 } from 'lucide-react';
 import {
   Card,
@@ -40,6 +58,17 @@ import type { Student } from '@/lib/types';
 import { mockNotes } from '@/lib/data';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+
+const MetricItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | React.ReactNode }) => (
+    <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+        <div className="flex items-center gap-3">
+            {icon}
+            <span className="text-sm font-medium">{label}</span>
+        </div>
+        <span className="text-sm font-semibold">{value}</span>
+    </div>
+);
+
 
 export default function StudentDetailClientPage({ student }: { student: Student }) {
   const { t, language } = useLanguage();
@@ -124,7 +153,7 @@ export default function StudentDetailClientPage({ student }: { student: Student 
 
         {/* Right Column */}
         <div className="lg:col-span-2">
-            <Tabs defaultValue="personal-info">
+            <Tabs defaultValue="biomechanics">
                 <TabsList className="grid w-full grid-cols-4 bg-muted">
                     <TabsTrigger key="personal-info" value="personal-info">{t.studentDetail.personalInfo}</TabsTrigger>
                     <TabsTrigger key="medical" value="medical">{t.studentDetail.medical}</TabsTrigger>
@@ -217,7 +246,39 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                  <TabsContent value="biomechanics">
                     <Card>
                         <CardHeader><CardTitle>{t.studentDetail.biomechanics}</CardTitle></CardHeader>
-                        <CardContent><p>{student.profile.biomechanicalData}</p></CardContent>
+                        <CardContent className="space-y-2">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                <MetricItem icon={<Cake className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.age} value={`${student.profile.age} años`} />
+                                <MetricItem icon={<VenetianMask className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.gender} value={student.profile.gender} />
+                                <MetricItem icon={<Ruler className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.height} value={`${student.profile.height} cm`} />
+                                <MetricItem icon={<Scale className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.weight} value={`${student.profile.weight} kg`} />
+                                <MetricItem icon={<Calculator className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.bmi} value="26.2" />
+                                <MetricItem icon={<Percent className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.bodyFat} value="18.5%" />
+                                <MetricItem icon={<Dumbbell className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.muscleMass} value="42 kg" />
+                                <MetricItem icon={<HeartPulse className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.restingHr} value="62 bpm" />
+                                <MetricItem icon={<Gauge className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.bloodPressure} value="120/80" />
+                                <MetricItem icon={<FileWarning className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.previousInjuries} value="Rodilla derecha" />
+                                <MetricItem icon={<AlertTriangle className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.currentPain} value={<Badge variant="outline" className="text-orange-500 border-orange-500/50">{t.studentDetail.pain.mild}</Badge>} />
+                                <MetricItem icon={<Target className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.painZone} value={t.studentDetail.painZoneValue.shoulder} />
+                                <MetricItem icon={<Move className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.shoulderMobility} value={t.studentDetail.mobility.good} />
+                                <MetricItem icon={<Move className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.hipMobility} value={t.studentDetail.mobility.limited} />
+                                <MetricItem icon={<Move className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.ankleMobility} value={t.studentDetail.mobility.medium} />
+                                <MetricItem icon={<Move className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.spineMobility} value={t.studentDetail.mobility.good} />
+                                <MetricItem icon={<ArrowDownToLine className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.trunkFlexion} value={t.studentDetail.trunkFlexionValue.reachesFeet} />
+                                <MetricItem icon={<PersonStanding className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.shoulderPosture} value={t.studentDetail.posture.protracted} />
+                                <MetricItem icon={<PersonStanding className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.pelvicPosition} value={t.studentDetail.pelvicPositionValue.neutral} />
+                                <MetricItem icon={<PersonStanding className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.kneeValgus} value={t.studentDetail.kneeValgusValue.mild} />
+                                <MetricItem icon={<Hand className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.dominance} value={t.studentDetail.dominanceValue.right} />
+                                <MetricItem icon={<Timer className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.unipodalBalance} value=">30s" />
+                                <MetricItem icon={<Repeat className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.pushUps} value="25" />
+                                <MetricItem icon={<Repeat className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.bodyweightSquats} value="50" />
+                                <MetricItem icon={<Timer className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.abdominalPlank} value="90s" />
+                                <MetricItem icon={<ShieldCheck className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.generalStrengthLevel} value={t.studentDetail.level.medium} />
+                                <MetricItem icon={<Activity className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.cardioCapacity} value={t.studentDetail.level.medium} />
+                                <MetricItem icon={<Zap className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.postEffortRecovery} value={t.studentDetail.recovery.fast} />
+                                <MetricItem icon={<Award className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.experienceLevel} value={t.studentDetail.experience.intermediate} />
+                            </div>
+                        </CardContent>
                     </Card>
                 </TabsContent>
                  <TabsContent value="progress">

@@ -1,4 +1,3 @@
-
 export const translations = {
   es: {
     dashboard: {
@@ -53,7 +52,7 @@ export const translations = {
         age: "Edad",
         weight: "Peso",
         height: "Altura",
-        gender: "Género",
+        gender: "Sexo",
         medicalConditions: "Condiciones Médicas",
         biomechanicalData: "Datos Biomecánicos",
         progressVisualizations: "Visualizaciones de Progreso",
@@ -91,7 +90,90 @@ export const translations = {
         profileCompleted: "Perfil Completado",
         missingMedicalHistory: "Falta: Historial médico detallado",
         trackingNotes: "Notas de Seguimiento",
-        addNote: "Añadir Nota"
+        addNote: "Añadir Nota",
+        bmi: "Índice de Masa Corporal (IMC)",
+        bodyFat: "% Grasa corporal",
+        muscleMass: "Masa muscular",
+        restingHr: "Frecuencia cardíaca en reposo",
+        bloodPressure: "Presión arterial",
+        previousInjuries: "Lesiones previas",
+        currentPain: "Dolor actual",
+        painZone: "Zona de dolor",
+        shoulderMobility: "Movilidad de hombros",
+        hipMobility: "Movilidad de cadera",
+        ankleMobility: "Movilidad de tobillo",
+        spineMobility: "Movilidad de columna",
+        trunkFlexion: "Flexión de tronco",
+        shoulderPosture: "Postura de hombros",
+        pelvicPosition: "Posición pélvica",
+        kneeValgus: "Valgo de rodilla",
+        dominance: "Dominancia",
+        unipodalBalance: "Equilibrio unipodal",
+        pushUps: "Flexiones de brazos",
+        bodyweightSquats: "Sentadillas peso corporal",
+        abdominalPlank: "Plancha abdominal",
+        generalStrengthLevel: "Nivel de fuerza general",
+        cardioCapacity: "Capacidad cardiovascular",
+        postEffortRecovery: "Recuperación post esfuerzo",
+        experienceLevel: "Nivel de experiencia",
+        pain: {
+            none: "Ninguno",
+            mild: "Leve",
+            moderate: "Moderado",
+            severe: "Severo"
+        },
+        painZoneValue: {
+            back: "Espalda",
+            knee: "Rodilla",
+            shoulder: "Hombro",
+            hip: "Cadera",
+            ankle: "Tobillo",
+            multiple: "Múltiple"
+        },
+        mobility: {
+            limited: "Limitada",
+            medium: "Media",
+            good: "Buena"
+        },
+        trunkFlexionValue: {
+            noReach: "No alcanza pies",
+            reachesFeet: "Alcanza pies",
+            exceedsFeet: "Supera pies"
+        },
+        posture: {
+            aligned: "Alineados",
+            protracted: "Protraídos",
+            retracted: "Retraídos"
+        },
+        pelvicPositionValue: {
+            neutral: "Neutra",
+            anteversion: "Anteversión",
+            retroversion: "Retroversión"
+        },
+        kneeValgusValue: {
+            no: "No",
+            mild: "Leve",
+            marked: "Marcado"
+        },
+        dominanceValue: {
+            right: "Derecha",
+            left: "Izquierda"
+        },
+        level: {
+            low: "Bajo",
+            medium: "Medio",
+            high: "Alto"
+        },
+        recovery: {
+            fast: "Rápida",
+            medium: "Media",
+            slow: "Lenta"
+        },
+        experience: {
+            beginner: "Principiante",
+            intermediate: "Intermedio",
+            advanced: "Avanzado"
+        }
     },
     schedule: {
         title: "Agenda",
@@ -276,7 +358,90 @@ export const translations = {
         profileCompleted: "Profile Completed",
         missingMedicalHistory: "Missing: Detailed medical history",
         trackingNotes: "Tracking Notes",
-        addNote: "Add Note"
+        addNote: "Add Note",
+        bmi: "Body Mass Index (BMI)",
+        bodyFat: "Body fat %",
+        muscleMass: "Muscle mass",
+        restingHr: "Resting heart rate",
+        bloodPressure: "Blood pressure",
+        previousInjuries: "Previous injuries",
+        currentPain: "Current pain",
+        painZone: "Pain zone",
+        shoulderMobility: "Shoulder mobility",
+        hipMobility: "Hip mobility",
+        ankleMobility: "Ankle mobility",
+        spineMobility: "Spine mobility",
+        trunkFlexion: "Trunk flexion",
+        shoulderPosture: "Shoulder posture",
+        pelvicPosition: "Pelvic position",
+        kneeValgus: "Knee valgus",
+        dominance: "Dominance",
+        unipodalBalance: "Unipodal balance",
+        pushUps: "Push-ups",
+        bodyweightSquats: "Bodyweight squats",
+        abdominalPlank: "Abdominal plank",
+        generalStrengthLevel: "General strength level",
+        cardioCapacity: "Cardiovascular capacity",
+        postEffortRecovery: "Post-effort recovery",
+        experienceLevel: "Experience level",
+        pain: {
+            none: "None",
+            mild: "Mild",
+            moderate: "Moderate",
+            severe: "Severe"
+        },
+        painZoneValue: {
+            back: "Back",
+            knee: "Knee",
+            shoulder: "Shoulder",
+            hip: "Hip",
+            ankle: "Ankle",
+            multiple: "Multiple"
+        },
+        mobility: {
+            limited: "Limited",
+            medium: "Medium",
+            good: "Good"
+        },
+        trunkFlexionValue: {
+            noReach: "Doesn't reach feet",
+            reachesFeet: "Reaches feet",
+            exceedsFeet: "Exceeds feet"
+        },
+        posture: {
+            aligned: "Aligned",
+            protracted: "Protracted",
+            retracted: "Retracted"
+        },
+        pelvicPositionValue: {
+            neutral: "Neutral",
+            anteversion: "Anteversion",
+            retroversion: "Retroversion"
+        },
+        kneeValgusValue: {
+            no: "No",
+            mild: "Mild",
+            marked: "Marked"
+        },
+        dominanceValue: {
+            right: "Right",
+            left: "Left"
+        },
+        level: {
+            low: "Low",
+            medium: "Medium",
+            high: "High"
+        },
+        recovery: {
+            fast: "Fast",
+            medium: "Medium",
+            slow: "Slow"
+        },
+        experience: {
+            beginner: "Beginner",
+            intermediate: "Intermediate",
+            advanced: "Advanced"
+        }
     },
     schedule: {
         title: "Schedule",
@@ -376,5 +541,3 @@ export const translations = {
 export type Language = keyof typeof translations;
 
 export const getTranslations = (lang: Language) => translations[lang];
-
-    
