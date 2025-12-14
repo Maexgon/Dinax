@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "student-1",
+      "description": "A focused male athlete preparing for a workout.",
+      "imageUrl": "https://images.unsplash.com/photo-1662013606299-b8ff0a34efc0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtYWxlJTIwYXRobGV0ZXxlbnwwfHx8fDE3NjU2ODY1ODB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "male athlete"
+    },
+    {
+      "id": "student-2",
+      "description": "A determined female athlete in a gym setting.",
+      "imageUrl": "https://images.unsplash.com/photo-1692197174597-1d85555c9b33?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxmZW1hbGUlMjBhdGhsZXRlfGVufDB8fHx8MTc2NTY4NjU4MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "female athlete"
+    },
+    {
+      "id": "student-3",
+      "description": "A person lifting weights.",
+      "imageUrl": "https://images.unsplash.com/photo-1605296867304-46d5465a13f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxsaWZ0aW5nJTIwd2VpZ2h0c3xlbnwwfHx8fDE3NjU2NTIxNTB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lifting weights"
+    },
+    {
+      "id": "student-4",
+      "description": "A woman stretching before her exercise.",
+      "imageUrl": "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHN0cmV0Y2hpbmd8ZW58MHx8fHwxNzY1Njg2NTgwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman stretching"
+    },
+    {
+      "id": "student-5",
+      "description": "A man running on a treadmill.",
+      "imageUrl": "https://images.unsplash.com/photo-1486739985386-d4fae04ca6f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxtYW4lMjBydW5uaW5nfGVufDB8fHx8MTc2NTY1ODgwMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man running"
+    },
+    {
+      "id": "student-6",
+      "description": "A person doing yoga.",
+      "imageUrl": "https://images.unsplash.com/photo-1758599880453-ba4b22553606?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjB5b2dhfGVufDB8fHx8MTc2NTY4NjU4MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person yoga"
+    }
+  ]
 }
