@@ -29,21 +29,19 @@ const eventColors = [
 export default function SchedulePage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { t, language } = useLanguage();
-  const today = new Date();
-  const upcomingEvents = mockCalendarEvents
-    .filter((event) => event.start >= today)
-    .sort((a, b) => a.start.getTime() - b.start.getTime());
 
-  const getStudentAvatar = (studentName: string) => {
-    const student = mockStudents.find(s => s.name === studentName);
-    return student?.avatarUrl || 'https://picsum.photos/seed/placeholder/32/32';
+  const getStudentForEvent = (studentName: string) => {
+    return mockStudents.find(s => s.name === studentName);
   }
 
   return (
-    <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4">
-      <div className="lg:col-span-3 md:col-span-2">
+    <div className="space-y-6">
+       <div>
+            <h1 className="text-3xl font-bold font-headline">{t.schedule.title}</h1>
+            <p className="text-muted-foreground">{t.schedule.description}</p>
+        </div>
         <Card>
-          <CardContent className="p-2 md:p-6">
+          <CardContent className="p-2 md:p-4">
             <Calendar
               mode="single"
               selected={date}
@@ -54,74 +52,51 @@ export default function SchedulePage() {
                 DayContent: ({ date, ...props }) => {
                   const dayEvents = mockCalendarEvents.filter(
                     (event) => format(event.start, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
-                  );
+                  ).sort((a,b) => a.start.getTime() - b.start.getTime());
+
                   return (
-                    <div className="relative h-full w-full p-2 flex flex-col gap-1">
+                    <div className="relative h-full w-full p-1 flex flex-col gap-1 overflow-hidden">
                       <div className="absolute top-1 right-1 text-xs text-muted-foreground">{format(date, 'd')}</div>
-                      {dayEvents.map((event, index) => (
-                        <div key={event.id} className={`p-1 rounded-md text-xs border-l-4 ${eventColors[index % eventColors.length]}`}>
+                      <div className="flex flex-col gap-1 mt-5">
+                      {dayEvents.map((event, index) => {
+                        const student = getStudentForEvent(event.studentName);
+                        return (
+                        <div key={event.id} className={`p-1.5 rounded-md text-xs border-l-4 ${eventColors[index % eventColors.length]}`}>
                            <p className="font-semibold truncate">{event.title}</p>
-                           <p className="text-xs">{format(event.start, 'HH:mm')}</p>
+                           <p className="text-[10px]">{format(event.start, 'HH:mm')}</p>
+                            {student && (
+                               <div className="flex items-center gap-1 mt-1">
+                                    <Avatar className="h-4 w-4">
+                                        <AvatarImage src={student.avatarUrl} alt={student.name} data-ai-hint={student.avatarHint}/>
+                                        <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <span className="text-[10px] truncate">{student.name}</span>
+                               </div>
+                            )}
                         </div>
-                      ))}
+                      )})}
+                      </div>
                     </div>
                   );
                 },
               }}
                classNames={{
-                    head_cell:
-                    "text-muted-foreground rounded-md w-full font-normal text-[0.8rem]",
-                    cell: "h-24 w-24 text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                    day: "h-full w-full p-2",
+                    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                    month: "space-y-4 w-full",
+                    table: "w-full border-collapse space-y-1",
+                    head_row: "flex w-full",
+                    head_cell: "text-muted-foreground rounded-md w-full font-normal text-[0.8rem] justify-start text-left p-2",
+                    row: "flex w-full mt-2",
+                    cell: "h-32 w-full text-center text-sm p-0 relative [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20 border border-border",
+                    day: "h-full w-full p-1",
                     day_selected:
                     "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                    day_today: "bg-accent text-accent-foreground",
-                    day_outside: "text-muted-foreground opacity-50",
+                    day_today: "bg-accent/50 text-accent-foreground",
+                    day_outside: "text-muted-foreground opacity-50 bg-muted/20",
                 }}
             />
           </CardContent>
         </Card>
       </div>
-      <div className="lg:col-span-1 md:col-span-1">
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-headline">{t.schedule.upcomingSessions}</CardTitle>
-            <CardDescription>{t.schedule.description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {upcomingEvents.length > 0 ? (
-                upcomingEvents.map((event) => (
-                  <div key={event.id} className="flex items-start gap-4 p-3 bg-muted/50 rounded-lg">
-                    <div className="flex-shrink-0 text-center bg-background rounded-md px-2 py-1 w-16">
-                      <p className="font-bold text-lg">{format(event.start, 'dd')}</p>
-                      <p className="text-xs -mt-1 uppercase">{format(event.start, 'MMM', { locale: language === 'es' ? es : undefined })}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-semibold">{event.title}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {format(event.start, 'HH:mm')} - {format(event.end, 'HH:mm')}
-                      </p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Avatar className="h-6 w-6">
-                            <AvatarImage src={getStudentAvatar(event.studentName)} alt={event.studentName} />
-                            <AvatarFallback>{event.studentName.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-muted-foreground">{event.studentName}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  {t.schedule.noUpcomingSessions}
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
   );
 }
-
