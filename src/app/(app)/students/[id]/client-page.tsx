@@ -37,6 +37,22 @@ import {
   Activity,
   Zap,
   Award,
+  Heart,
+  Droplet,
+  TestTube,
+  Wind,
+  Bone,
+  Disc3,
+  Brain,
+  Pill,
+  FilePlus2,
+  CalendarCheck,
+  HeartHandshake,
+  FlaskConical,
+  CircleAlert,
+  ShieldAlert,
+  FileKey2,
+  UserCheck,
 } from 'lucide-react';
 import {
   Card,
@@ -239,8 +255,38 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                 </TabsContent>
                 <TabsContent value="medical">
                     <Card>
-                        <CardHeader><CardTitle>{t.studentDetail.medical}</CardTitle></CardHeader>
-                        <CardContent><p>{student.profile.medicalConditions}</p></CardContent>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><FilePlus2 className="text-primary"/>{t.studentDetail.medicalTitle}</CardTitle>
+                             <CardDescription>{t.studentDetail.medicalDescription}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <MetricItem icon={<UserCheck className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.fitnessCertificate} value={t.studentDetail.medicalValues.yes} />
+                            <MetricItem icon={<CalendarCheck className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.certificateDate} value="2024-01-15" />
+                            <MetricItem icon={<HeartPulse className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.cardiovascularDiseases} value={t.studentDetail.medicalValues.none} />
+                            <MetricItem icon={<Gauge className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.bloodPressure} value="120/80" />
+                            <MetricItem icon={<Heart className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.restingHeartRate} value="62 bpm" />
+                            <MetricItem icon={<Droplet className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.diabetes} value={t.studentDetail.medicalValues.no} />
+                            <MetricItem icon={<TestTube className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.fastingGlucose} value="85 mg/dL" />
+                            <MetricItem icon={<Activity className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.totalCholesterol} value={t.studentDetail.medicalValues.normal} />
+                            <MetricItem icon={<FlaskConical className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.triglycerides} value={t.studentDetail.medicalValues.normal} />
+                            <MetricItem icon={<Wind className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.asthmaCopd} value={t.studentDetail.medicalValues.no} />
+                            <MetricItem icon={<Bone className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.chronicJointProblems} value={t.studentDetail.medicalValues.knee} />
+                            <MetricItem icon={<Disc3 className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.discHernias} value={t.studentDetail.medicalValues.no} />
+                            <MetricItem icon={<Bone className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.osteoporosis} value={t.studentDetail.medicalValues.no} />
+                            <MetricItem icon={<Brain className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.neurologicalProblems} value={t.studentDetail.medicalValues.no} />
+                            <MetricItem icon={<Pill className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.currentMedication} value={t.studentDetail.medicalValues.none} />
+                            <MetricItem icon={<HeartHandshake className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.cardiovascularMedication} value={t.studentDetail.medicalValues.no} />
+                            <MetricItem icon={<Pill className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.metabolicMedication} value={t.studentDetail.medicalValues.no} />
+                            <MetricItem icon={<CircleAlert className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.dizzinessSyncope} value={t.studentDetail.medicalValues.occasional} />
+                            <MetricItem icon={<HeartPulse className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.exertionalChestPain} value={t.studentDetail.medicalValues.no} />
+                            <MetricItem icon={<Wind className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.exertionalShortnessOfBreath} value={t.studentDetail.medicalValues.mild} />
+                            <MetricItem icon={<FileText className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.relevantSurgeries} value={t.studentDetail.medicalValues.none} />
+                            <MetricItem icon={<User className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.pregnancy} value={t.studentDetail.medicalValues.no} />
+                            <MetricItem icon={<FileWarning className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.relevantAllergies} value="AINEs" />
+                            <MetricItem icon={<FileKey2 className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.medicalRestrictions} value={t.studentDetail.medicalValues.none} />
+                            <MetricItem icon={<ShieldCheck className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.exerciseAuthorization} value={t.studentDetail.medicalValues.total} />
+                            <MetricItem icon={<ShieldAlert className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.riskLevel} value={t.studentDetail.level.low} />
+                        </CardContent>
                     </Card>
                 </TabsContent>
                  <TabsContent value="biomechanics">
