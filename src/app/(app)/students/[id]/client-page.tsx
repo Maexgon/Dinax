@@ -121,10 +121,10 @@ export default function StudentDetailClientPage({ student }: { student: Student 
         <div className="lg:col-span-2">
             <Tabs defaultValue="personal-info">
                 <TabsList className="grid w-full grid-cols-4 bg-muted">
-                    <TabsTrigger value="personal-info">{t.studentDetail.personalInfo}</TabsTrigger>
-                    <TabsTrigger value="medical">{t.studentDetail.medical}</TabsTrigger>
-                    <TabsTrigger value="biomechanics">{t.studentDetail.biomechanics}</TabsTrigger>
-                    <TabsTrigger value="progress">{t.studentDetail.progress}</TabsTrigger>
+                    <TabsTrigger key="personal-info" value="personal-info">{t.studentDetail.personalInfo}</TabsTrigger>
+                    <TabsTrigger key="medical" value="medical">{t.studentDetail.medical}</TabsTrigger>
+                    <TabsTrigger key="biomechanics" value="biomechanics">{t.studentDetail.biomechanics}</TabsTrigger>
+                    <TabsTrigger key="progress" value="progress">{t.studentDetail.progress}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="personal-info">
                     <Card>
