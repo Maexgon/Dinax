@@ -1,9 +1,10 @@
+
 "use client"
 
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
-import { PanelLeft } from "lucide-react"
+import { PanelLeft, PanelLeftOpen, PanelLeftClose } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
@@ -289,27 +290,32 @@ const SidebarRail = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<"button">
 >(({ className, ...props }, ref) => {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, state } = useSidebar()
+  const Icon = state === 'expanded' ? PanelLeftClose : PanelLeftOpen;
 
   return (
     <button
       ref={ref}
       data-sidebar="rail"
       aria-label="Toggle Sidebar"
-      tabIndex={-1}
       onClick={toggleSidebar}
       title="Toggle Sidebar"
       className={cn(
-        "absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] after:bg-sidebar-border/30 hover:after:bg-sidebar-border group-data-[side=left]:-right-4 group-data-[side=right]:left-0 sm:flex",
-        "[[data-side=left]_&]:cursor-w-resize [[data-side=right]_&]:cursor-e-resize",
-        "[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize",
+        "absolute z-20 hidden items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground transition-all ease-linear hover:bg-sidebar-primary/90 md:flex",
+        "h-6 w-6",
+        "group-data-[side=left]:right-0 group-data-[side=left]:translate-x-1/2",
+        "group-data-[side=right]:left-0 group-data-[side=right]:-translate-x-1/2",
+        "group-data-[state=expanded]:top-6",
+        "group-data-[state=collapsed]:top-3",
         "group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full group-data-[collapsible=offcanvas]:hover:bg-sidebar",
         "[[data-side=left][data-collapsible=offcanvas]_&]:-right-2",
         "[[data-side=right][data-collapsible=offcanvas]_&]:-left-2",
         className
       )}
       {...props}
-    />
+    >
+        <Icon className="h-4 w-4" />
+    </button>
   )
 })
 SidebarRail.displayName = "SidebarRail"
@@ -358,7 +364,11 @@ const SidebarHeader = React.forwardRef<
     <div
       ref={ref}
       data-sidebar="header"
-      className={cn("flex flex-col gap-2 p-4", className)}
+      className={cn(
+        "flex flex-col gap-2 p-4",
+        "group-data-[state=collapsed]:items-center group-data-[state=collapsed]:p-2",
+        className
+      )}
       {...props}
     />
   )
@@ -549,6 +559,7 @@ const SidebarMenuButton = React.forwardRef<
       size = "default",
       tooltip,
       className,
+      children,
       ...props
     },
     ref
@@ -556,7 +567,26 @@ const SidebarMenuButton = React.forwardRef<
     const Comp = asChild ? Slot : "button"
     const { isMobile, state } = useSidebar()
 
-    const button = (
+    const buttonContent = (
+      <>
+        {React.Children.map(children, (child) => {
+          if (React.isValidElement(child) && child.type === 'span') {
+            return (
+              <span
+                className={cn(
+                  'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
+                )}
+              >
+                {child.props.children}
+              </span>
+            );
+          }
+          return child;
+        })}
+      </>
+    );
+
+     const button = (
       <Comp
         ref={ref}
         data-sidebar="menu-button"
@@ -564,11 +594,24 @@ const SidebarMenuButton = React.forwardRef<
         data-active={isActive}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
         {...props}
-      />
+      >
+        {children}
+      </Comp>
     )
 
     if (!tooltip) {
-      return button
+      return (
+         <Comp
+          ref={ref}
+          data-sidebar="menu-button"
+          data-size={size}
+          data-active={isActive}
+          className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+          {...props}
+        >
+          {children}
+        </Comp>
+      )
     }
 
     if (typeof tooltip === "string") {
@@ -579,7 +622,18 @@ const SidebarMenuButton = React.forwardRef<
 
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{button}</TooltipTrigger>
+        <TooltipTrigger asChild>
+           <Comp
+              ref={ref}
+              data-sidebar="menu-button"
+              data-size={size}
+              data-active={isActive}
+              className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+              {...props}
+            >
+              {children}
+            </Comp>
+        </TooltipTrigger>
         <TooltipContent
           side="right"
           align="center"

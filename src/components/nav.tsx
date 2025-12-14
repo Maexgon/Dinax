@@ -22,6 +22,7 @@ import {
   SidebarMenuButton,
   SidebarFooter,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -32,6 +33,7 @@ const coachAvatar = PlaceHolderImages.find(p => p.id === 'student-1');
 export function Nav() {
   const pathname = usePathname();
   const { t } = useLanguage();
+  const { state } = useSidebar();
 
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: t.nav.dashboard },
@@ -48,9 +50,11 @@ export function Nav() {
       <SidebarHeader className="flex items-center justify-between">
         <div className="flex items-center gap-2">
             <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={32} height={32} data-ai-hint="logo" />
-          <h1 className="text-xl font-bold font-headline text-sidebar-foreground">
-            Dinax
-          </h1>
+            {state === 'expanded' && (
+              <h1 className="text-xl font-bold font-headline text-sidebar-foreground">
+                Dinax
+              </h1>
+            )}
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -87,10 +91,12 @@ export function Nav() {
                     <AvatarImage src={coachAvatar?.imageUrl} alt={t.nav.coachSara} data-ai-hint={coachAvatar?.imageHint} />
                     <AvatarFallback>CS</AvatarFallback>
                 </Avatar>
-                <div>
-                    <p className="font-semibold text-sm text-sidebar-foreground">{t.nav.coachSara}</p>
-                    <p className="text-xs text-sidebar-foreground/80">{t.nav.proAccount}</p>
-                </div>
+                {state === 'expanded' && (
+                    <div>
+                        <p className="font-semibold text-sm text-sidebar-foreground">{t.nav.coachSara}</p>
+                        <p className="text-xs text-sidebar-foreground/80">{t.nav.proAccount}</p>
+                    </div>
+                )}
             </div>
            </SidebarMenuItem>
         </SidebarMenu>
