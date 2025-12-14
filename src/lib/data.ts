@@ -148,11 +148,11 @@ export const mockServices: Service[] = [
 
 
 export const mockPayments: Payment[] = [
-  { id: 'pay-1', studentId: '1', studentName: 'Carlos Rodriguez', service: 'Hipertrofia 4x', amount: 65, date: '2024-02-15', status: 'Paid' },
-  { id: 'pay-2', studentId: '1', studentName: 'Carlos Rodriguez', service: 'Hipertrofia 4x', amount: 65, date: '2024-01-14', status: 'Paid' },
-  { id: 'pay-3', studentId: '2', studentName: 'Ana García', service: 'Funcional 3x', amount: 50, date: '2024-07-01', status: 'Pending' },
-  { id: 'pay-4', studentId: '3', studentName: 'David Lopez', service: 'Personalizado Pro', amount: 90, date: '2024-07-01', status: 'Paid' },
-  { id: 'pay-5', studentId: '4', studentName: 'Marta Diaz', service: 'Pilates Reformer', amount: 75, date: '2024-06-01', status: 'Overdue' },
+  { id: 'pay-1', studentId: '1', studentName: 'Carlos Rodriguez', service: 'Hipertrofia 4x', amount: 65, date: '2024-02-15T00:00:00', status: 'Paid' },
+  { id: 'pay-2', studentId: '1', studentName: 'Carlos Rodriguez', service: 'Hipertrofia 4x', amount: 65, date: '2024-01-14T00:00:00', status: 'Paid' },
+  { id: 'pay-3', studentId: '2', studentName: 'Ana García', service: 'Funcional 3x', amount: 50, date: '2024-07-01T00:00:00', status: 'Pending' },
+  { id: 'pay-4', studentId: '3', studentName: 'David Lopez', service: 'Personalizado Pro', amount: 90, date: '2024-07-01T00:00:00', status: 'Paid' },
+  { id: 'pay-5', studentId: '4', studentName: 'Marta Diaz', service: 'Pilates Reformer', amount: 75, date: '2024-06-01T00:00:00', status: 'Overdue' },
 ];
 
 export const mockCalendarEvents: CalendarEvent[] = [

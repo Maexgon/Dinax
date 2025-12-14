@@ -37,6 +37,15 @@ export default function PaymentsPage() {
     }
   };
 
+  const formatDate = (dateString: string, options: Intl.DateTimeFormatOptions) => {
+    // For "YYYY-MM-DDTHH:mm:ss" format, split and create date to avoid timezone issues.
+    const [datePart] = dateString.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    // Month is 0-indexed in JavaScript Date
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleString(language, options);
+  }
+
   return (
     <div className="space-y-6">
        <div>
@@ -200,8 +209,8 @@ export default function PaymentsPage() {
                                         <CheckCircle className={`h-5 w-5 ${payment.status === 'Paid' ? 'text-green-600' : 'text-gray-400'}`}/>
                                     </div>
                                     <div>
-                                        <p className="font-medium">{new Date(payment.date).toLocaleString(language, { month: 'long', year: 'numeric' })}</p>
-                                        <p className="text-xs text-muted-foreground">{new Date(payment.date).toLocaleDateString(language, { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                                        <p className="font-medium">{formatDate(payment.date, { month: 'long', year: 'numeric' })}</p>
+                                        <p className="text-xs text-muted-foreground">{formatDate(payment.date, { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                                     </div>
                                 </div>
                                 <p className="font-semibold">${payment.amount.toFixed(2)}</p>
