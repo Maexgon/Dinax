@@ -50,10 +50,10 @@ export function Nav() {
       <SidebarRail />
       <SidebarHeader className="flex items-center justify-between">
         <div className={cn("flex items-center gap-2", state === 'collapsed' && 'justify-center')}>
-            <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={40} height={40} data-ai-hint="logo" />
+            <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={50} height={50} data-ai-hint="logo" />
             <span
                 className={cn(
-                  'text-xl font-bold font-headline text-sidebar-foreground',
+                  'text-xl font-bold font-headline',
                   'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
                 )}
               >

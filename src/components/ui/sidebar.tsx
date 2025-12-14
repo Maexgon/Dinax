@@ -301,7 +301,7 @@ const SidebarRail = React.forwardRef<
       onClick={toggleSidebar}
       title="Toggle Sidebar"
       className={cn(
-        "absolute z-20 hidden items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground transition-all ease-linear hover:bg-sidebar-primary/90 md:flex",
+        "absolute z-20 flex items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground transition-all ease-linear hover:bg-sidebar-primary/90 md:flex",
         "h-6 w-6",
         "group-data-[side=left]:right-0 group-data-[side=left]:translate-x-1/2",
         "group-data-[side=right]:left-0 group-data-[side=right]:-translate-x-1/2",
@@ -367,6 +367,7 @@ const SidebarHeader = React.forwardRef<
       data-sidebar="header"
       className={cn(
         "flex flex-col gap-2 p-4",
+        "bg-card text-primary",
         "group-data-[state=collapsed]:items-center group-data-[state=collapsed]:p-2",
         className
       )}
