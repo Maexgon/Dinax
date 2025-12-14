@@ -1,4 +1,3 @@
-
 'use client';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
@@ -39,8 +38,9 @@ import { mockStudents } from '@/lib/data';
 import { useLanguage } from '@/context/language-context';
 
 export default function StudentDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const { t } = useLanguage();
-  const student = mockStudents.find((s) => s.id === params.id);
+  const student = mockStudents.find((s) => s.id === id);
 
   if (!student) {
     notFound();
