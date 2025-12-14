@@ -21,7 +21,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
-  SidebarTrigger,
+  SidebarRail,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -44,6 +44,7 @@ export function Nav() {
 
   return (
     <Sidebar>
+      <SidebarRail />
       <SidebarHeader className="flex items-center justify-between">
         <div className="flex items-center gap-2">
             <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={32} height={32} data-ai-hint="logo" />
@@ -51,7 +52,6 @@ export function Nav() {
             Dinax
           </h1>
         </div>
-        <SidebarTrigger className="hidden md:flex" />
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
