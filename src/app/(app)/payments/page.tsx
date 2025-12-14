@@ -1,3 +1,5 @@
+
+'use client';
 import {
   Table,
   TableBody,
@@ -11,8 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, List, Edit, Trash } from 'lucide-react';
 import { mockPayments, mockServices } from '@/lib/data';
+import { useLanguage } from '@/context/language-context';
 
 export default function PaymentsPage() {
+  const { t } = useLanguage();
   const getBadgeVariant = (status: 'Paid' | 'Pending' | 'Overdue') => {
     switch (status) {
       case 'Paid':
@@ -33,11 +37,11 @@ export default function PaymentsPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
                 <div>
-                    <CardTitle className="font-headline">Payment History</CardTitle>
-                    <CardDescription>Track all payments from your students.</CardDescription>
+                    <CardTitle className="font-headline">{t.payments.paymentHistory}</CardTitle>
+                    <CardDescription>{t.payments.trackPayments}</CardDescription>
                 </div>
                 <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Record Payment
+                    <PlusCircle className="mr-2 h-4 w-4" /> {t.payments.recordPayment}
                 </Button>
             </div>
           </CardHeader>
@@ -45,11 +49,11 @@ export default function PaymentsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Student</TableHead>
-                  <TableHead>Service</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Date</TableHead>
-                  <TableHead className="text-right">Status</TableHead>
+                  <TableHead>{t.payments.student}</TableHead>
+                  <TableHead>{t.payments.service}</TableHead>
+                  <TableHead>{t.payments.amount}</TableHead>
+                  <TableHead>{t.payments.date}</TableHead>
+                  <TableHead className="text-right">{t.payments.status}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -74,8 +78,8 @@ export default function PaymentsPage() {
            <CardHeader>
              <div className="flex items-center justify-between">
                 <div>
-                    <CardTitle className="font-headline">Services</CardTitle>
-                    <CardDescription>Manage your training services and fees.</CardDescription>
+                    <CardTitle className="font-headline">{t.payments.services}</CardTitle>
+                    <CardDescription>{t.payments.manageServices}</CardDescription>
                 </div>
                 <Button variant="ghost" size="icon">
                     <PlusCircle className="h-5 w-5" />

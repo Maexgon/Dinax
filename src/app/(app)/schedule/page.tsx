@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -12,9 +13,11 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { mockCalendarEvents } from '@/lib/data';
+import { useLanguage } from '@/context/language-context';
 
 export default function SchedulePage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const { t } = useLanguage();
   const today = new Date();
   const upcomingEvents = mockCalendarEvents
     .filter((event) => event.start >= today)
@@ -56,7 +59,7 @@ export default function SchedulePage() {
       <div>
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline">Upcoming Sessions</CardTitle>
+            <CardTitle className="font-headline">{t.schedule.upcomingSessions}</CardTitle>
             <CardDescription>Your next scheduled appointments.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -82,7 +85,7 @@ export default function SchedulePage() {
                 ))
               ) : (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No upcoming sessions.
+                  {t.schedule.noUpcomingSessions}
                 </p>
               )}
             </div>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -6,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { getAIGoalSuggestions } from '@/app/actions';
+import { useLanguage } from '@/context/language-context';
 
 import type { SuggestGoalsInput, SuggestGoalsOutput } from '@/ai/flows/ai-generated-goals';
 
@@ -17,6 +19,7 @@ export default function AIGoalSuggester({ studentProfile }: AIGoalSuggesterProps
   const [isLoading, setIsLoading] = useState(false);
   const [suggestion, setSuggestion] = useState<SuggestGoalsOutput | null>(null);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSuggestGoals = async () => {
     setIsLoading(true);
@@ -40,10 +43,10 @@ export default function AIGoalSuggester({ studentProfile }: AIGoalSuggesterProps
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-2xl font-headline">
           <Bot className="h-8 w-8 text-primary" />
-          <span>AI-Powered Goal Recommendations</span>
+          <span>{t.aiGoals.aiPoweredGoals}</span>
         </CardTitle>
         <CardDescription>
-          Use AI to generate realistic fitness goals and training intensities based on the student's profile and performance data.
+          {t.aiGoals.aiPoweredGoalsDescription}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -52,17 +55,17 @@ export default function AIGoalSuggester({ studentProfile }: AIGoalSuggesterProps
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
+                {t.aiGoals.generating}...
               </>
             ) : (
-              'Suggest Goals'
+              t.aiGoals.suggestGoals
             )}
           </Button>
 
           {isLoading && (
              <div className="w-full text-center p-8">
                 <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                <p className="mt-2 text-muted-foreground">Analyzing data and generating recommendations...</p>
+                <p className="mt-2 text-muted-foreground">{t.aiGoals.analyzing}...</p>
              </div>
           )}
 
@@ -72,7 +75,7 @@ export default function AIGoalSuggester({ studentProfile }: AIGoalSuggesterProps
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Lightbulb className="text-accent" />
-                    Suggested Goals
+                    {t.aiGoals.suggestedGoals}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="prose prose-sm dark:prose-invert">
@@ -83,7 +86,7 @@ export default function AIGoalSuggester({ studentProfile }: AIGoalSuggesterProps
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Zap className="text-accent" />
-                    Training Intensity
+                    {t.aiGoals.trainingIntensity}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="prose prose-sm dark:prose-invert">

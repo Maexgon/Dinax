@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import {
@@ -5,7 +6,6 @@ import {
   Dumbbell,
   Wallet,
   Landmark,
-  ArrowRight,
   Play,
   Check,
   RefreshCw,
@@ -21,14 +21,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-
-import { mockStudents } from '@/lib/data';
+import { useLanguage } from '@/context/language-context';
 
 const paymentData = [
     { name: 'Pagado', value: 2450, color: 'hsl(var(--chart-1))' },
@@ -37,8 +31,9 @@ const paymentData = [
 
 
 export default function Dashboard() {
+  const { t, language } = useLanguage();
   const today = new Date();
-  const formattedDate = new Intl.DateTimeFormat('es-ES', {
+  const formattedDate = new Intl.DateTimeFormat(language === 'es' ? 'es-ES' : 'en-US', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -49,8 +44,8 @@ export default function Dashboard() {
       <div>
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold font-headline">Hola, Coach Sara! 👋</h1>
-            <p className="text-muted-foreground">Aquí tienes el resumen de tu día. ¡A por todas!</p>
+            <h1 className="text-3xl font-bold font-headline">{t.dashboard.greeting}</h1>
+            <p className="text-muted-foreground">{t.dashboard.summary}</p>
           </div>
           <span className="text-sm text-muted-foreground capitalize">{formattedDate}</span>
         </div>
@@ -60,32 +55,32 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Alumnos Activos
+              {t.dashboard.activeStudents}
             </CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">24</div>
             <p className="text-xs text-green-600">
-              +2 Nuevos
+              {t.dashboard.newStudents}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Entrenamientos Hoy
+              {t.dashboard.trainingsToday}
             </CardTitle>
             <Dumbbell className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4 <span className="text-base text-muted-foreground">/ 6 Sesiones</span></div>
+            <div className="text-2xl font-bold">4 <span className="text-base text-muted-foreground">/ 6 {t.dashboard.sessions}</span></div>
              <Progress value={(4/6) * 100} className="h-2 mt-2" />
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ingresos este Mes</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.dashboard.monthlyRevenue}</CardTitle>
             <Landmark className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -97,13 +92,13 @@ export default function Dashboard() {
         </Card>
         <Card className="border-orange-300 bg-orange-50/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pagos Pendientes</CardTitle>
+            <CardTitle className="text-sm font-medium">{t.dashboard.pendingPayments}</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">3</div>
             <p className="text-xs text-orange-600">
-              Acción Req.
+              {t.dashboard.actionRequired}
             </p>
           </CardContent>
         </Card>
@@ -112,9 +107,9 @@ export default function Dashboard() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Próximas Sesiones</CardTitle>
+            <CardTitle>{t.dashboard.nextSessions}</CardTitle>
             <Link href="/schedule" className="text-sm font-medium text-primary hover:underline">
-                Ver Agenda Completa
+                {t.dashboard.viewFullSchedule}
             </Link>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -131,7 +126,7 @@ export default function Dashboard() {
                             <p className="text-sm text-muted-foreground">Pierna & Glúteo</p>
                         </div>
                     </div>
-                    <Badge variant="secondary" className="bg-gray-200 text-gray-600">Completado</Badge>
+                    <Badge variant="secondary" className="bg-gray-200 text-gray-600">{t.dashboard.completed}</Badge>
                 </div>
              </div>
              <div className="flex items-start gap-4 p-4 rounded-lg border-2 border-primary">
@@ -148,7 +143,7 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                         <Badge variant="secondary" className="bg-green-100 text-green-700">En curso</Badge>
+                         <Badge variant="secondary" className="bg-green-100 text-green-700">{t.dashboard.inProgress}</Badge>
                         <Button variant="ghost" size="icon" className="rounded-full bg-primary h-8 w-8 text-primary-foreground">
                             <Play className="h-4 w-4" />
                         </Button>
@@ -168,7 +163,7 @@ export default function Dashboard() {
                             <p className="text-sm text-muted-foreground">Yoga & Flexibilidad</p>
                         </div>
                     </div>
-                    <Badge variant="outline">Próximo</Badge>
+                    <Badge variant="outline">{t.dashboard.upcoming}</Badge>
                 </div>
              </div>
           </CardContent>
@@ -177,7 +172,7 @@ export default function Dashboard() {
         <div className="space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Estado de Pagos</CardTitle>
+                    <CardTitle>{t.dashboard.paymentStatus}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="w-full flex justify-center items-center relative h-40">
@@ -192,52 +187,49 @@ export default function Dashboard() {
                          </ResponsiveContainer>
                          <div className="absolute text-center">
                             <p className="text-3xl font-bold">85%</p>
-                            <p className="text-sm text-muted-foreground">Cobrado</p>
+                            <p className="text-sm text-muted-foreground">{t.dashboard.collected}</p>
                          </div>
                     </div>
                     <div className="mt-4 space-y-2 text-sm">
                         <div className="flex justify-between">
                             <div className="flex items-center gap-2">
                                 <span className="h-2 w-2 rounded-full bg-primary"></span>
-                                <span>Pagado</span>
+                                <span>{language === 'es' ? 'Pagado' : 'Paid'}</span>
                             </div>
                             <span>2.450€</span>
                         </div>
                          <div className="flex justify-between">
                             <div className="flex items-center gap-2">
                                 <span className="h-2 w-2 rounded-full bg-accent"></span>
-                                <span>Pendiente</span>
+                                <span>{t.dashboard.pending}</span>
                             </div>
                             <span>450€</span>
                         </div>
                     </div>
-                    <Button variant="outline" className="w-full mt-4">Gestionar Facturas</Button>
+                    <Button variant="outline" className="w-full mt-4">{t.dashboard.manageInvoices}</Button>
                 </CardContent>
             </Card>
 
              <Card>
                 <CardHeader>
-                    <CardTitle>Actividad Reciente</CardTitle>
+                    <CardTitle>{t.dashboard.recentActivity}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="flex items-start gap-3">
                          <div className="h-5 w-5 rounded-full bg-green-100 flex items-center justify-center">
                             <Check className="h-3 w-3 text-green-600" />
                         </div>
-                        <p className="text-sm">
-                            <span className="font-semibold">Sofia</span> completó su rutina de "Full Body" <br/>
-                            <span className="text-xs text-muted-foreground">Hace 15 min</span>
-                        </p>
+                        <p className="text-sm" dangerouslySetInnerHTML={{ __html: t.dashboard.sofiaCompleted.replace(/\*\*(.*?)\*\*/g, '<span class="font-semibold">$1</span>') }} />
+                        
                     </div>
+                    <p className="text-xs text-muted-foreground ml-8 -mt-3">{t.dashboard.justNow}</p>
                     <div className="flex items-start gap-3">
                         <div className="h-5 w-5 rounded-full bg-blue-100 flex items-center justify-center">
                             <RefreshCw className="h-3 w-3 text-blue-600" />
                         </div>
-                        <p className="text-sm">
-                            <span className="font-semibold">Marc</span> registró su peso: 78.5kg <br/>
-                            <span className="text-xs text-muted-foreground">Hace 1 hora</span>
-                        </p>
+                         <p className="text-sm" dangerouslySetInnerHTML={{ __html: t.dashboard.marcRegistered.replace(/\*\*(.*?)\*\*/g, '<span class="font-semibold">$1</span>') }} />
                     </div>
+                    <p className="text-xs text-muted-foreground ml-8 -mt-3">{t.dashboard.oneHourAgo}</p>
                 </CardContent>
             </Card>
         </div>

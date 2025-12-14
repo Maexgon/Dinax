@@ -1,3 +1,4 @@
+
 'use client';
 
 import { TrendingDown } from 'lucide-react';
@@ -17,6 +18,7 @@ import {
 } from '@/components/ui/chart';
 import { weightData } from '@/lib/data';
 import { format } from 'date-fns';
+import { useLanguage } from '@/context/language-context';
 
 const chartConfig = {
   weight: {
@@ -26,11 +28,12 @@ const chartConfig = {
 };
 
 export function WeightChart() {
+  const { t } = useLanguage();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Weight Tracking</CardTitle>
-        <CardDescription>Body weight trend over the last 6 months.</CardDescription>
+        <CardTitle>{t.studentDetail.weightTracking}</CardTitle>
+        <CardDescription>{t.studentDetail.weightTrackingDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
@@ -68,10 +71,10 @@ export function WeightChart() {
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
             <div className="flex items-center gap-2 font-medium leading-none">
-               Weight is trending down <TrendingDown className="h-4 w-4" />
+               {t.studentDetail.trendingDown} <TrendingDown className="h-4 w-4" />
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              Slight decrease over the past 6 months.
+              {t.studentDetail.slightDecrease}
             </div>
           </div>
         </div>

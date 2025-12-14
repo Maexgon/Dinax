@@ -1,3 +1,4 @@
+
 'use client';
 
 import { TrendingUp } from 'lucide-react';
@@ -16,6 +17,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { progressData } from '@/lib/data';
+import { useLanguage } from '@/context/language-context';
 
 const chartConfig = {
   'Bench Press': {
@@ -33,11 +35,12 @@ const chartConfig = {
 };
 
 export function ProgressChart() {
+  const { t } = useLanguage();
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Lift Progress (1RM Est.)</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>{t.studentDetail.liftProgress}</CardTitle>
+        <CardDescription>{t.studentDetail.liftProgressDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
@@ -60,10 +63,10 @@ export function ProgressChart() {
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
             <div className="flex items-center gap-2 font-medium leading-none">
-              Trending up by 5% this month <TrendingUp className="h-4 w-4" />
+              {t.studentDetail.trendingUp} <TrendingUp className="h-4 w-4" />
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              Showing total lift progress for the last 6 months
+              {t.studentDetail.showingTotal}
             </div>
           </div>
         </div>

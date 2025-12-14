@@ -1,7 +1,8 @@
+
+'use client';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Dumbbell, HeartPulse, Scale, Ruler, FileText, User } from 'lucide-react';
-
 import {
   Card,
   CardContent,
@@ -9,15 +10,15 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { ProgressChart } from '@/components/charts/progress-chart';
 import { WeightChart } from '@/components/charts/weight-chart';
 import AIGoalSuggester from '@/components/ai-goal-suggester';
 
 import { mockStudents } from '@/lib/data';
-import type { Student } from '@/lib/types';
+import { useLanguage } from '@/context/language-context';
 
 export default function StudentDetailPage({ params }: { params: { id: string } }) {
+  const { t } = useLanguage();
   const student = mockStudents.find((s) => s.id === params.id);
 
   if (!student) {
@@ -49,9 +50,9 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
             <CardTitle className="text-4xl font-headline">{student.name}</CardTitle>
             <CardDescription className="text-lg">{student.email}</CardDescription>
             <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
-              <span>Joined: {student.joinDate}</span>
+              <span>{t.studentDetail.joined}: {student.joinDate}</span>
               <span>|</span>
-              <span>Plan: {student.currentPlan}</span>
+              <span>{t.studentDetail.plan}: {student.currentPlan}</span>
             </div>
           </div>
         </CardHeader>
@@ -60,7 +61,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Age</CardTitle>
+                <CardTitle className="text-sm font-medium">{t.studentDetail.age}</CardTitle>
                 <User className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -69,7 +70,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
         </Card>
         <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Weight</CardTitle>
+                <CardTitle className="text-sm font-medium">{t.studentDetail.weight}</CardTitle>
                 <Scale className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -78,7 +79,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
         </Card>
         <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Height</CardTitle>
+                <CardTitle className="text-sm font-medium">{t.studentDetail.height}</CardTitle>
                 <Ruler className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -87,7 +88,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
         </Card>
         <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">Gender</CardTitle>
+                <CardTitle className="text-sm font-medium">{t.studentDetail.gender}</CardTitle>
                 <HeartPulse className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -99,7 +100,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5"/> Medical Conditions</CardTitle>
+                <CardTitle className="flex items-center gap-2"><FileText className="h-5 w-5"/> {t.studentDetail.medicalConditions}</CardTitle>
             </CardHeader>
             <CardContent>
                 <p className="text-sm text-muted-foreground">{student.profile.medicalConditions}</p>
@@ -107,7 +108,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
         </Card>
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Dumbbell className="h-5 w-5"/> Biomechanical Data</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Dumbbell className="h-5 w-5"/> {t.studentDetail.biomechanicalData}</CardTitle>
             </CardHeader>
             <CardContent>
                 <p className="text-sm text-muted-foreground">{student.profile.biomechanicalData}</p>
@@ -117,7 +118,7 @@ export default function StudentDetailPage({ params }: { params: { id: string } }
 
       <AIGoalSuggester studentProfile={studentProfileForAI} />
 
-      <h2 className="text-2xl font-bold font-headline mt-4">Progress Visualizations</h2>
+      <h2 className="text-2xl font-bold font-headline mt-4">{t.studentDetail.progressVisualizations}</h2>
       <div className="grid gap-6 md:grid-cols-2">
         <ProgressChart />
         <WeightChart />

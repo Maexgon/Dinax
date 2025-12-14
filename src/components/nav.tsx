@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -21,18 +22,20 @@ import {
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-
-const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/students', icon: Users, label: 'Alumnos' },
-  { href: '/schedule', icon: Calendar, label: 'Agenda' },
-  { href: '/payments', icon: Wallet, label: 'Finanzas' },
-];
+import { useLanguage } from '@/context/language-context';
 
 const coachAvatar = PlaceHolderImages.find(p => p.id === 'student-1');
 
 export function Nav() {
   const pathname = usePathname();
+  const { t } = useLanguage();
+
+  const navItems = [
+    { href: '/dashboard', icon: LayoutDashboard, label: t.nav.dashboard },
+    { href: '/students', icon: Users, label: t.nav.students },
+    { href: '/schedule', icon: Calendar, label: t.nav.schedule },
+    { href: '/payments', icon: Wallet, label: t.nav.finances },
+  ];
 
   return (
     <Sidebar>
@@ -72,22 +75,22 @@ export function Nav() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-             <SidebarMenuButton asChild tooltip="Ajustes">
+             <SidebarMenuButton asChild tooltip={t.nav.settings}>
                 <Link href="#">
                   <Settings />
-                  <span>Ajustes</span>
+                  <span>{t.nav.settings}</span>
                 </Link>
               </SidebarMenuButton>
           </SidebarMenuItem>
            <SidebarMenuItem>
             <div className="flex items-center gap-3 p-2">
                 <Avatar className="h-10 w-10">
-                    <AvatarImage src={coachAvatar?.imageUrl} alt="Coach Sara" data-ai-hint={coachAvatar?.imageHint} />
+                    <AvatarImage src={coachAvatar?.imageUrl} alt={t.nav.coachSara} data-ai-hint={coachAvatar?.imageHint} />
                     <AvatarFallback>CS</AvatarFallback>
                 </Avatar>
                 <div>
-                    <p className="font-semibold text-sm">Coach Sara</p>
-                    <p className="text-xs text-muted-foreground">Pro Account</p>
+                    <p className="font-semibold text-sm">{t.nav.coachSara}</p>
+                    <p className="text-xs text-muted-foreground">{t.nav.proAccount}</p>
                 </div>
             </div>
            </SidebarMenuItem>

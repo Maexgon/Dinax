@@ -1,3 +1,5 @@
+
+'use client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { PlusCircle } from 'lucide-react';
@@ -12,17 +14,19 @@ import {
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { mockStudents } from '@/lib/data';
+import { useLanguage } from '@/context/language-context';
 
 export default function StudentsPage() {
+  const { t } = useLanguage();
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-            <h1 className="text-3xl font-bold font-headline">Students</h1>
-            <p className="text-muted-foreground">Manage your student profiles and track their progress.</p>
+            <h1 className="text-3xl font-bold font-headline">{t.students.title}</h1>
+            <p className="text-muted-foreground">{t.students.description}</p>
         </div>
         <Button>
-          <PlusCircle className="mr-2 h-4 w-4" /> Add New Student
+          <PlusCircle className="mr-2 h-4 w-4" /> {t.students.addNewStudent}
         </Button>
       </div>
 
@@ -44,15 +48,15 @@ export default function StudentsPage() {
               <CardDescription>{student.email}</CardDescription>
               <div className="mt-4">
                 <p className="text-sm font-medium text-muted-foreground mb-1">
-                  Plan Progress
+                  {t.students.planProgress}
                 </p>
                 <Progress value={student.progress} className="h-2" />
-                <p className="text-xs text-accent mt-1">{student.progress}% complete</p>
+                <p className="text-xs text-accent mt-1">{student.progress}{t.students.complete}</p>
               </div>
             </CardContent>
             <CardFooter>
               <Button asChild className="w-full">
-                <Link href={`/students/${student.id}`}>View Profile</Link>
+                <Link href={`/students/${student.id}`}>{t.students.viewProfile}</Link>
               </Button>
             </CardFooter>
           </Card>
