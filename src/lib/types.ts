@@ -18,14 +18,28 @@ export type Student = {
   };
 };
 
+export type Exercise = {
+    name: string;
+    category?: string;
+    image: string;
+    warmup?: string;
+    sets?: number | string;
+    reps?: number | string;
+    rpe?: number | string;
+    rest?: string;
+};
+
+export type Workout = {
+    day: string;
+    description: string;
+    exercises?: Exercise[];
+};
+
 export type TrainingCycle = {
   name: string;
   duration: string;
   focus: string;
-  workouts: {
-    day: string;
-    description: string;
-  }[];
+  workouts: Workout[];
 };
 
 export type TrainingPlan = {

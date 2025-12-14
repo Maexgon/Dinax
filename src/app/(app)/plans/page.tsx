@@ -1,83 +1,214 @@
 
 'use client';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import Image from 'next/image';
+import { Search, Plus, MoreVertical, GripVertical, Forward, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
-import { mockTrainingPlans } from '@/lib/data';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
+import { mockTrainingPlans } from '@/lib/data';
+import type { Student, TrainingPlan, Exercise } from '@/lib/types';
+import { mockStudents } from '@/lib/data';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
+
+const popularExercises: Exercise[] = [
+    { name: 'Barbell Squat', category: 'Legs • Compound', image: 'https://picsum.photos/seed/squat/100/100' },
+    { name: 'Bench Press', category: 'Chest • Compound', image: 'https://picsum.photos/seed/bench/100/100' },
+    { name: 'Deadlift', category: 'Back • Compound', image: 'https://picsum.photos/seed/deadlift/100/100' },
+    { name: 'Overhead Press', category: 'Shoulders • Compound', image: 'https://picsum.photos/seed/ohp/100/100' },
+    { name: 'Walking Lunges', category: 'Legs • Unilateral', image: 'https://picsum.photos/seed/lunges/100/100' },
+];
+
+const ExerciseCard = ({ exercise }: { exercise: Exercise }) => {
+    return (
+        <Card className="shadow-md">
+            <CardContent className="p-3">
+                <div className="flex items-center gap-3">
+                    <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
+                     <Image src={exercise.image || 'https://picsum.photos/seed/placeholder/100/100'} alt={exercise.name} width={60} height={60} className="rounded-md" />
+                    <div className="flex-1">
+                        <p className="font-semibold">{exercise.name}</p>
+                        {exercise.warmup && <p className="text-xs text-primary">{exercise.warmup}</p>}
+                    </div>
+                    <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div className="grid grid-cols-4 gap-2 text-center mt-3">
+                    <div>
+                        <p className="text-xs text-muted-foreground">SETS</p>
+                        <div className="p-2 bg-muted rounded-md mt-1 font-bold">{exercise.sets}</div>
+                    </div>
+                    <div>
+                        <p className="text-xs text-muted-foreground">REPS</p>
+                        <div className="p-2 bg-muted rounded-md mt-1 font-bold">{exercise.reps}</div>
+                    </div>
+                    <div>
+                        <p className="text-xs text-muted-foreground">RPE</p>
+                        <div className="p-2 bg-muted rounded-md mt-1 font-bold">{exercise.rpe}</div>
+                    </div>
+                    <div>
+                        <p className="text-xs text-muted-foreground">REST</p>
+                        <div className="p-2 bg-muted rounded-md mt-1 font-bold">{exercise.rest}</div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+const DaySchedule = ({ day, focus, exercises }: { day: string, focus: string, exercises?: Exercise[] }) => {
+    
+    if (!exercises || exercises.length === 0) {
+        return (
+             <Card className="bg-muted/50">
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-semibold">{day} <span className="text-sm font-normal text-muted-foreground">{focus}</span></h3>
+                        <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                </CardHeader>
+                <CardContent className="text-center py-10">
+                     <div className="flex items-center justify-center h-16 w-16 rounded-full bg-background mx-auto">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 text-primary"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    </div>
+                    <h4 className="font-semibold mt-4">Active Recovery</h4>
+                    <p className="text-sm text-muted-foreground mt-1">Light stretching or 30 mins walk recommended.</p>
+                </CardContent>
+            </Card>
+        )
+    }
+    
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex justify-between items-center">
+                    <h3 className="text-lg font-semibold">{day} <span className="text-sm font-normal text-muted-foreground">{focus}</span></h3>
+                    <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+                {exercises.map((ex, index) => (
+                    <ExerciseCard key={index} exercise={ex} />
+                ))}
+                <Button variant="outline" className="w-full border-dashed">
+                    <Plus className="mr-2 h-4 w-4" /> Drag exercises here
+                </Button>
+            </CardContent>
+        </Card>
+    )
+}
 
 export default function PlansPage() {
-  const { t } = useLanguage();
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold font-headline">{t.plans.title}</h1>
-          <p className="text-muted-foreground">
-            {t.plans.description}
-          </p>
-        </div>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" /> {t.plans.createNewPlan}
-        </Button>
-      </div>
+    const { t } = useLanguage();
+    const plan = mockTrainingPlans[0];
+    const student = mockStudents[1];
 
-      <div className="space-y-6">
-        {mockTrainingPlans.map((plan) => (
-          <Card key={plan.id}>
-            <CardHeader>
-              <CardTitle className="font-headline text-2xl">{plan.name}</CardTitle>
-              <CardDescription>{plan.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Accordion type="multiple" className="w-full">
-                <AccordionItem value="mesocycles">
-                  <AccordionTrigger className="text-lg font-semibold">{t.plans.mesocycles}</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-4 pl-4">
-                      {plan.mesocycles.map((cycle) => (
-                        <div key={cycle.name}>
-                          <h4 className="font-semibold">{cycle.name}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            <strong>{t.plans.focus}:</strong> {cycle.focus}
-                          </p>
-                        </div>
-                      ))}
+    const weekSchedule = [
+        { day: 'Monday', focus: 'Legs Focus', exercises: plan.microcycles[0].workouts.find(w => w.day === 'Monday')?.exercises },
+        { day: 'Tuesday', focus: 'Rest / Recovery', exercises: [] },
+        { day: 'Wednesday', focus: 'Push Focus', exercises: plan.microcycles[0].workouts.find(w => w.day === 'Wednesday')?.exercises },
+        { day: 'Thursday', focus: 'Rest / Recovery', exercises: [] },
+        { day: 'Friday', focus: 'Pull Focus', exercises: plan.microcycles[0].workouts.find(w => w.day === 'Friday')?.exercises },
+    ]
+
+  return (
+    <div className="flex flex-col h-full">
+      <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-12 w-12 border-2 border-primary">
+            <AvatarImage src={student.avatarUrl} alt={student.name} data-ai-hint={student.avatarHint}/>
+            <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          <div>
+            <h1 className="text-2xl font-bold font-headline">Plan for: {student.name}</h1>
+            <p className="text-muted-foreground">
+              Hypertrophy • Phase: Building (Week 1/4)
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+            <Button variant="outline">
+                <Forward className="mr-2 h-4 w-4" /> Send to Client
+            </Button>
+            <Button>
+                <Save className="mr-2 h-4 w-4" /> Save Plan
+            </Button>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
+        {/* Exercise Library */}
+        <div className="lg:col-span-1 bg-card p-4 rounded-lg flex flex-col">
+            <div className="relative mb-4">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Search exercises..." className="pl-8" />
+            </div>
+            <div className="flex gap-2 mb-4">
+                <Button size="sm" variant="secondary">All</Button>
+                <Button size="sm" variant="ghost">Strength</Button>
+                <Button size="sm" variant="ghost">Cardio</Button>
+                <Button size="sm" variant="ghost">Plyo</Button>
+            </div>
+            <h3 className="text-sm font-semibold mb-2">MOST POPULAR</h3>
+            <div className="space-y-2 overflow-y-auto">
+                {popularExercises.map((ex, index) => (
+                    <Card key={index}>
+                        <CardContent className="p-2 flex items-center gap-3">
+                            <Image src={ex.image} alt={ex.name} width={40} height={40} className="rounded-md" />
+                            <div className="flex-1">
+                                <p className="font-semibold text-sm">{ex.name}</p>
+                                <p className="text-xs text-muted-foreground">{ex.category}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ))}
+            </div>
+        </div>
+        
+        {/* Weekly Schedule */}
+        <div className="lg:col-span-2 space-y-6 overflow-y-auto">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Week 1 Schedule</CardTitle>
+                        <CardDescription>4 Workouts • 3 Rest Days • Estimated volume: High</CardDescription>
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="microcycles">
-                  <AccordionTrigger className="text-lg font-semibold">{t.plans.microcycles}</AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-4 pl-4">
-                      {plan.microcycles.map((cycle) => (
-                        <div key={cycle.name}>
-                          <h4 className="font-semibold">{cycle.name} ({cycle.duration})</h4>
-                           <p className="text-sm text-muted-foreground mb-2">
-                            <strong>{t.plans.focus}:</strong> {cycle.focus}
-                          </p>
-                          <ul className="list-disc list-inside space-y-1 text-sm">
-                            {cycle.workouts.map((workout) => (
-                              <li key={workout.day}>
-                                <strong>{workout.day}:</strong> {workout.description}
-                              </li>
-                            ))}
-                          </ul>
+                    <div className="flex gap-4 text-center">
+                        <div>
+                            <p className="text-xs text-muted-foreground">Est. Duration</p>
+                            <p className="font-bold">5h 30m</p>
                         </div>
-                      ))}
+                        <div>
+                            <p className="text-xs text-muted-foreground">Intensity</p>
+                            <Badge variant="destructive">High</Badge>
+                        </div>
                     </div>
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-            </CardContent>
-          </Card>
-        ))}
+                </CardHeader>
+            </Card>
+
+            <div className="space-y-6">
+                {weekSchedule.map((dayData, index) => (
+                    <DaySchedule key={index} day={dayData.day} focus={dayData.focus} exercises={dayData.exercises} />
+                ))}
+            </div>
+
+            <Card className="mt-6 sticky bottom-4 bg-background/80 backdrop-blur-sm">
+                <CardContent className="p-4 flex items-center justify-between">
+                    <div >
+                        <p className="font-semibold">Weekly Targets</p>
+                        <p className="text-sm text-muted-foreground">75% completed</p>
+                    </div>
+                    <div className="w-24 h-2 bg-muted rounded-full">
+                        <div className="w-3/4 h-2 bg-primary rounded-full"></div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
       </div>
     </div>
   );

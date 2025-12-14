@@ -1,4 +1,4 @@
-import { Student, TrainingPlan, Payment, CalendarEvent, Service } from './types';
+import { Student, TrainingPlan, Payment, CalendarEvent, Service, Workout } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImage = (id: string) => {
@@ -126,6 +126,34 @@ export const mockStudents: Student[] = [
   },
 ];
 
+const mondayWorkout: Workout = {
+    day: 'Monday',
+    description: 'Legs Focus',
+    exercises: [
+        { name: 'Barbell Squat', warmup: 'Warmup: 1 x 15', sets: 4, reps: '6-8', rpe: 8, rest: '120s', image: 'https://picsum.photos/seed/squat/100/100' },
+        { name: 'Leg Extension', sets: 3, reps: '12-15', rpe: 9, rest: '90s', image: 'https://picsum.photos/seed/leg_extension/100/100' },
+    ]
+};
+
+const wednesdayWorkout: Workout = {
+    day: 'Wednesday',
+    description: 'Push Focus',
+    exercises: [
+        { name: 'Bench Press', sets: 4, reps: '8-10', rpe: 8.5, rest: '120s', image: 'https://picsum.photos/seed/bench_press/100/100' },
+        { name: 'OHP (Dumbbells)', sets: 3, reps: '10-12', rpe: 9, rest: '90s', image: 'https://picsum.photos/seed/ohp_dumbbells/100/100' },
+    ]
+};
+
+const fridayWorkout: Workout = {
+    day: 'Friday',
+    description: 'Pull Focus',
+    exercises: [
+        { name: 'Deadlift', sets: 1, reps: 5, rpe: 8, rest: '180s', image: 'https://picsum.photos/seed/deadlift_friday/100/100' },
+        { name: 'Pull-ups', sets: 4, reps: 'AMRAP', rpe: 9, rest: '120s', image: 'https://picsum.photos/seed/pullups/100/100' },
+    ]
+};
+
+
 export const mockTrainingPlans: TrainingPlan[] = [
   {
     id: 'plan-1',
@@ -157,19 +185,9 @@ export const mockTrainingPlans: TrainingPlan[] = [
         duration: '1 Week',
         focus: 'Introduction to main lifts',
         workouts: [
-          { day: 'Monday', description: 'Full Body: Squat 3x5, Bench Press 3x5, Barbell Row 3x5' },
-          { day: 'Wednesday', description: 'Full Body: Deadlift 1x5, Overhead Press 3x5, Pull-ups 3xAMRAP' },
-          { day: 'Friday', description: 'Full Body: Squat 3x5, Bench Press 3x5, Barbell Row 3x5' },
-        ],
-      },
-      {
-        name: 'Microcycle 2 (Week 2)',
-        duration: '1 Week',
-        focus: 'Increasing volume',
-        workouts: [
-          { day: 'Monday', description: 'Full Body: Squat 4x5, Bench Press 4x5, Barbell Row 4x5' },
-          { day: 'Wednesday', description: 'Full Body: Deadlift 1x5, Overhead Press 4x5, Pull-ups 4xAMRAP' },
-          { day: 'Friday', description: 'Full Body: Squat 4x5, Bench Press 4x5, Barbell Row 4x5' },
+          mondayWorkout,
+          wednesdayWorkout,
+          fridayWorkout,
         ],
       },
     ],
