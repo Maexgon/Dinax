@@ -86,6 +86,44 @@ export const mockStudents: Student[] = [
       biomechanicalData: 'Neutral foot strike. Benefits from single-leg stability work.',
     },
   },
+  {
+    id: '5',
+    name: 'Javier Pérez',
+    email: 'javier.p@example.com',
+    avatarUrl: getImage('student-5').url,
+    avatarHint: getImage('student-5').hint,
+    joinDate: '2023-11-20',
+    currentPlan: 'CrossFit 5x',
+    progress: 90,
+    trainingDays: ['L', 'M', 'X', 'J', 'V'],
+    profile: {
+        age: 30,
+        gender: 'Male',
+        weight: 88,
+        height: 178,
+        medicalConditions: 'None',
+        biomechanicalData: 'Solid overhead squat form.',
+    },
+  },
+  {
+    id: '6',
+    name: 'Lucía Fernández',
+    email: 'lucia.f@example.com',
+    avatarUrl: getImage('student-6').url,
+    avatarHint: getImage('student-6').hint,
+    joinDate: '2024-03-01',
+    currentPlan: 'Yoga y Flexibilidad',
+    progress: 50,
+    trainingDays: ['M', 'X', 'V'],
+    profile: {
+        age: 27,
+        gender: 'Female',
+        weight: 60,
+        height: 168,
+        medicalConditions: 'None',
+        biomechanicalData: 'Good range of motion in hips.',
+    },
+  },
 ];
 
 export const mockTrainingPlans: TrainingPlan[] = [
@@ -153,6 +191,8 @@ export const mockPayments: Payment[] = [
   { id: 'pay-3', studentId: '2', studentName: 'Ana García', service: 'Funcional 3x', amount: 50, date: '2024-07-01T00:00:00', status: 'Pending' },
   { id: 'pay-4', studentId: '3', studentName: 'David Lopez', service: 'Personalizado Pro', amount: 90, date: '2024-07-01T00:00:00', status: 'Paid' },
   { id: 'pay-5', studentId: '4', studentName: 'Marta Diaz', service: 'Pilates Reformer', amount: 75, date: '2024-06-01T00:00:00', status: 'Overdue' },
+  { id: 'pay-6', studentId: '5', studentName: 'Javier Pérez', service: 'CrossFit 5x', amount: 80, date: '2024-07-05T00:00:00', status: 'Paid' },
+  { id: 'pay-7', studentId: '6', studentName: 'Lucía Fernández', service: 'Yoga y Flexibilidad', amount: 45, date: '2024-07-03T00:00:00', status: 'Pending' },
 ];
 
 export const mockCalendarEvents: CalendarEvent[] = [

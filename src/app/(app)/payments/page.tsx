@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import Image from 'next/image';
@@ -13,16 +12,57 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, List, Edit, Trash, Search, DollarSign, Users, Activity, MessageSquare, Phone, Edit2, CheckCircle } from 'lucide-react';
+import { PlusCircle, List, Edit, Trash, Search, DollarSign, Users, Activity, MessageSquare, Phone, Edit2, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { mockPayments, mockServices, mockStudents } from '@/lib/data';
 import { useLanguage } from '@/context/language-context';
 import { Student } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 
+const ITEMS_PER_PAGE = 5;
+
+function Pagination({ currentPage, totalItems, itemsPerPage, onPageChange }: { currentPage: number, totalItems: number, itemsPerPage: number, onPageChange: (page: number) => void }) {
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const canGoPrevious = currentPage > 1;
+    const canGoNext = currentPage < totalPages;
+
+    return (
+        <div className="flex items-center justify-end space-x-2 py-4">
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={!canGoPrevious}
+            >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+            </Button>
+            <span className="text-sm text-muted-foreground">
+                Página {currentPage} de {totalPages}
+            </span>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={!canGoNext}
+            >
+                Siguiente
+                <ChevronRight className="h-4 w-4" />
+            </Button>
+        </div>
+    );
+}
+
+
 export default function PaymentsPage() {
   const { t, language } = useLanguage();
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(mockStudents[0]);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const paginatedStudents = mockStudents.slice(
+      (currentPage - 1) * ITEMS_PER_PAGE,
+      currentPage * ITEMS_PER_PAGE
+  );
 
   const getStatusVariant = (status: 'Paid' | 'Pending' | 'Overdue'): { variant: "default" | "secondary" | "destructive" | "outline" | null | undefined, text: string } => {
     switch (status) {
@@ -107,14 +147,14 @@ export default function PaymentsPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-2/5">{t.payments.student}</TableHead>
-                                <TableHead>{t.payments.currentPlan}</TableHead>
-                                <TableHead>{t.payments.days}</TableHead>
-                                <TableHead className="text-right">{t.payments.status}</TableHead>
+                                <TableHead className="w-[35%]">{t.payments.student}</TableHead>
+                                <TableHead className="w-[25%]">{t.payments.currentPlan}</TableHead>
+                                <TableHead className="w-[25%]">{t.payments.days}</TableHead>
+                                <TableHead className="text-right w-[15%]">{t.payments.status}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {mockStudents.map((student) => {
+                            {paginatedStudents.map((student) => {
                                 const payment = mockPayments.find(p => p.studentId === student.id) || { status: 'Paid', service: student.currentPlan, amount: 65 };
                                 const statusInfo = getStatusVariant(payment.status);
 
@@ -138,7 +178,7 @@ export default function PaymentsPage() {
                                             {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => {
                                                 const isTrainingDay = student.trainingDays.includes(day);
                                                 return (
-                                                    <span key={day} className={`flex items-center justify-center h-6 w-6 rounded-full text-xs font-semibold ${isTrainingDay ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                                                    <span key={day} className={`flex items-center justify-center h-5 w-5 rounded-full text-xs font-semibold ${isTrainingDay ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                                                         {day}
                                                     </span>
                                                 )
@@ -155,6 +195,12 @@ export default function PaymentsPage() {
                             })}
                         </TableBody>
                     </Table>
+                    <Pagination 
+                        currentPage={currentPage}
+                        totalItems={mockStudents.length}
+                        itemsPerPage={ITEMS_PER_PAGE}
+                        onPageChange={setCurrentPage}
+                    />
                 </CardContent>
             </Card>
         </div>
