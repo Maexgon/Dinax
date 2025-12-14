@@ -72,4 +72,5 @@ export type CalendarEvent = {
   start: Date;
   end: Date;
   studentName: string;
+  studentAvatar?: string;
 };

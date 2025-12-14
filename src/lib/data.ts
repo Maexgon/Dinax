@@ -213,10 +213,15 @@ export const mockPayments: Payment[] = [
   { id: 'pay-7', studentId: '6', studentName: 'Lucía Fernández', service: 'Yoga y Flexibilidad', amount: 45, date: '2024-07-03T00:00:00', status: 'Pending' },
 ];
 
+const now = new Date();
+
 export const mockCalendarEvents: CalendarEvent[] = [
-  { id: '1', title: 'Training: Alex Johnson', start: new Date(2024, 6, 25, 9, 0), end: new Date(2024, 6, 25, 10, 0), studentName: 'Alex Johnson' },
-  { id: '2', title: 'Training: Maria Garcia', start: new Date(2024, 6, 26, 11, 0), end: new Date(2024, 6, 26, 12, 0), studentName: 'Maria Garcia' },
-  { id: '3', title: 'Consultation: James Smith', start: new Date(2024, 6, 26, 14, 0), end: new Date(2024, 6, 26, 14, 30), studentName: 'James Smith' },
+    { id: '1', title: 'HIIT Intenso', start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 30), end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 30), studentName: 'Carlos Rodriguez' },
+    { id: '2', title: 'Yoga & Flexibilidad', start: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0), end: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 13, 0), studentName: 'Ana García' },
+    { id: '3', title: 'Fuerza Superior', start: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 9, 0), end: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 10, 0), studentName: 'David Lopez' },
+    { id: '4', title: 'Evaluación Mensual', start: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2, 10, 0), end: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2, 10, 30), studentName: 'Marta Diaz' },
+    { id: '5', title: 'Cardio Box', start: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2, 14, 0), end: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2, 15, 0), studentName: 'Javier Pérez' },
+    { id: '6', title: 'CrossFit', start: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 3, 11, 0), end: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 3, 12, 0), studentName: 'Lucía Fernández' },
 ];
 
 export const progressData = [
