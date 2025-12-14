@@ -75,6 +75,10 @@ import { mockNotes } from '@/lib/data';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+import { WeightChart } from '@/components/charts/weight-chart';
+import { BodyCompositionChart } from '@/components/charts/body-composition-chart';
+import { MuscleMassChart } from '@/components/charts/muscle-mass-chart';
+
 const MetricItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | React.ReactNode }) => (
     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
         <div className="flex items-center gap-3">
@@ -169,12 +173,12 @@ export default function StudentDetailClientPage({ student }: { student: Student 
 
         {/* Right Column */}
         <div className="lg:col-span-2">
-            <Tabs defaultValue="biomechanics">
+            <Tabs defaultValue="progress">
                 <TabsList className="grid w-full grid-cols-4 bg-muted">
-                    <TabsTrigger key="personal-info" value="personal-info">{t.studentDetail.personalInfo}</TabsTrigger>
-                    <TabsTrigger key="medical" value="medical">{t.studentDetail.medicalTitle}</TabsTrigger>
-                    <TabsTrigger key="biomechanics" value="biomechanics">{t.studentDetail.biomechanics}</TabsTrigger>
-                    <TabsTrigger key="progress" value="progress">{t.studentDetail.progress}</TabsTrigger>
+                    <TabsTrigger value="personal-info">{t.studentDetail.personalInfo}</TabsTrigger>
+                    <TabsTrigger value="medical">{t.studentDetail.medicalTitle}</TabsTrigger>
+                    <TabsTrigger value="biomechanics">{t.studentDetail.biomechanics}</TabsTrigger>
+                    <TabsTrigger value="progress">{t.studentDetail.progress}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="personal-info">
                     <Card>
@@ -328,41 +332,40 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                     </Card>
                 </TabsContent>
                  <TabsContent value="progress">
-                     <Card>
-                        <CardHeader>
-                          <CardTitle>{t.studentDetail.progress}</CardTitle>
-                          <CardDescription>Progress charts and data will be shown here.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-8">
-                            <p>Progress charts will be shown here.</p>
-                            <Separator />
-                             <div>
-                                <div className="flex justify-between items-center mb-4">
-                                  <h3 className="text-lg font-semibold">{t.studentDetail.trackingNotes}</h3>
-                                  <Button variant="outline"><Plus className="mr-2 h-4 w-4"/> {t.studentDetail.addNote}</Button>
-                                </div>
-                                <div className="space-y-6">
-                                  {mockNotes.map((note) => (
-                                    <div key={note.id} className="flex items-start gap-4">
-                                      <Avatar className="h-10 w-10 border">
-                                        <AvatarImage src={note.coachAvatarUrl} alt={note.coachName} data-ai-hint={note.coachAvatarHint}/>
-                                        <AvatarFallback>{note.coachName.charAt(0)}</AvatarFallback>
-                                      </Avatar>
-                                      <div className="flex-1">
-                                        <div className="flex items-center justify-between">
-                                          <p className="font-semibold">{note.coachName}</p>
-                                          <p className="text-xs text-muted-foreground">
-                                            {format(new Date(note.date), "PPP p", { locale: language === 'es' ? es : undefined })}
-                                          </p>
-                                        </div>
-                                        <p className="text-sm text-muted-foreground mt-1">{note.content}</p>
-                                      </div>
+                     <div className="space-y-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <WeightChart />
+                            <BodyCompositionChart />
+                        </div>
+                        <MuscleMassChart />
+
+                        <Separator />
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-semibold">{t.studentDetail.trackingNotes}</h3>
+                                <Button variant="outline"><Plus className="mr-2 h-4 w-4"/> {t.studentDetail.addNote}</Button>
+                            </div>
+                            <div className="space-y-6">
+                                {mockNotes.map((note) => (
+                                <div key={note.id} className="flex items-start gap-4">
+                                    <Avatar className="h-10 w-10 border">
+                                    <AvatarImage src={note.coachAvatarUrl} alt={note.coachName} data-ai-hint={note.coachAvatarHint}/>
+                                    <AvatarFallback>{note.coachName.charAt(0)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                    <div className="flex items-center justify-between">
+                                        <p className="font-semibold">{note.coachName}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                        {format(new Date(note.date), "PPP p", { locale: language === 'es' ? es : undefined })}
+                                        </p>
                                     </div>
-                                  ))}
+                                    <p className="text-sm text-muted-foreground mt-1">{note.content}</p>
+                                    </div>
                                 </div>
-                              </div>
-                        </CardContent>
-                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
                 </TabsContent>
             </Tabs>
         </div>

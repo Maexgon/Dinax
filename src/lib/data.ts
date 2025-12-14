@@ -243,6 +243,24 @@ export const weightData = [
     { date: "2024-07-01", weight: 85.0 },
 ];
 
+export const bodyCompositionData = [
+    { month: 'Ene', fatPercentage: 22.5, muscleMass: 40.1 },
+    { month: 'Feb', fatPercentage: 22.1, muscleMass: 40.5 },
+    { month: 'Mar', fatPercentage: 21.5, muscleMass: 41.2 },
+    { month: 'Abr', fatPercentage: 20.9, muscleMass: 41.8 },
+    { month: 'May', fatPercentage: 20.2, muscleMass: 42.5 },
+    { month: 'Jun', fatPercentage: 19.8, muscleMass: 43.1 },
+];
+
+export const muscleMassData = [
+    { month: 'M1', muscle: 41.2 },
+    { month: 'M2', muscle: 41.8 },
+    { month: 'M3', muscle: 42.5 },
+    { month: 'M4', muscle: 43.1 },
+    { month: 'Actual', muscle: 43.5 },
+];
+
+
 const coachImage = getImage('student-1');
 
 export const mockNotes: Note[] = [
