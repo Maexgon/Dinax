@@ -172,7 +172,7 @@ export default function StudentDetailClientPage({ student }: { student: Student 
             <Tabs defaultValue="biomechanics">
                 <TabsList className="grid w-full grid-cols-4 bg-muted">
                     <TabsTrigger key="personal-info" value="personal-info">{t.studentDetail.personalInfo}</TabsTrigger>
-                    <TabsTrigger key="medical" value="medical">{t.studentDetail.medical}</TabsTrigger>
+                    <TabsTrigger key="medical" value="medical">{t.studentDetail.medicalTitle}</TabsTrigger>
                     <TabsTrigger key="biomechanics" value="biomechanics">{t.studentDetail.biomechanics}</TabsTrigger>
                     <TabsTrigger key="progress" value="progress">{t.studentDetail.progress}</TabsTrigger>
                 </TabsList>
