@@ -12,13 +12,14 @@ const getImage = (id: string) => {
 export const mockStudents: Student[] = [
   {
     id: '1',
-    name: 'Alex Johnson',
-    email: 'alex.j@example.com',
+    name: 'Carlos Rodriguez',
+    email: 'carlos.rod@example.com',
     avatarUrl: getImage('student-1').url,
     avatarHint: getImage('student-1').hint,
-    joinDate: '2023-01-15',
-    currentPlan: 'Strength Builder',
+    joinDate: '2022-08-20',
+    currentPlan: 'Hipertrofia 4x',
     progress: 75,
+    trainingDays: ['L', 'M', 'J', 'V'],
     profile: {
       age: 28,
       gender: 'Male',
@@ -30,13 +31,14 @@ export const mockStudents: Student[] = [
   },
   {
     id: '2',
-    name: 'Maria Garcia',
-    email: 'maria.g@example.com',
+    name: 'Ana García',
+    email: 'ana.g@example.com',
     avatarUrl: getImage('student-2').url,
     avatarHint: getImage('student-2').hint,
-    joinDate: '2023-03-22',
-    currentPlan: 'Cardio King',
+    joinDate: '2024-02-15',
+    currentPlan: 'Funcional 3x',
     progress: 60,
+    trainingDays: ['L', 'M', 'V'],
     profile: {
       age: 32,
       gender: 'Female',
@@ -48,13 +50,14 @@ export const mockStudents: Student[] = [
   },
   {
     id: '3',
-    name: 'James Smith',
-    email: 'james.s@example.com',
+    name: 'David Lopez',
+    email: 'david.l@example.com',
     avatarUrl: getImage('student-3').url,
     avatarHint: getImage('student-3').hint,
     joinDate: '2023-05-10',
-    currentPlan: 'Hypertrophy Focus',
+    currentPlan: 'Personalizado Pro',
     progress: 85,
+    trainingDays: ['L', 'M', 'X', 'J', 'V'],
     profile: {
       age: 24,
       gender: 'Male',
@@ -66,13 +69,14 @@ export const mockStudents: Student[] = [
   },
   {
     id: '4',
-    name: 'Emily White',
-    email: 'emily.w@example.com',
+    name: 'Marta Diaz',
+    email: 'marta.d@example.com',
     avatarUrl: getImage('student-4').url,
     avatarHint: getImage('student-4').hint,
-    joinDate: '2023-06-01',
-    currentPlan: 'Endurance Runner',
+    joinDate: '2024-01-01',
+    currentPlan: 'Pilates Reformer',
     progress: 40,
+    trainingDays: ['M', 'J'],
     profile: {
       age: 29,
       gender: 'Female',
@@ -144,11 +148,11 @@ export const mockServices: Service[] = [
 
 
 export const mockPayments: Payment[] = [
-  { id: '1', studentId: '1', studentName: 'Alex Johnson', service: 'Monthly Coaching Plan', amount: 250, date: '2024-07-01', status: 'Paid' },
-  { id: '2', studentId: '2', studentName: 'Maria Garcia', service: 'Monthly Coaching Plan', amount: 250, date: '2024-07-01', status: 'Paid' },
-  { id: '3', studentId: '3', studentName: 'James Smith', service: 'Monthly Coaching Plan', amount: 250, date: '2024-07-01', status: 'Pending' },
-  { id: '4', studentId: '4', studentName: 'Emily White', service: 'Monthly Coaching Plan', amount: 250, date: '2024-06-01', status: 'Overdue' },
-  { id: '5', studentId: '1', studentName: 'Alex Johnson', service: 'Nutrition Consultation', amount: 100, date: '2024-06-15', status: 'Paid' },
+  { id: 'pay-1', studentId: '1', studentName: 'Carlos Rodriguez', service: 'Hipertrofia 4x', amount: 65, date: '2024-02-15', status: 'Paid' },
+  { id: 'pay-2', studentId: '1', studentName: 'Carlos Rodriguez', service: 'Hipertrofia 4x', amount: 65, date: '2024-01-14', status: 'Paid' },
+  { id: 'pay-3', studentId: '2', studentName: 'Ana García', service: 'Funcional 3x', amount: 50, date: '2024-07-01', status: 'Pending' },
+  { id: 'pay-4', studentId: '3', studentName: 'David Lopez', service: 'Personalizado Pro', amount: 90, date: '2024-07-01', status: 'Paid' },
+  { id: 'pay-5', studentId: '4', studentName: 'Marta Diaz', service: 'Pilates Reformer', amount: 75, date: '2024-06-01', status: 'Overdue' },
 ];
 
 export const mockCalendarEvents: CalendarEvent[] = [

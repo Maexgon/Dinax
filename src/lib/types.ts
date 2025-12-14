@@ -7,6 +7,7 @@ export type Student = {
   joinDate: string;
   currentPlan: string;
   progress: number;
+  trainingDays: string[];
   profile: {
     age: number;
     gender: 'Male' | 'Female' | 'Other';
