@@ -122,6 +122,10 @@ export const translations = {
         cardioCapacity: "Capacidad cardiovascular",
         postEffortRecovery: "Recuperación post esfuerzo",
         experienceLevel: "Nivel de experiencia",
+        goalProgressTitle: "Progreso del Objetivo Principal",
+        goalProgressDescription: "Objetivo: -10kg de peso corporal",
+        goalProgressFooter: "Completado al {progress}%",
+        goalProgressFooterDescription: "¡Sigue así, estás más cerca de tu meta!",
         pain: {
             none: "Ninguno",
             mild: "Leve",
@@ -443,6 +447,10 @@ export const translations = {
         cardioCapacity: "Cardiovascular capacity",
         postEffortRecovery: "Post-effort recovery",
         experienceLevel: "Experience level",
+        goalProgressTitle: "Main Goal Progress",
+        goalProgressDescription: "Goal: -10kg body weight",
+        goalProgressFooter: "{progress}% completed",
+        goalProgressFooterDescription: "Keep going, you're closer to your goal!",
         pain: {
             none: "None",
             mild: "Mild",

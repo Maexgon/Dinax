@@ -78,6 +78,7 @@ import { es } from 'date-fns/locale';
 import { WeightChart } from '@/components/charts/weight-chart';
 import { BodyCompositionChart } from '@/components/charts/body-composition-chart';
 import { MuscleMassChart } from '@/components/charts/muscle-mass-chart';
+import { GoalProgressChart } from '@/components/charts/goal-progress-chart';
 
 const MetricItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | React.ReactNode }) => (
     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
@@ -337,7 +338,10 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                             <WeightChart />
                             <BodyCompositionChart />
                         </div>
-                        <MuscleMassChart />
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <MuscleMassChart />
+                            <GoalProgressChart />
+                        </div>
 
                         <Separator />
                         <div>

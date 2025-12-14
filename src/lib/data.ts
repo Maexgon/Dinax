@@ -260,6 +260,10 @@ export const muscleMassData = [
     { month: 'Actual', muscle: 43.5 },
 ];
 
+export const goalProgressData = [
+    { name: 'Progress', progress: 75, fill: 'var(--color-progress)' },
+];
+
 
 const coachImage = getImage('student-1');
 
