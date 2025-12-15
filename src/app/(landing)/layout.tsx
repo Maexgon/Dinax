@@ -1,11 +1,21 @@
 
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Rocket, User } from 'lucide-react';
+import { Menu, Rocket, User, Languages } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { LanguageProvider, useLanguage } from '@/context/language-context';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 
 const navLinks = [
   { href: '#', label: 'Sobre Nosotros' },
@@ -19,7 +29,47 @@ const DinaxLogo = () => (
   </div>
 );
 
-export default function LandingLayout({
+function HeaderNav() {
+    const { t, setLanguage, language } = useLanguage();
+    return (
+        <nav className="hidden items-center space-x-2 md:flex">
+            <Button variant="ghost" asChild>
+                <Link href="/login">Entrenador</Link>
+            </Button>
+            <Button variant="outline" asChild>
+                <Link href="/client/dashboard">
+                Cliente
+                <User className="ml-2 h-4 w-4" />
+                </Link>
+            </Button>
+            <Button asChild>
+                <Link href="/register">
+                Register
+                <Rocket className="ml-2 h-4 w-4" />
+                </Link>
+            </Button>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                    <Languages className="h-5 w-5" />
+                    <span className="sr-only">{t.language}</span>
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setLanguage('en')} disabled={language === 'en'}>
+                    English
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setLanguage('es')} disabled={language === 'es'}>
+                    Español
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <ThemeToggle />
+        </nav>
+    )
+}
+
+function LandingPageLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -76,24 +126,7 @@ export default function LandingLayout({
 
 
           <div className="flex flex-1 items-center justify-end space-x-4">
-            <nav className="hidden items-center space-x-2 md:flex">
-               <Button variant="ghost" asChild>
-                  <Link href="/login">Entrenador</Link>
-                </Button>
-                 <Button variant="outline" asChild>
-                  <Link href="/client/dashboard">
-                    Cliente
-                    <User className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              <Button asChild>
-                  <Link href="/register">
-                  Register
-                  <Rocket className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <ThemeToggle />
-            </nav>
+            <HeaderNav />
           </div>
         </div>
       </header>
@@ -115,4 +148,17 @@ export default function LandingLayout({
       </footer>
     </div>
   );
+}
+
+
+export default function LandingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <LanguageProvider>
+      <LandingPageLayout>{children}</LandingPageLayout>
+    </LanguageProvider>
+  )
 }

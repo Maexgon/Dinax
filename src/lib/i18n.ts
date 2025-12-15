@@ -382,7 +382,7 @@ export const translations = {
         selectStudent: "Selecciona un Cliente",
         selectStudentDescription: "Elige un cliente para generar recomendaciones de objetivos personalizadas.",
         pleaseSelectStudent: "Por favor, selecciona un cliente para comenzar.",
-        aiPoweredGoals: "Recomendaciones de Objetivos con IA",
+aiPoweredGoals: "Recomendaciones de Objetivos con IA",
         aiPoweredGoalsDescription: "Usa IA para generar metas de fitness realistas e intensidades de entrenamiento basadas en el perfil y datos de rendimiento del cliente.",
         suggestGoals: "Sugerir Objetivos",
         generating: "Generando...",
@@ -704,7 +704,7 @@ export const translations = {
         description: "Create and manage customized workout plans for your clients.",
         createNewPlan: "Create New Plan",
         mesocycles: "Mesocycles",
-        microcycles: "Microcycles",
+        microcycles: "Microciclos",
         focus: {
             legs: "Legs Focus",
             rest: "Rest / Recovery",
