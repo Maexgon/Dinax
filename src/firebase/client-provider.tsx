@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useMemo, type ReactNode, useEffect, useState } from 'react';
@@ -35,20 +36,19 @@ export function FirebaseClientProvider({
   useEffect(() => {
     if (isAuthLoading) return; // Don't do anything while loading
 
-    const isProtectedRoute = !PUBLIC_ROUTES.some(route => pathname.startsWith(route));
-
-    if (!user && isProtectedRoute) {
+    const isPublicRoute = PUBLIC_ROUTES.some(route => pathname === route || (route !== '/' && pathname.startsWith(route)));
+    
+    if (!user && !isPublicRoute) {
       router.push('/login');
     } else if (user && (pathname === '/login' || pathname === '/register')) {
       router.push('/dashboard');
     }
   }, [user, isAuthLoading, pathname, router]);
 
-  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route));
+  const isPublicRoute = PUBLIC_ROUTES.some(route => pathname === route || (route !== '/' && pathname.startsWith(route)));
 
-  // If we are still loading the auth state AND it's a protected route, show a spinner.
-  // This is the main gate that prevents premature rendering of protected content.
-  if (isAuthLoading && !isPublicRoute) {
+  // If we are still loading the auth state for any route, show a global spinner.
+  if (isAuthLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -56,9 +56,9 @@ export function FirebaseClientProvider({
     );
   }
 
-  // If the route is public, or we have finished loading and have a user, render the children.
-  // The redirection logic in the useEffect above handles the case where there's no user for a protected route.
-  if (isPublicRoute || user) {
+  // After loading, if there's a user OR it's a public route, render the app content.
+  // The redirection logic in the useEffect will handle unauthorized access to protected routes.
+  if (user || isPublicRoute) {
     return (
       <FirebaseProvider
         firebaseApp={firebaseServices.firebaseApp}
