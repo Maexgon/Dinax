@@ -19,10 +19,12 @@ import { firebaseConfig } from '@/firebase/config';
 // By initializing within the action, we ensure a clean, correct server-side context.
 function initializeServerSideFirebase() {
   const apps = getApps();
-  if (!apps.length) {
-    return initializeApp(firebaseConfig, 'server-side-app');
+  // Use a unique app name for the server-side instance to avoid conflicts with the client-side app.
+  const appName = 'server-side-app';
+  if (!apps.some(app => app.name === appName)) {
+    return initializeApp(firebaseConfig, appName);
   }
-  return getApp('server-side-app');
+  return getApp(appName);
 }
 
 export async function signUpWithEmailAndPassword(
@@ -51,7 +53,7 @@ export async function signUpWithEmailAndPassword(
     const tenantId = user.uid;
     const tenantRef = doc(firestore, 'tenants', tenantId);
     
-    // CRITICAL FIX: Ensure the 'members' map is included during tenant creation.
+    // CRITICAL FIX: Ensure the 'members' map is included and AWAITED during tenant creation.
     // This map is what the security rules will check.
     // AWAIT this operation to ensure it completes before the user is redirected.
     await setDoc(tenantRef, {
