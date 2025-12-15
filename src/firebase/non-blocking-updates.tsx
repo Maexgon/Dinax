@@ -36,14 +36,26 @@ export function setDocumentNonBlocking(docRef: DocumentReference, data: any, opt
  * Does NOT await the write operation internally.
  * Returns the Promise for the new doc ref, but typically not awaited by caller.
  */
-export function addDocumentNonBlocking(colRef: CollectionReference, data: any) {
-  const promise = addDoc(colRef, data)
-    .catch(error => {
+export function addDocumentNonBlocking(colRefOrDocRef: CollectionReference | DocumentReference, data: any) {
+  let promise;
+  let operation: 'create' | 'update' = 'create';
+  let path: string;
+
+  if (colRefOrDocRef.type === 'collection') {
+    promise = addDoc(colRefOrDocRef, data);
+    path = colRefOrDocRef.path;
+  } else {
+    promise = setDoc(colRefOrDocRef, data);
+    path = colRefOrDocRef.path;
+    operation = 'update'; // setDoc on a known ref is more like an upsert/update
+  }
+
+  promise.catch(error => {
       errorEmitter.emit(
         'permission-error',
         new FirestorePermissionError({
-          path: colRef.path,
-          operation: 'create',
+          path: path,
+          operation: operation,
           requestResourceData: data,
         })
       )

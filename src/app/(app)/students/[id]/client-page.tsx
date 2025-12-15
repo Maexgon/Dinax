@@ -43,7 +43,8 @@ const MetricItem = ({ icon, label, value }: { icon: React.ReactNode, label: stri
 export default function StudentDetailClientPage({ studentId }: { studentId: string }) {
   const { t, language } = useLanguage();
   const { firestore, user } = useFirebase();
-  const tenantId = 'test-tenant'; // Replace with dynamic tenant ID from logged-in coach
+  // The tenantId is the UID of the logged-in user (coach)
+  const tenantId = user?.uid;
 
   const studentDocRef = useMemoFirebase(
     () => (firestore && tenantId ? doc(firestore, `tenants/${tenantId}/users`, studentId) : null),

@@ -9,11 +9,11 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useLanguage } from '@/context/language-context';
-import { useFirebase } from '@/firebase/provider';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection, serverTimestamp } from 'firebase/firestore';
+import { useFirebase, addDocumentNonBlocking } from '@/firebase';
+import { collection, serverTimestamp, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { randomUUID } from 'crypto';
 
 const studentSchema = z.object({
   firstName: z.string().min(1, 'El nombre es obligatorio.'),
@@ -37,30 +37,33 @@ export default function NewStudentPage() {
     resolver: zodResolver(studentSchema),
   });
 
-  const tenantId = 'test-tenant'; // Replace with dynamic tenant ID
+  const tenantId = user?.uid;
 
   const onSubmit = async (data: StudentFormData) => {
     if (!firestore || !tenantId) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'No se pudo conectar a la base de datos.',
+        description: 'No se pudo conectar a la base de datos. Asegúrate de haber iniciado sesión.',
       });
       return;
     }
 
     try {
-      const usersCollection = collection(firestore, `tenants/${tenantId}/users`);
+      // Generate a new ID for the student document
+      const newStudentRef = doc(collection(firestore, `tenants/${tenantId}/users`));
       
       const newStudentData = {
         ...data,
+        id: newStudentRef.id, // Add the generated ID to the data
         tenantId,
         joinDate: new Date().toISOString().split('T')[0],
         progress: 0,
         createdAt: serverTimestamp(),
       };
 
-      await addDocumentNonBlocking(usersCollection, newStudentData);
+      // Use setDoc with the new reference
+      await addDocumentNonBlocking(newStudentRef, newStudentData);
 
       toast({
         variant: 'success',

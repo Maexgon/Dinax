@@ -14,23 +14,22 @@ import {
 import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
-import { randomUUID } from 'crypto';
 
-function getSdks(firebaseApp: FirebaseApp) {
-  return {
-    firebaseApp,
-    auth: getAuth(firebaseApp),
-    firestore: getFirestore(firebaseApp)
-  };
-}
-
-// Helper to initialize and get SDKs on the server
+// This function can be defined here as it's only used server-side in this file.
 function getAdminFirebase() {
   if (!getApps().length) {
     const firebaseApp = initializeApp(firebaseConfig);
-    return getSdks(firebaseApp);
+    return {
+        firebaseApp,
+        auth: getAuth(firebaseApp),
+        firestore: getFirestore(firebaseApp)
+    };
   }
-  return getSdks(getApp());
+  return {
+    firebaseApp: getApp(),
+    auth: getAuth(getApp()),
+    firestore: getFirestore(getApp())
+  };
 }
 
 export async function signUpWithEmailAndPassword(
@@ -51,8 +50,8 @@ export async function signUpWithEmailAndPassword(
     );
     const user = userCredential.user;
 
-    // Create a new tenant for the user
-    const tenantId = randomUUID();
+    // Use the user's UID as the tenantId for a simple 1-to-1 mapping
+    const tenantId = user.uid;
     const tenantRef = doc(firestore, 'tenants', tenantId);
     await setDoc(tenantRef, {
       id: tenantId,
@@ -63,7 +62,7 @@ export async function signUpWithEmailAndPassword(
       createdAt: serverTimestamp(),
     });
 
-    // Create the user profile within the tenant
+    // Create the user profile within their own tenant
     const userRef = doc(firestore, `tenants/${tenantId}/users`, user.uid);
     await setDoc(userRef, {
       id: user.uid,

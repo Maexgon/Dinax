@@ -14,9 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useLanguage } from '@/context/language-context';
-import { useFirebase } from '@/firebase/provider';
-import { useCollection } from '@/firebase/firestore/use-collection';
-import { useMemoFirebase } from '@/firebase/provider';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import type { Student } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -48,12 +46,8 @@ export default function StudentsPage() {
   const { t } = useLanguage();
   const { firestore, user } = useFirebase();
 
-  // This logic assumes the tenantId is stored with the user's auth claims or profile
-  // For this implementation, we'll assume a single tenant model for simplicity
-  // In a real multi-tenant app, you'd get the tenantId from the logged-in coach's profile.
-  // Let's assume a hardcoded tenant for now, which would be replaced with dynamic data.
-  // A better approach would be to fetch the coach's profile, get their tenantId, and then query.
-  const tenantId = 'test-tenant'; // This should be dynamic in a real app
+  // The tenantId is the UID of the logged-in user (coach)
+  const tenantId = user?.uid;
 
   const studentsQuery = useMemoFirebase(
     () => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/users`) : null),
@@ -77,14 +71,14 @@ export default function StudentsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {isLoading && Array.from({ length: 4 }).map((_, i) => <StudentCardSkeleton key={i} />)}
+        {isLoading && !students && Array.from({ length: 4 }).map((_, i) => <StudentCardSkeleton key={i} />)}
         
         {!isLoading && students?.map((student) => (
           <Card key={student.id} className="flex flex-col">
             <CardHeader className="items-center">
               <Image
                 src={student.avatarUrl || 'https://picsum.photos/seed/placeholder/80/80'}
-                alt={`Avatar of ${student.name}`}
+                alt={`Avatar of ${student.firstName} ${student.lastName}`}
                 data-ai-hint={student.avatarHint || 'person face'}
                 width={80}
                 height={80}
