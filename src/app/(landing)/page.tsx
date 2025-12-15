@@ -1,3 +1,4 @@
+
 'use client';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -5,29 +6,29 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Rocket, PlayCircle, ChevronDown,LayoutPanelLeft, Activity, CalendarCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Link from 'next/link';
-
-const features = [
-  {
-    icon: <LayoutPanelLeft className="h-8 w-8 text-primary" />,
-    title: 'Panel de Control',
-    description:
-      'Visualiza métricas clave, próximas sesiones y estado de alumnos en un dashboard intuitivo y personalizable.',
-  },
-  {
-    icon: <Activity className="h-8 w-8 text-primary" />,
-    title: 'Seguimiento en Vivo',
-    description:
-      'Registra progresos, sube videos de técnica y recibe feedback instantáneo de tu entrenador.',
-  },
-  {
-    icon: <CalendarCheck className="h-8 w-8 text-primary" />,
-    title: 'Planificación Flexible',
-    description:
-      'Crea rutinas complejas, asigna días de descanso y ajusta cargas de trabajo con nuestro calendario inteligente.',
-  },
-];
+import { useLanguage } from '@/context/language-context';
 
 export default function LandingPage() {
+  const { t } = useLanguage();
+
+  const features = [
+    {
+      icon: <LayoutPanelLeft className="h-8 w-8 text-primary" />,
+      title: t.landing.features.controlPanel.title,
+      description: t.landing.features.controlPanel.description,
+    },
+    {
+      icon: <Activity className="h-8 w-8 text-primary" />,
+      title: t.landing.features.liveTracking.title,
+      description: t.landing.features.liveTracking.description,
+    },
+    {
+      icon: <CalendarCheck className="h-8 w-8 text-primary" />,
+      title: t.landing.features.flexiblePlanning.title,
+      description: t.landing.features.flexiblePlanning.description,
+    },
+  ];
+
   return (
     <div>
       <section className="relative h-[calc(100vh-56px)] w-full">
@@ -40,24 +41,24 @@ export default function LandingPage() {
         />
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white px-4">
-            <div className="mb-4 inline-block rounded-full bg-primary px-4 py-1 text-sm font-medium text-primary-foreground border border-primary/20">
-            GESTIÓN INTEGRAL DEPORTIVA
+            <div className="mb-4 inline-block rounded-full bg-primary px-4 py-1 text-sm font-medium text-primary-foreground">
+              {t.landing.hero.tag}
             </div>
-            <h1 className="text-4xl font-bold tracking-tight md:text-6xl font-headline">
-            Potencia tu <span className="text-primary">Rendimiento</span>
-            </h1>
+            <h1 className="text-4xl font-bold tracking-tight md:text-6xl font-headline"
+              dangerouslySetInnerHTML={{ __html: t.landing.hero.title }}
+            />
             <p className="mt-4 max-w-2xl text-lg text-white/80">
-            La plataforma definitiva para entrenadores personales y alumnos. Gestiona planes, sigue el progreso y alcanza metas con Dinax.
+              {t.landing.hero.subtitle}
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-4">
                 <Button size="lg" asChild>
                     <Link href="/dashboard">
-                        Comenzar Ahora
+                        {t.landing.hero.cta.start}
                         <Rocket className="ml-2 h-5 w-5" />
                     </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="bg-transparent text-white border-white/50 hover:bg-white/10 hover:text-white">
-                    Ver Demo
+                    {t.landing.hero.cta.demo}
                     <PlayCircle className="ml-2 h-5 w-5" />
                 </Button>
             </div>
@@ -76,7 +77,7 @@ export default function LandingPage() {
                     </Avatar>
                 </div>
                 <div className="text-left">
-                    <p className="text-sm font-semibold">Entrenadores activos</p>
+                    <p className="text-sm font-semibold">{t.landing.hero.activeTrainers}</p>
                      <div className="flex items-center gap-0.5">
                         <span className="text-primary">★★★★★</span>
                     </div>
@@ -91,10 +92,10 @@ export default function LandingPage() {
       <section className="py-20 md:py-32 bg-background">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold tracking-tight md:text-5xl font-headline">
-            Todo lo que necesitas para triunfar
+            {t.landing.features.title}
           </h2>
           <p className="mt-4 max-w-2xl mx-auto text-lg text-muted-foreground">
-            Diseñado específicamente para optimizar la relación entre coach y atleta con herramientas profesionales.
+            {t.landing.features.subtitle}
           </p>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
             {features.map((feature, index) => (

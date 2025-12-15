@@ -1,6 +1,48 @@
 
 export const translations = {
   es: {
+    language: "Idioma",
+    landing: {
+      nav: {
+        about: "Sobre Nosotros",
+        pricing: "Precios",
+        trainer: "Entrenador",
+        client: "Cliente",
+        register: "Registrarse",
+      },
+      hero: {
+        tag: "GESTIÓN INTEGRAL DEPORTIVA",
+        title: "Potencia tu <span class='text-primary'>Rendimiento</span>",
+        subtitle: "La plataforma definitiva para entrenadores personales y alumnos. Gestiona planes, sigue el progreso y alcanza metas con Dinax.",
+        cta: {
+          start: "Comenzar Ahora",
+          demo: "Ver Demo",
+        },
+        activeTrainers: "Entrenadores activos",
+      },
+      features: {
+        title: "Todo lo que necesitas para triunfar",
+        subtitle: "Diseñado específicamente para optimizar la relación entre coach y atleta con herramientas profesionales.",
+        controlPanel: {
+          title: "Panel de Control",
+          description: "Visualiza métricas clave, próximas sesiones y estado de alumnos en un dashboard intuitivo y personalizable.",
+        },
+        liveTracking: {
+          title: "Seguimiento en Vivo",
+          description: "Registra progresos, sube videos de técnica y recibe feedback instantáneo de tu entrenador.",
+        },
+        flexiblePlanning: {
+          title: "Planificación Flexible",
+          description: "Crea rutinas complejas, asigna días de descanso y ajusta cargas de trabajo con nuestro calendario inteligente.",
+        },
+      },
+      footer: {
+        copyright: "© 2023 Dinax Inc. Todos los derechos reservados.",
+        terms: "Términos",
+        privacy: "Privacidad",
+        support: "Soporte",
+      },
+    },
     login: {
       title: "Acceder a tu Cuenta",
       description: "¿No tienes cuenta?",
@@ -389,10 +431,51 @@ aiPoweredGoals: "Recomendaciones de Objetivos con IA",
         analyzing: "Analizando datos y generando recomendaciones...",
         suggestedGoals: "Objetivos Sugeridos",
         trainingIntensity: "Intensidad de Entrenamiento"
-    },
-    language: "Idioma"
+    }
   },
   en: {
+    language: "Language",
+    landing: {
+      nav: {
+        about: "About Us",
+        pricing: "Pricing",
+        trainer: "Trainer",
+        client: "Client",
+        register: "Register",
+      },
+      hero: {
+        tag: "INTEGRATED SPORTS MANAGEMENT",
+        title: "Boost Your <span class='text-primary'>Performance</span>",
+        subtitle: "The ultimate platform for personal trainers and students. Manage plans, track progress, and achieve goals with Dinax.",
+        cta: {
+          start: "Get Started Now",
+          demo: "Watch Demo",
+        },
+        activeTrainers: "Active trainers",
+      },
+      features: {
+        title: "Everything you need to succeed",
+        subtitle: "Specifically designed to optimize the coach-athlete relationship with professional tools.",
+        controlPanel: {
+          title: "Control Panel",
+          description: "View key metrics, upcoming sessions, and student status on an intuitive and customizable dashboard.",
+        },
+        liveTracking: {
+          title: "Live Tracking",
+          description: "Record progress, upload technique videos, and receive instant feedback from your trainer.",
+        },
+        flexiblePlanning: {
+          title: "Flexible Planning",
+          description: "Create complex routines, assign rest days, and adjust workloads with our smart calendar.",
+        },
+      },
+      footer: {
+        copyright: "© 2023 Dinax Inc. All rights reserved.",
+        terms: "Terms",
+        privacy: "Privacy",
+        support: "Support",
+      },
+    },
     login: {
       title: "Access Your Account",
       description: "Don't have an account?",
@@ -782,8 +865,7 @@ aiPoweredGoals: "Recomendaciones de Objetivos con IA",
         analyzing: "Analyzing data and generating recommendations...",
         suggestedGoals: "Suggested Goals",
         trainingIntensity: "Training Intensity"
-    },
-    language: "Language"
+    }
   }
 };
 
