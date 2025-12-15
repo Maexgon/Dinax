@@ -16,20 +16,20 @@ export function FirebaseClientProvider({
   // Initialize Firebase services once and memoize the result.
   const firebaseServices = useMemo(() => initializeFirebase(), []);
   const [user, setUser] = useState<User | null>(null);
-  const [isUserLoading, setIsUserLoading] = useState(true);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   useEffect(() => {
     // Subscribe to auth state changes.
     const unsubscribe = onAuthStateChanged(firebaseServices.auth, (user) => {
       setUser(user);
-      setIsUserLoading(false);
+      setIsAuthLoading(false);
     });
 
     // Cleanup subscription on unmount.
     return () => unsubscribe();
   }, [firebaseServices.auth]);
 
-  if (isUserLoading) {
+  if (isAuthLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
