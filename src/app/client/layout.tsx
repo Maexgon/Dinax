@@ -33,14 +33,14 @@ function ClientLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="p-6 flex items-center gap-3">
           <Image
             src="https://i.ibb.co/yFR9LGPD/dinax.png"
-            alt="FitLife App Logo"
+            alt="Dinax Logo"
             width={40}
             height={40}
             className="rounded-lg"
             data-ai-hint="logo"
           />
           <div>
-            <p className="font-bold text-lg font-headline">FitLife App</p>
+            <p className="font-bold text-lg font-headline">Dinax</p>
             <p className="text-sm text-muted-foreground">Alex Morgan</p>
           </div>
         </div>

@@ -124,12 +124,12 @@ export default function ClientDashboardPage() {
             <CardContent className="p-6 flex flex-col md:flex-row gap-6">
                 <div className="w-full md:w-1/3">
                     <Image
-                        src="https://images.unsplash.com/photo-1574680096145-f844349f8429?w=500"
-                        alt="Hipertrofia Total"
+                        src="https://i.ibb.co/yFR9LGPD/dinax.png"
+                        alt="Dinax Logo"
                         width={300}
                         height={300}
-                        className="rounded-lg object-cover w-full h-full"
-                        data-ai-hint="man lifting weights"
+                        className="rounded-lg object-contain w-full h-full p-4 bg-muted/20"
+                        data-ai-hint="logo"
                     />
                 </div>
                 <div className="flex-1">
