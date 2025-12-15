@@ -53,7 +53,7 @@ export default function RegisterPage() {
     const correctAnswer = num1 * num2;
     if (parseInt(humanAnswer, 10) === correctAnswer) {
       setIsHuman(true);
-      toast({ title: t.register.human, description: t.register.humanSuccess });
+      toast({ variant: 'success', title: t.register.human, description: t.register.humanSuccess });
     } else {
       setIsHuman(false);
       toast({ variant: 'destructive', title: t.register.error, description: t.register.humanError });
@@ -78,6 +78,7 @@ export default function RegisterPage() {
     if (state.message) {
       if (state.success) {
         toast({
+          variant: 'success',
           title: t.register.successTitle,
           description: state.message,
         });
