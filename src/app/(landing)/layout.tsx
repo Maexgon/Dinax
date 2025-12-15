@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Moon, Rocket } from 'lucide-react';
+import { Menu, Moon, Rocket, User } from 'lucide-react';
 
 const navLinks = [
   { href: '#', label: 'Sobre Nosotros' },
@@ -77,7 +77,13 @@ export default function LandingLayout({
           <div className="flex flex-1 items-center justify-end space-x-4">
             <nav className="hidden items-center space-x-2 md:flex">
                <Button variant="ghost" asChild>
-                  <Link href="/dashboard">Login</Link>
+                  <Link href="/dashboard">Entrenador</Link>
+                </Button>
+                 <Button variant="outline" asChild>
+                  <Link href="/client/dashboard">
+                    Cliente
+                    <User className="ml-2 h-4 w-4" />
+                  </Link>
                 </Button>
               <Button asChild>
                   <Link href="#">
