@@ -20,22 +20,32 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
 import { useActionState } from 'react';
+import { useFirebase } from '@/firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const initialState = {
   message: '',
   success: false,
+  uid: null,
+  email: null,
+  firstName: null,
+  lastName: null,
 };
 
 export default function RegisterPage() {
   const { t } = useLanguage();
-  const [state, formAction] = useActionState(signUpWithEmailAndPassword, initialState);
+  const [state, formAction, isPending] = useActionState(signUpWithEmailAndPassword, initialState);
   const { toast } = useToast();
   const router = useRouter();
+  const { firestore } = useFirebase();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  
+  // State to prevent multiple document creations
+  const [isCreatingDocs, setIsCreatingDocs] = useState(false);
 
   // Human validation state
   const [num1, setNum1] = useState(0);
@@ -63,7 +73,6 @@ export default function RegisterPage() {
     }
   };
 
-
   const passwordValidation = useMemo(() => {
     const validations = {
       minLength: password.length >= 8,
@@ -75,15 +84,60 @@ export default function RegisterPage() {
   }, [password, confirmPassword]);
 
   useEffect(() => {
+    // This effect runs when the server action completes
     if (state.message) {
-      if (state.success) {
+      if (state.success && state.uid && firestore && !isCreatingDocs) {
+        setIsCreatingDocs(true); // Prevents re-running
+        
         toast({
           variant: 'success',
           title: t.register.successTitle,
           description: state.message,
         });
-        router.push('/dashboard');
-      } else {
+
+        // Now, create the Firestore documents on the client side
+        const createFirestoreDocuments = async () => {
+          const tenantId = state.uid!;
+          const tenantRef = doc(firestore, 'tenants', tenantId);
+          const userRef = doc(firestore, `tenants/${tenantId}/users`, state.uid!);
+
+          try {
+            // Create tenant document
+            await setDoc(tenantRef, {
+              id: tenantId,
+              name: `${state.firstName}'s Gym`,
+              members: {
+                [tenantId]: 'owner',
+              },
+              createdAt: serverTimestamp(),
+            });
+
+            // Create user document
+            await setDoc(userRef, {
+              id: state.uid,
+              tenantId: tenantId,
+              firstName: state.firstName,
+              lastName: state.lastName,
+              email: state.email,
+              createdAt: serverTimestamp(),
+            });
+
+            // Documents created, now redirect
+            router.push('/dashboard');
+
+          } catch (error: any) {
+            toast({
+              variant: 'destructive',
+              title: "Error Creating Profile",
+              description: "Your account was created, but we couldn't set up your profile. Please contact support.",
+            });
+            setIsCreatingDocs(false); // Allow retry if needed
+          }
+        };
+
+        createFirestoreDocuments();
+        
+      } else if (!state.success) {
         toast({
           variant: 'destructive',
           title: t.register.error,
@@ -91,9 +145,9 @@ export default function RegisterPage() {
         });
       }
     }
-  }, [state, toast, router, t]);
+  }, [state, toast, router, t, firestore, isCreatingDocs]);
 
-  const isFormValid = Object.values(passwordValidation).every(Boolean) && isHuman;
+  const isSubmitDisabled = !Object.values(passwordValidation).every(Boolean) || !isHuman || isPending || isCreatingDocs;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -215,8 +269,9 @@ export default function RegisterPage() {
               </div>
             )}
 
-            <Button type="submit" className="w-full" disabled={!isFormValid}>
-              {t.register.registerButton}
+            <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
+              {(isPending || isCreatingDocs) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isCreatingDocs ? 'Creando perfil...' : t.register.registerButton}
             </Button>
           </form>
         </CardContent>

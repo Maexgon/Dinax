@@ -5,14 +5,7 @@ import {
   createUserWithEmailAndPassword,
   getAuth,
 } from 'firebase/auth';
-import {
-  doc,
-  setDoc,
-  serverTimestamp,
-  type Firestore,
-} from 'firebase/firestore';
-import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { firebaseConfig } from '@/firebase/config';
 
 // This function can be defined here as it's only used server-side in this file.
@@ -20,7 +13,7 @@ import { firebaseConfig } from '@/firebase/config';
 function initializeServerSideFirebase() {
   const apps = getApps();
   // Use a unique app name for the server-side instance to avoid conflicts with the client-side app.
-  const appName = 'server-side-app';
+  const appName = 'server-side-auth-app';
   if (!apps.some(app => app.name === appName)) {
     return initializeApp(firebaseConfig, appName);
   }
@@ -31,13 +24,10 @@ export async function signUpWithEmailAndPassword(
   prevState: any,
   formData: FormData
 ) {
-  // Initialize Firebase within the server action
+  // Initialize Firebase within the server action for authentication only
   const serverApp = initializeServerSideFirebase();
   const auth = getAuth(serverApp);
-  const firestore = getFirestore(serverApp);
 
-  const firstName = formData.get('firstName') as string;
-  const lastName = formData.get('lastName') as string;
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
@@ -49,37 +39,16 @@ export async function signUpWithEmailAndPassword(
     );
     const user = userCredential.user;
 
-    // Use the user's UID as the tenantId for a simple 1-to-1 mapping
-    const tenantId = user.uid;
-    const tenantRef = doc(firestore, 'tenants', tenantId);
-    
-    // CRITICAL FIX: Ensure the 'members' map is included and AWAITED during tenant creation.
-    // This map is what the security rules will check.
-    // AWAIT this operation to ensure it completes before the user is redirected.
-    await setDoc(tenantRef, {
-      id: tenantId,
-      name: `${firstName}'s Gym`,
-      members: {
-        [user.uid]: 'owner', // This user is the owner of their own tenant
-      },
-      createdAt: serverTimestamp(),
-    });
-
-    // Create the user profile within their own tenant
-    const userRef = doc(firestore, `tenants/${tenantId}/users`, user.uid);
-    await setDoc(userRef, {
-      id: user.uid,
-      tenantId: tenantId,
-      firstName: firstName,
-      lastName: lastName,
-      email: user.email,
-      createdAt: serverTimestamp(),
-    });
-
+    // IMPORTANT: The server action now ONLY creates the auth user.
+    // It returns the necessary info for the client to create the Firestore documents.
+    // This solves the race condition and context inconsistency issues.
     return {
       success: true,
-      message: 'User registered and tenant created successfully.',
+      message: 'User account created successfully. Setting up profile...',
       uid: user.uid,
+      email: user.email,
+      firstName: formData.get('firstName') as string,
+      lastName: formData.get('lastName') as string,
     };
   } catch (error: any) {
     // Return a more specific error message if available
