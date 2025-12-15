@@ -293,7 +293,7 @@ export const translations = {
         experience: {
             beginner: "Principiante",
             intermediate: "Intermedio",
-            advanced: "Avanzado"
+            avanzado: "Avanzado"
         },
         medical: {
             fitnessCertificate: "Apto médico",
