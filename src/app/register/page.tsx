@@ -20,16 +20,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
 import { useActionState } from 'react';
-import { useFirebase } from '@/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 const initialState = {
   message: '',
   success: false,
-  uid: null,
-  email: null,
-  firstName: null,
-  lastName: null,
 };
 
 export default function RegisterPage() {
@@ -37,24 +31,20 @@ export default function RegisterPage() {
   const [state, formAction, isPending] = useActionState(signUpWithEmailAndPassword, initialState);
   const { toast } = useToast();
   const router = useRouter();
-  const { firestore } = useFirebase();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
-  // State to prevent multiple document creations
-  const [isCreatingDocs, setIsCreatingDocs] = useState(false);
 
   // Human validation state
   const [num1, setNum1] = useState(0);
   const [num2, setNum2] = useState(0);
-  const [operation, setOperation] = useState<'*'>('*'); // Only multiplication for now
   const [humanAnswer, setHumanAnswer] = useState('');
   const [isHuman, setIsHuman] = useState(false);
 
   useEffect(() => {
+    // Generate new numbers for the human check only on component mount
     setNum1(Math.floor(Math.random() * 9) + 1);
     setNum2(Math.floor(Math.random() * 9) + 1);
   }, []);
@@ -74,70 +64,26 @@ export default function RegisterPage() {
   };
 
   const passwordValidation = useMemo(() => {
-    const validations = {
+    return {
       minLength: password.length >= 8,
       uppercase: /[A-Z]/.test(password),
       specialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
       match: password && password === confirmPassword,
     };
-    return validations;
   }, [password, confirmPassword]);
 
   useEffect(() => {
     // This effect runs when the server action completes
     if (state.message) {
-      if (state.success && state.uid && firestore && !isCreatingDocs) {
-        setIsCreatingDocs(true); // Prevents re-running
-        
+      if (state.success) {
         toast({
           variant: 'success',
           title: t.register.successTitle,
           description: state.message,
         });
-
-        // Now, create the Firestore documents on the client side
-        const createFirestoreDocuments = async () => {
-          const tenantId = state.uid!;
-          const tenantRef = doc(firestore, 'tenants', tenantId);
-          const userRef = doc(firestore, `tenants/${tenantId}/users`, state.uid!);
-
-          try {
-            // Create tenant document
-            await setDoc(tenantRef, {
-              id: tenantId,
-              name: `${state.firstName}'s Gym`,
-              members: {
-                [tenantId]: 'owner',
-              },
-              createdAt: serverTimestamp(),
-            });
-
-            // Create user document
-            await setDoc(userRef, {
-              id: state.uid,
-              tenantId: tenantId,
-              firstName: state.firstName,
-              lastName: state.lastName,
-              email: state.email,
-              createdAt: serverTimestamp(),
-            });
-
-            // Documents created, now redirect
-            router.push('/dashboard');
-
-          } catch (error: any) {
-            toast({
-              variant: 'destructive',
-              title: "Error Creating Profile",
-              description: "Your account was created, but we couldn't set up your profile. Please contact support.",
-            });
-            setIsCreatingDocs(false); // Allow retry if needed
-          }
-        };
-
-        createFirestoreDocuments();
-        
-      } else if (!state.success) {
+        // Server action was successful, redirect to login page to sign in
+        router.push('/login');
+      } else {
         toast({
           variant: 'destructive',
           title: t.register.error,
@@ -145,9 +91,9 @@ export default function RegisterPage() {
         });
       }
     }
-  }, [state, toast, router, t, firestore, isCreatingDocs]);
+  }, [state, toast, router, t]);
 
-  const isSubmitDisabled = !Object.values(passwordValidation).every(Boolean) || !isHuman || isPending || isCreatingDocs;
+  const isSubmitDisabled = !Object.values(passwordValidation).every(Boolean) || !isHuman || isPending;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -190,7 +136,6 @@ export default function RegisterPage() {
                 id="phone"
                 name="phone"
                 type="tel"
-                required
               />
             </div>
             <div className="relative space-y-2">
@@ -270,8 +215,8 @@ export default function RegisterPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
-              {(isPending || isCreatingDocs) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isCreatingDocs ? 'Creando perfil...' : t.register.registerButton}
+              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t.register.registerButton}
             </Button>
           </form>
         </CardContent>
