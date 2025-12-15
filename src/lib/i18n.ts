@@ -73,6 +73,7 @@ export const translations = {
       human: "Humano verificado",
       humanSuccess: "¡Perfecto! Puedes continuar.",
       humanError: "Respuesta incorrecta, intenta de nuevo.",
+      cancelButton: "Cancelar",
     },
     dashboard: {
       greeting: "Hola, Coach Sara! 👋",
@@ -506,6 +507,7 @@ aiPoweredGoals: "Recomendaciones de Objetivos con IA",
       human: "Human verified",
       humanSuccess: "Perfect! You can continue.",
       humanError: "Incorrect answer, please try again.",
+      cancelButton: "Cancel",
     },
     dashboard: {
       greeting: "Hello, Coach Sara! 👋",

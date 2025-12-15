@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useMemo, useEffect, useActionState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -18,6 +19,7 @@ import { signUpWithEmailAndPassword } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
+import { useActionState } from 'react';
 
 const initialState = {
   message: '',
@@ -94,7 +96,7 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-lg">
+      <Card className="w-full max-w-lg border border-primary shadow-lg shadow-primary/30">
         <CardHeader className="text-center">
            <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={60} height={60} className="mx-auto rounded-sm" data-ai-hint="logo" />
           <CardTitle className="font-headline text-2xl">{t.register.title}</CardTitle>
@@ -217,6 +219,11 @@ export default function RegisterPage() {
             </Button>
           </form>
         </CardContent>
+         <CardFooter className="flex flex-col">
+          <Button variant="outline" className="w-full" onClick={() => router.push('/')}>
+            {t.login.cancelButton}
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );
