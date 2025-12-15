@@ -1,0 +1,111 @@
+{
+  "entities": {
+    "Tenant": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Tenant",
+      "type": "object",
+      "description": "Represents a tenant (e.g., a gym or training center) within the application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the tenant."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the tenant."
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the application, associated with a tenant.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "tenantId": {
+          "type": "string",
+          "description": "Reference to Tenant. (Relationship: Tenant 1:N User)"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "The phone number of the user."
+        }
+      },
+      "required": [
+        "id",
+        "tenantId",
+        "firstName",
+        "lastName",
+        "email"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/tenants/{tenantId}",
+        "definition": {
+          "entityName": "Tenant",
+          "schema": {
+            "$ref": "#/backend/entities/Tenant"
+          },
+          "description": "Stores tenant data. Includes 'tenantId' as document ID.",
+          "params": [
+            {
+              "name": "tenantId",
+              "description": "Unique identifier for the tenant."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tenants/{tenantId}/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user data associated with a specific tenant. Uses path-based ownership for authorization. Each document uses 'userId' as document ID.",
+          "params": [
+            {
+              "name": "tenantId",
+              "description": "Unique identifier for the tenant."
+            },
+            {
+              "name": "userId",
+              "description": "Unique identifier for the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore structure is designed to support the GymEdge application, focusing on tenant and user management. The core principle is Authorization Independence, achieved through denormalization where necessary.  \n\nTenants are stored in a top-level collection `/tenants`. Each tenant document contains basic information like `name`.  User accounts are created within a tenant context using Firebase Authentication. The structure uses path-based ownership to determine what data each user can access.\n\nSpecifically:\n\n*   `/tenants`: Stores Tenant data. This is a top-level collection, enabling easy listing of available tenants (if required).  The `tenantId` is then used in the `/users` collection.\n*   `/tenants/{tenantId}/users/{userId}`:  Stores user data. This structure uses path-based authorization, eliminating the need for `get()` calls in security rules and supporting atomic operations.\n\nAuthorization Independence (CRITICAL):\nAuthorization Independence is achieved by avoiding `get()` calls in security rules.  The path-based ownership `/tenants/{tenantId}/users/{userId}` ensures that access control can be enforced directly on the path without needing to read parent documents.\n\nQAPs (Rules are not Filters):\nThe structure supports secure `list` operations by segregating tenant and user data. Rules can be written to ensure that only authenticated users can list users within their tenant, based on the `tenantId` in the `request.auth.uid` field.\n\nOverall, this structure prioritizes security, scalability, and debuggability by enforcing clear ownership and minimizing dependencies between documents."
+  }
+}
