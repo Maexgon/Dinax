@@ -22,7 +22,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md border-primary/20 shadow-lg shadow-primary/20">
         <CardHeader className="text-center">
            <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={60} height={60} className="mx-auto rounded-sm" data-ai-hint="logo" />
           <CardTitle className="font-headline text-2xl">{t.login.title}</CardTitle>
