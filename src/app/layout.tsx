@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { LanguageProvider } from '@/context/language-context';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'Dinax',
@@ -30,7 +31,9 @@ export default function RootLayout({
             disableTransitionOnChange
         >
           <LanguageProvider>
-            {children}
+            <FirebaseClientProvider>
+                {children}
+            </FirebaseClientProvider>
             <Toaster />
           </LanguageProvider>
         </ThemeProvider>
