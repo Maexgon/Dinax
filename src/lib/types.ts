@@ -1,31 +1,97 @@
 export type Student = {
   id: string;
-  name: string;
+  tenantId: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  avatarUrl: string;
-  avatarHint: string;
-  joinDate: string;
-  currentPlan: string;
-  progress: number;
-  trainingDays: string[];
-  profile: {
-    age: number;
-    gender: 'Male' | 'Female' | 'Other';
-    weight: number; // in kg
-    height: number; // in cm
-    medicalConditions: string;
-    biomechanicalData: string;
-  };
+  phoneNumber?: string;
+  avatarUrl?: string;
+  avatarHint?: string;
+  joinDate?: string;
+  currentPlan?: string;
+  progress?: number;
+  trainingDays?: string[];
+  objective?: string;
+  tags?: string[];
+  occupation?: string;
+  birthDate?: string;
+  address?: string;
 };
 
 export type Note = {
   id: string;
+  createdAt: string; // ISO string
   coachName: string;
   coachAvatarUrl: string;
-  coachAvatarHint: string;
-  date: string; // ISO string
   content: string;
 };
+
+export type MedicalHistory = {
+    id: string;
+    createdAt: string; // ISO date-time
+    fitnessCertificate?: boolean;
+    certificateDate?: string; // date
+    cardiovascularDiseases?: string;
+    bloodPressure?: string;
+tuberculosis?: boolean;
+    restingHeartRate?: number;
+    diabetes?: string;
+    fastingGlucose?: string;
+    totalCholesterol?: string;
+    triglycerides?: string;
+    asthmaCopd?: boolean;
+    chronicJointProblems?: string;
+    discHernias?: boolean;
+    osteoporosis?: boolean;
+    neurologicalProblems?: boolean;
+    currentMedication?: string;
+    cardiovascularMedication?: boolean;
+    metabolicMedication?: boolean;
+    dizzinessSyncope?: boolean;
+    exertionalChestPain?: boolean;
+    exertionalShortnessOfBreath?: boolean;
+    relevantSurgeries?: string;
+    pregnancy?: boolean;
+    relevantAllergies?: string;
+    medicalRestrictions?: string;
+    exerciseAuthorization?: string;
+    riskLevel?: 'low' | 'medium' | 'high';
+};
+
+export type Biomechanics = {
+    id: string;
+    createdAt: string; // ISO date-time
+    age?: number;
+    gender?: string;
+    height?: number;
+    weight?: number;
+    bmi?: number;
+    bodyFat?: number;
+    muscleMass?: number;
+    restingHr?: number;
+    bloodPressure?: string;
+    previousInjuries?: string;
+    currentPain?: string;
+    painZone?: string;
+    shoulderMobility?: string;
+    hipMobility?: string;
+    ankleMobility?: string;
+    spineMobility?: string;
+    trunkFlexion?: string;
+    shoulderPosture?: string;
+    pelvicPosition?: string;
+    kneeValgus?: string;
+    dominance?: string;
+    unipodalBalance?: number;
+    pushUps?: number;
+    bodyweightSquats?: number;
+    abdominalPlank?: number;
+    generalStrengthLevel?: string;
+    cardioCapacity?: string;
+    postEffortRecovery?: string;
+    experienceLevel?: string;
+};
+
 
 export type Exercise = {
     name: string;
@@ -83,4 +149,3 @@ export type CalendarEvent = {
   studentName: string;
   studentAvatar?: string;
 };
-

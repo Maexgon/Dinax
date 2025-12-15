@@ -1,66 +1,15 @@
 'use client';
 import Image from 'next/image';
 import {
-  Dumbbell,
-  HeartPulse,
-  Scale,
-  Ruler,
-  FileText,
-  User,
-  MessageSquare,
-  CalendarDays,
-  Briefcase,
-  Cake,
-  Phone,
-  Mail,
-  MapPin,
-  Flag,
-  Plus,
-  X,
-  CheckCircle2,
-  ChevronRight,
-  VenetianMask,
-  Calculator,
-  Percent,
-  Gauge,
-  FileWarning,
-  AlertTriangle,
-  Target,
-  Move,
-  ArrowDownToLine,
-  PersonStanding,
-  Hand,
-  Timer,
-  Repeat,
-  ShieldCheck,
-  TrendingUp,
-  Activity,
-  Zap,
-  Award,
-  Heart,
-  Droplet,
-  TestTube,
-  Wind,
-  Bone,
-  Disc3,
-  Brain,
-  Pill,
-  FilePlus2,
-  CalendarCheck,
-  HeartHandshake,
-  FlaskConical,
-  CircleAlert,
-  ShieldAlert,
-  FileKey2,
-  UserCheck,
+  Dumbbell, HeartPulse, Scale, Ruler, FileText, User, MessageSquare, CalendarDays,
+  Briefcase, Cake, Phone, Mail, MapPin, Flag, Plus, X, CheckCircle2, ChevronRight,
+  VenetianMask, Calculator, Percent, Gauge, FileWarning, AlertTriangle, Target, Move,
+  ArrowDownToLine, PersonStanding, Hand, Timer, Repeat, ShieldCheck, Activity, Zap,
+  Award, Heart, Droplet, TestTube, Wind, Bone, Disc3, Brain, Pill, FilePlus2,
+  CalendarCheck, HeartHandshake, FlaskConical, CircleAlert, ShieldAlert, FileKey2,
+  UserCheck, Loader2
 } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -68,17 +17,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-
 import { useLanguage } from '@/context/language-context';
-import type { Student } from '@/lib/types';
-import { mockNotes } from '@/lib/data';
+import type { Student, Note, MedicalHistory, Biomechanics } from '@/lib/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-
 import { WeightChart } from '@/components/charts/weight-chart';
 import { BodyCompositionChart } from '@/components/charts/body-composition-chart';
 import { MuscleMassChart } from '@/components/charts/muscle-mass-chart';
 import { GoalProgressChart } from '@/components/charts/goal-progress-chart';
+import { useFirebase, useMemoFirebase } from '@/firebase/provider';
+import { useDoc, useCollection } from '@/firebase/firestore/use-doc';
+import { doc, collection } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const MetricItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | React.ReactNode }) => (
     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
@@ -91,8 +41,47 @@ const MetricItem = ({ icon, label, value }: { icon: React.ReactNode, label: stri
 );
 
 
-export default function StudentDetailClientPage({ student }: { student: Student }) {
+export default function StudentDetailClientPage({ studentId }: { studentId: string }) {
   const { t, language } = useLanguage();
+  const { firestore, user } = useFirebase();
+  const tenantId = 'test-tenant'; // Replace with dynamic tenant ID from logged-in coach
+
+  const studentDocRef = useMemoFirebase(
+    () => (firestore && tenantId ? doc(firestore, `tenants/${tenantId}/users`, studentId) : null),
+    [firestore, tenantId, studentId]
+  );
+  const { data: student, isLoading: isStudentLoading } = useDoc<Student>(studentDocRef);
+
+  const notesCollectionRef = useMemoFirebase(
+    () => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/users/${studentId}/notes`) : null),
+    [firestore, tenantId, studentId]
+  );
+  const { data: notes, isLoading: areNotesLoading } = useCollection<Note>(notesCollectionRef);
+  
+  if (isStudentLoading) {
+      return (
+          <div className="space-y-6">
+              <Skeleton className="h-8 w-1/2" />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-1 space-y-6">
+                      <Skeleton className="h-64 w-full" />
+                      <Skeleton className="h-48 w-full" />
+                      <Skeleton className="h-24 w-full" />
+                  </div>
+                  <div className="lg:col-span-2">
+                       <Skeleton className="h-[600px] w-full" />
+                  </div>
+              </div>
+          </div>
+      );
+  }
+
+  if (!student) {
+    return <div>{t.studentDetail.notFound || "Student not found."}</div>;
+  }
+  
+  const studentName = `${student.firstName || ''} ${student.lastName || ''}`.trim();
+
 
   return (
     <div className="space-y-6">
@@ -101,7 +90,7 @@ export default function StudentDetailClientPage({ student }: { student: Student 
             <ChevronRight className="h-4 w-4" />
             <span>{t.nav.students}</span>
             <ChevronRight className="h-4 w-4" />
-            <span className="text-foreground font-medium">{student.name}</span>
+            <span className="text-foreground font-medium">{studentName}</span>
         </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column */}
@@ -109,15 +98,15 @@ export default function StudentDetailClientPage({ student }: { student: Student 
           <Card className="overflow-hidden text-center">
             <CardContent className="p-6">
               <Image
-                src={student.avatarUrl}
-                alt={`Avatar of ${student.name}`}
-                data-ai-hint={student.avatarHint}
+                src={student.avatarUrl || 'https://picsum.photos/seed/placeholder/128/128'}
+                alt={`Avatar of ${studentName}`}
+                data-ai-hint={student.avatarHint || 'person face'}
                 width={128}
                 height={128}
                 className="rounded-full mx-auto mb-4 border-4 border-primary shadow-lg"
               />
-              <h1 className="text-3xl font-bold font-headline">{student.name}</h1>
-              <p className="text-muted-foreground">{t.studentDetail.objective}: Hipertrofia • Principiante</p>
+              <h1 className="text-3xl font-bold font-headline">{studentName}</h1>
+              <p className="text-muted-foreground">{t.studentDetail.objective}: {student.objective || 'N/A'}</p>
               <div className="mt-4 flex gap-2">
                 <Button className="flex-1 bg-primary hover:bg-primary/90">
                   <MessageSquare className="mr-2 h-4 w-4" />
@@ -132,12 +121,13 @@ export default function StudentDetailClientPage({ student }: { student: Student 
 
           <Card>
             <CardContent className="p-6 space-y-6">
+                {/* Simplified metrics. Biomechanics data will be in its tab */}
                <div className="flex items-center justify-between">
                  <div className="flex items-center gap-3 text-muted-foreground">
                     <User className="h-6 w-6 p-1 rounded-full bg-blue-100 text-blue-500" />
                     <span>{t.studentDetail.age}</span>
                  </div>
-                 <p className="font-bold text-lg">{student.profile.age} años</p>
+                 <p className="font-bold text-lg">{student.birthDate ? `${format(new Date(), 'yyyy') - format(new Date(student.birthDate), 'yyyy')} años` : 'N/A'}</p>
                </div>
                <div className="flex items-center justify-between">
                  <div className="flex items-center gap-3 text-muted-foreground">
@@ -145,8 +135,7 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                     <span>{t.studentDetail.weight}</span>
                  </div>
                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-lg">{student.profile.weight} kg</p>
-                    <Badge variant="outline" className="text-destructive border-destructive/50">-1.2%</Badge>
+                    <p className="font-bold text-lg">{/* TODO: Fetch from biomechanics */} -- kg</p>
                  </div>
                </div>
                <div className="flex items-center justify-between">
@@ -154,7 +143,7 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                     <Ruler className="h-6 w-6 p-1 rounded-full bg-purple-100 text-purple-500" />
                     <span>{t.studentDetail.height}</span>
                  </div>
-                 <p className="font-bold text-lg">{student.profile.height} cm</p>
+                 <p className="font-bold text-lg">{/* TODO: Fetch from biomechanics */} -- cm</p>
                </div>
             </CardContent>
           </Card>
@@ -189,19 +178,19 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                    <div className="space-y-1">
                                        <label className="text-xs text-muted-foreground">{t.studentDetail.name}</label>
-                                       <div className="p-3 bg-muted rounded-md">{student.name.split(' ')[0]}</div>
+                                       <div className="p-3 bg-muted rounded-md">{student.firstName}</div>
                                    </div>
                                     <div className="space-y-1">
                                        <label className="text-xs text-muted-foreground">{t.studentDetail.lastName}</label>
-                                       <div className="p-3 bg-muted rounded-md">{student.name.split(' ')[1]}</div>
+                                       <div className="p-3 bg-muted rounded-md">{student.lastName}</div>
                                    </div>
                                    <div className="space-y-1">
                                        <label className="text-xs text-muted-foreground">{t.studentDetail.occupation}</label>
-                                       <div className="p-3 bg-muted rounded-md flex items-center gap-2"><Briefcase className="h-4 w-4 text-muted-foreground"/> Diseñador Gráfico</div>
+                                       <div className="p-3 bg-muted rounded-md flex items-center gap-2"><Briefcase className="h-4 w-4 text-muted-foreground"/> {student.occupation || 'N/A'}</div>
                                    </div>
                                    <div className="space-y-1">
                                        <label className="text-xs text-muted-foreground">{t.studentDetail.birthDate}</label>
-                                       <div className="p-3 bg-muted rounded-md flex items-center justify-between"><span>05/20/1995</span> <Cake className="h-4 w-4 text-muted-foreground"/></div>
+                                       <div className="p-3 bg-muted rounded-md flex items-center justify-between"><span>{student.birthDate || 'N/A'}</span> <Cake className="h-4 w-4 text-muted-foreground"/></div>
                                    </div>
                                 </div>
                             </div>
@@ -211,7 +200,7 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="md:col-span-2 space-y-1">
                                        <label className="text-xs text-muted-foreground">{t.studentDetail.address}</label>
-                                       <div className="p-3 bg-muted rounded-md flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground"/> Calle Principal 123, Madrid</div>
+                                       <div className="p-3 bg-muted rounded-md flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground"/>{student.address || 'N/A'}</div>
                                    </div>
                                    <div className="space-y-1">
                                        <label className="text-xs text-muted-foreground">{t.studentDetail.email}</label>
@@ -219,7 +208,7 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                                    </div>
                                    <div className="space-y-1">
                                        <label className="text-xs text-muted-foreground">{t.studentDetail.phone}</label>
-                                       <div className="p-3 bg-muted rounded-md">+34 600 123 456</div>
+                                       <div className="p-3 bg-muted rounded-md">{student.phoneNumber || 'N/A'}</div>
                                    </div>
                                 </div>
                             </div>
@@ -230,23 +219,11 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                                      <div className="space-y-1">
                                         <label className="text-xs text-muted-foreground">{t.studentDetail.tags}</label>
                                         <div className="flex flex-wrap gap-2">
-                                            <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 dark:bg-primary/20 dark:text-primary/90 dark:border-primary/30">Hipertrofia <X className="ml-1 h-3 w-3"/></Badge>
-                                            <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 dark:bg-primary/20 dark:text-primary/90 dark:border-primary/30">Principiante <X className="ml-1 h-3 w-3"/></Badge>
+                                            {(student.tags || []).map(tag => (
+                                                <Badge key={tag} variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 dark:bg-primary/20 dark:text-primary/90 dark:border-primary/30">{tag} <X className="ml-1 h-3 w-3"/></Badge>
+                                            ))}
                                             <Button variant="outline" size="sm" className="text-muted-foreground"><Plus className="mr-1 h-3 w-3"/>{t.studentDetail.addTag}</Button>
                                         </div>
-                                     </div>
-                                     <div className="space-y-1 relative">
-                                        <label className="text-xs text-muted-foreground">{t.studentDetail.privateNotes}</label>
-                                        <Textarea className="bg-muted" rows={4} defaultValue="El cliente prefiere entrenar por las tardes. Tiene ligera molestia en hombro derecho (ver ficha médica)."/>
-                                         <Card className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm p-2">
-                                            <div className="flex items-center gap-2 text-primary/90">
-                                                <CheckCircle2 className="h-4 w-4" />
-                                                <div>
-                                                    <p className="font-semibold text-xs">{t.studentDetail.allSet}</p>
-                                                    <p className="text-xs">{t.studentDetail.dataUpdated}</p>
-                                                </div>
-                                            </div>
-                                         </Card>
                                      </div>
                                  </div>
                             </div>
@@ -265,32 +242,7 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                              <CardDescription>{t.studentDetail.medicalDescription}</CardDescription>
                         </CardHeader>
                         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                            <MetricItem icon={<UserCheck className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.fitnessCertificate} value={t.studentDetail.medicalValues.yes} />
-                            <MetricItem icon={<CalendarCheck className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.certificateDate} value="2024-01-15" />
-                            <MetricItem icon={<HeartPulse className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.cardiovascularDiseases} value={t.studentDetail.medicalValues.none} />
-                            <MetricItem icon={<Gauge className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.bloodPressure} value="120/80" />
-                            <MetricItem icon={<Heart className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.restingHeartRate} value="62 bpm" />
-                            <MetricItem icon={<Droplet className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.diabetes} value={t.studentDetail.medicalValues.no} />
-                            <MetricItem icon={<TestTube className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.fastingGlucose} value="85 mg/dL" />
-                            <MetricItem icon={<Activity className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.totalCholesterol} value={t.studentDetail.medicalValues.normal} />
-                            <MetricItem icon={<FlaskConical className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.triglycerides} value={t.studentDetail.medicalValues.normal} />
-                            <MetricItem icon={<Wind className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.asthmaCopd} value={t.studentDetail.medicalValues.no} />
-                            <MetricItem icon={<Bone className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.chronicJointProblems} value={t.studentDetail.medicalValues.knee} />
-                            <MetricItem icon={<Disc3 className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.discHernias} value={t.studentDetail.medicalValues.no} />
-                            <MetricItem icon={<Bone className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.osteoporosis} value={t.studentDetail.medicalValues.no} />
-                            <MetricItem icon={<Brain className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.neurologicalProblems} value={t.studentDetail.medicalValues.no} />
-                            <MetricItem icon={<Pill className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.currentMedication} value={t.studentDetail.medicalValues.none} />
-                            <MetricItem icon={<HeartHandshake className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.cardiovascularMedication} value={t.studentDetail.medicalValues.no} />
-                            <MetricItem icon={<Pill className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.metabolicMedication} value={t.studentDetail.medicalValues.no} />
-                            <MetricItem icon={<CircleAlert className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.dizzinessSyncope} value={t.studentDetail.medicalValues.occasional} />
-                            <MetricItem icon={<HeartPulse className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.exertionalChestPain} value={t.studentDetail.medicalValues.no} />
-                            <MetricItem icon={<Wind className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.exertionalShortnessOfBreath} value={t.studentDetail.medicalValues.mild} />
-                            <MetricItem icon={<FileText className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.relevantSurgeries} value={t.studentDetail.medicalValues.none} />
-                            <MetricItem icon={<User className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.pregnancy} value={t.studentDetail.medicalValues.no} />
-                            <MetricItem icon={<FileWarning className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.relevantAllergies} value="AINEs" />
-                            <MetricItem icon={<FileKey2 className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.medicalRestrictions} value={t.studentDetail.medicalValues.none} />
-                            <MetricItem icon={<ShieldCheck className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.exerciseAuthorization} value={t.studentDetail.medicalValues.total} />
-                            <MetricItem icon={<ShieldAlert className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.medical.riskLevel} value={t.studentDetail.level.low} />
+                           <p className="text-muted-foreground md:col-span-2">No se han añadido datos médicos todavía.</p>
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -298,37 +250,7 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                     <Card>
                         <CardHeader><CardTitle>{t.studentDetail.biomechanics}</CardTitle></CardHeader>
                         <CardContent className="space-y-2">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                <MetricItem icon={<Cake className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.age} value={`${student.profile.age} años`} />
-                                <MetricItem icon={<VenetianMask className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.gender} value={student.profile.gender} />
-                                <MetricItem icon={<Ruler className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.height} value={`${student.profile.height} cm`} />
-                                <MetricItem icon={<Scale className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.weight} value={`${student.profile.weight} kg`} />
-                                <MetricItem icon={<Calculator className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.bmi} value="26.2" />
-                                <MetricItem icon={<Percent className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.bodyFat} value="18.5%" />
-                                <MetricItem icon={<Dumbbell className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.muscleMass} value="42 kg" />
-                                <MetricItem icon={<HeartPulse className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.restingHr} value="62 bpm" />
-                                <MetricItem icon={<Gauge className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.bloodPressure} value="120/80" />
-                                <MetricItem icon={<FileWarning className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.previousInjuries} value="Rodilla derecha" />
-                                <MetricItem icon={<AlertTriangle className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.currentPain} value={<Badge variant="outline" className="text-orange-500 border-orange-500/50">{t.studentDetail.pain.mild}</Badge>} />
-                                <MetricItem icon={<Target className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.painZone} value={t.studentDetail.painZoneValue.shoulder} />
-                                <MetricItem icon={<Move className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.shoulderMobility} value={t.studentDetail.mobility.good} />
-                                <MetricItem icon={<Move className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.hipMobility} value={t.studentDetail.mobility.limited} />
-                                <MetricItem icon={<Move className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.ankleMobility} value={t.studentDetail.mobility.medium} />
-                                <MetricItem icon={<Move className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.spineMobility} value={t.studentDetail.mobility.good} />
-                                <MetricItem icon={<ArrowDownToLine className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.trunkFlexion} value={t.studentDetail.trunkFlexionValue.reachesFeet} />
-                                <MetricItem icon={<PersonStanding className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.shoulderPosture} value={t.studentDetail.posture.protracted} />
-                                <MetricItem icon={<PersonStanding className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.pelvicPosition} value={t.studentDetail.pelvicPositionValue.neutral} />
-                                <MetricItem icon={<PersonStanding className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.kneeValgus} value={t.studentDetail.kneeValgusValue.mild} />
-                                <MetricItem icon={<Hand className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.dominance} value={t.studentDetail.dominanceValue.right} />
-                                <MetricItem icon={<Timer className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.unipodalBalance} value=">30s" />
-                                <MetricItem icon={<Repeat className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.pushUps} value="25" />
-                                <MetricItem icon={<Repeat className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.bodyweightSquats} value="50" />
-                                <MetricItem icon={<Timer className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.abdominalPlank} value="90s" />
-                                <MetricItem icon={<ShieldCheck className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.generalStrengthLevel} value={t.studentDetail.level.medium} />
-                                <MetricItem icon={<Activity className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.cardioCapacity} value={t.studentDetail.level.medium} />
-                                <MetricItem icon={<Zap className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.postEffortRecovery} value={t.studentDetail.recovery.fast} />
-                                <MetricItem icon={<Award className="w-5 h-5 text-muted-foreground"/>} label={t.studentDetail.experienceLevel} value={t.studentDetail.experience.intermediate} />
-                            </div>
+                           <p className="text-muted-foreground">No se han añadido datos biomecánicos todavía.</p>
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -350,23 +272,27 @@ export default function StudentDetailClientPage({ student }: { student: Student 
                                 <Button variant="outline"><Plus className="mr-2 h-4 w-4"/> {t.studentDetail.addNote}</Button>
                             </div>
                             <div className="space-y-6">
-                                {mockNotes.map((note) => (
+                                {areNotesLoading && <Loader2 className="animate-spin" />}
+                                {!areNotesLoading && notes?.map((note) => (
                                 <div key={note.id} className="flex items-start gap-4">
                                     <Avatar className="h-10 w-10 border">
-                                    <AvatarImage src={note.coachAvatarUrl} alt={note.coachName} data-ai-hint={note.coachAvatarHint}/>
-                                    <AvatarFallback>{note.coachName.charAt(0)}</AvatarFallback>
+                                        <AvatarImage src={note.coachAvatarUrl} alt={note.coachName} />
+                                        <AvatarFallback>{note.coachName.charAt(0)}</AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1">
                                     <div className="flex items-center justify-between">
                                         <p className="font-semibold">{note.coachName}</p>
                                         <p className="text-xs text-muted-foreground">
-                                        {format(new Date(note.date), "PPP", { locale: language === 'es' ? es : undefined })}
+                                        {format(new Date(note.createdAt), "PPP", { locale: language === 'es' ? es : undefined })}
                                         </p>
                                     </div>
                                     <p className="text-sm text-muted-foreground mt-1">{note.content}</p>
                                     </div>
                                 </div>
                                 ))}
+                                {!areNotesLoading && notes?.length === 0 && (
+                                    <p className="text-muted-foreground text-sm text-center py-4">No hay notas para este cliente.</p>
+                                )}
                             </div>
                         </div>
                     </div>

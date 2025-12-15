@@ -6,24 +6,6 @@
  * a tenant, and a user must be a member of that tenant to access any of its
  * resources. This creates strong data isolation between different tenants.
  *
- * Data Structure:
- * The data is organized hierarchically:
- * - /tenants/{tenantId}: A top-level collection for tenant documents.
- * - /tenants/{tenantId}/users/{userId}: A subcollection containing users
- *   associated with a specific tenant.
- *
- * Key Security Decisions:
- * - Tenant Creation: Any authenticated user can create a new tenant, and in doing
- *   so, they are automatically designated as the 'owner' of that tenant.
- * - Tenant Management: Only the 'owner' of a tenant can modify the tenant's
- *   details or delete it.
- * - Tenant Visibility: Users can only read data for tenants they are members of.
- *   Listing all tenants in the database is disallowed.
- * - User Management: Users within a tenant can be created, updated, or deleted
- *   by the tenant 'owner'. Users can also update their own profiles.
- * - Data Access: A user can read all user profiles within any tenant they are a
- *   member of.
- *
  * Denormalization for Authorization:
  * To ensure fast and secure authorization, a `members` map is denormalized directly
  * onto each `/tenants/{tenantId}` document. This map stores user UIDs as keys and
@@ -37,88 +19,63 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Helper functions to abstract and reuse logic.
-    
-    /**
-     * Checks if the request is from an authenticated user.
-     */
     function isSignedIn() {
       return request.auth != null;
     }
 
-    /**
-     * Checks if the requesting user's UID matches the provided userId.
-     */
     function isSelf(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
     
-    /**
-     * Retrieves the parent tenant document data.
-     * Used by subcollection rules to check for membership.
-     */
     function getTenantData(tenantId) {
       return get(/databases/$(database)/documents/tenants/$(tenantId));
     }
 
-    /**
-     * Checks if the requesting user is listed in the tenant's members map.
-     * NOTE: This function performs a read operation.
-     */
     function isTenantMember(tenantId) {
       let tenantData = getTenantData(tenantId).data;
       return isSignedIn() && request.auth.uid in tenantData.members;
     }
     
-    /**
-     * Checks if the requesting user has the 'owner' role in the tenant's members map.
-     * NOTE: This function performs a read operation.
-     */
     function isTenantOwner(tenantId) {
       let tenantData = getTenantData(tenantId).data;
       return isSignedIn() && tenantData.members[request.auth.uid] == 'owner';
     }
 
-    /**
-     * Checks if the requesting user is the owner of an existing tenant document.
-     * Used for update and delete operations to prevent acting on non-existent docs.
-     */
-    function isExistingTenantOwner() {
-        return isSignedIn() && resource != null && resource.data.members[request.auth.uid] == 'owner';
+    function isExistingTenantOwner(tenantId) {
+        let tenant = getTenantData(tenantId);
+        return isSignedIn() && tenant != null && tenant.data.members[request.auth.uid] == 'owner';
     }
 
-    /**
-     * @description Manages access to Tenant documents, which act as the root for all tenant-specific data.
-     * @path /tenants/{tenantId}
-     * @allow (create) An authenticated user creating a new tenant for themselves.
-     *        - auth: { uid: 'user_abc' }
-     *        - data: { id: 'tenant_123', name: 'My Gym', members: { 'user_abc': 'owner' } }
-     * @deny (list) Any user attempting to list all tenants in the database.
-     *       - auth: { uid: 'user_abc' }
-     * @principle Enforces a Shared Access model where an 'owner' role grants write permissions.
-     */
     match /tenants/{tenantId} {
-      allow get: if isSignedIn() && resource.data.members[request.auth.uid] != null;
-      allow list: if false;
+      allow get: if isTenantMember(tenantId);
+      allow list: if false; // Disallow listing all tenants for security.
       allow create: if isSignedIn() && request.resource.data.members[request.auth.uid] == 'owner' && request.resource.data.members.size() == 1 && request.resource.data.id == tenantId;
-      allow update: if isExistingTenantOwner() && request.resource.data.id == resource.data.id && request.resource.data.members[request.auth.uid] == 'owner';
-      allow delete: if isExistingTenantOwner();
+      allow update: if isTenantOwner(tenantId) && request.resource.data.id == resource.data.id && request.resource.data.members[request.auth.uid] == 'owner';
+      allow delete: if isTenantOwner(tenantId);
     }
 
-    /**
-     * @description Manages user profiles nested within a specific tenant.
-     * @path /tenants/{tenantId}/users/{userId}
-     * @allow (get) A member of 'tenant_123' reading a user profile within that same tenant.
-     *        - auth: { uid: 'user_abc' } // where 'user_abc' is a member of 'tenant_123'
-     * @deny (update) A user from 'tenant_456' trying to update a user profile in 'tenant_123'.
-     *       - auth: { uid: 'user_xyz' } // user_xyz is not a member of 'tenant_123'
-     * @principle Restricts access to a user's own data tree, controlled by parent document membership.
-     */
     match /tenants/{tenantId}/users/{userId} {
       allow get: if isTenantMember(tenantId);
       allow list: if isTenantMember(tenantId);
       allow create: if isTenantOwner(tenantId) && request.resource.data.id == userId && request.resource.data.tenantId == tenantId;
-      allow update: if (isSelf(userId) || isTenantOwner(tenantId)) && resource != null;
-      allow delete: if (isSelf(userId) || isTenantOwner(tenantId)) && resource != null;
+      allow update: if (isSelf(userId) || isTenantOwner(tenantId));
+      allow delete: if (isSelf(userId) || isTenantOwner(tenantId));
+      
+      // Rules for subcollections
+      match /medicalHistory/{historyId} {
+        allow read, list: if isTenantMember(tenantId);
+        allow write: if isTenantOwner(tenantId);
+      }
+
+      match /biomechanics/{biomechanicsId} {
+        allow read, list: if isTenantMember(tenantId);
+        allow write: if isTenantOwner(tenantId);
+      }
+
+      match /notes/{noteId} {
+        allow read, list: if isTenantMember(tenantId);
+        allow write: if isTenantOwner(tenantId);
+      }
     }
   }
 }
