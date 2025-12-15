@@ -7,6 +7,7 @@ export const translations = {
       registerNow: "Regístrate ahora",
       forgotPassword: "¿Olvidaste tu contraseña?",
       loginButton: "Acceder",
+      cancelButton: "Cancelar",
     },
     register: {
       title: "Crear una Cuenta",
@@ -398,6 +399,7 @@ export const translations = {
       registerNow: "Register now",
       forgotPassword: "Forgot your password?",
       loginButton: "Login",
+      cancelButton: "Cancel",
     },
     register: {
       title: "Create an Account",

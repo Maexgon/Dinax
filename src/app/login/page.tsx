@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -15,14 +16,16 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const { t } = useLanguage();
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-md border-primary/20 shadow-lg shadow-primary/20">
+      <Card className="w-full max-w-md border border-primary shadow-lg shadow-primary/30">
         <CardHeader className="text-center">
            <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={60} height={60} className="mx-auto rounded-sm" data-ai-hint="logo" />
           <CardTitle className="font-headline text-2xl">{t.login.title}</CardTitle>
@@ -76,6 +79,11 @@ export default function LoginPage() {
             </Button>
           </form>
         </CardContent>
+        <CardFooter className="flex flex-col">
+          <Button variant="outline" className="w-full" onClick={() => router.push('/')}>
+            {t.login.cancelButton}
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   );
