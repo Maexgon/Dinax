@@ -53,6 +53,7 @@ export async function signUpWithEmailAndPassword(
     
     // CRITICAL FIX: Ensure the 'members' map is included during tenant creation.
     // This map is what the security rules will check.
+    // AWAIT this operation to ensure it completes before the user is redirected.
     await setDoc(tenantRef, {
       id: tenantId,
       name: `${firstName}'s Gym`,
