@@ -16,28 +16,24 @@ import { getFirestore } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
 
 // This function can be defined here as it's only used server-side in this file.
-function getAdminFirebase() {
-  if (!getApps().length) {
-    const firebaseApp = initializeApp(firebaseConfig);
-    return {
-        firebaseApp,
-        auth: getAuth(firebaseApp),
-        firestore: getFirestore(firebaseApp)
-    };
+// By initializing within the action, we ensure a clean, correct server-side context.
+function initializeServerSideFirebase() {
+  const apps = getApps();
+  if (!apps.length) {
+    return initializeApp(firebaseConfig, 'server-side-app');
   }
-  const app = getApp();
-  return {
-    firebaseApp: app,
-    auth: getAuth(app),
-    firestore: getFirestore(app)
-  };
+  return getApp('server-side-app');
 }
 
 export async function signUpWithEmailAndPassword(
   prevState: any,
   formData: FormData
 ) {
-  const { auth, firestore } = getAdminFirebase();
+  // Initialize Firebase within the server action
+  const serverApp = initializeServerSideFirebase();
+  const auth = getAuth(serverApp);
+  const firestore = getFirestore(serverApp);
+
   const firstName = formData.get('firstName') as string;
   const lastName = formData.get('lastName') as string;
   const email = formData.get('email') as string;
@@ -55,7 +51,8 @@ export async function signUpWithEmailAndPassword(
     const tenantId = user.uid;
     const tenantRef = doc(firestore, 'tenants', tenantId);
     
-    // CRITICAL FIX: Add the 'members' map during tenant creation.
+    // CRITICAL FIX: Ensure the 'members' map is included during tenant creation.
+    // This map is what the security rules will check.
     await setDoc(tenantRef, {
       id: tenantId,
       name: `${firstName}'s Gym`,
@@ -82,9 +79,16 @@ export async function signUpWithEmailAndPassword(
       uid: user.uid,
     };
   } catch (error: any) {
+    // Return a more specific error message if available
+    let errorMessage = 'An unexpected error occurred.';
+    if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email address is already in use by another account.';
+    } else if (error.message) {
+        errorMessage = error.message;
+    }
     return {
       success: false,
-      message: error.message || 'An unexpected error occurred.',
+      message: errorMessage,
     };
   }
 }
