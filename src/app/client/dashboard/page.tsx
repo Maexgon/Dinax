@@ -5,6 +5,7 @@ import {
   BarChart,
   Calendar,
   CheckCircle,
+  Clock,
   Dumbbell,
   Flame,
   LineChart,
