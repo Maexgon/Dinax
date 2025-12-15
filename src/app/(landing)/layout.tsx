@@ -4,7 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, Moon, Rocket, User } from 'lucide-react';
+import { Menu, Rocket, User } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const navLinks = [
   { href: '#', label: 'Sobre Nosotros' },
@@ -24,7 +25,7 @@ export default function LandingLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground dark">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
           <div className="mr-4 hidden md:flex">
@@ -52,7 +53,7 @@ export default function LandingLayout({
                   <span className="sr-only">Toggle Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="dark w-[300px]">
+              <SheetContent side="left" className="w-[300px]">
                 <div className="flex flex-col gap-6 p-6">
                   <Link href="/">
                     <DinaxLogo />
@@ -91,15 +92,13 @@ export default function LandingLayout({
                   <Rocket className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="outline" size="icon">
-                <Moon className="h-4 w-4" />
-              </Button>
+              <ThemeToggle />
             </nav>
           </div>
         </div>
       </header>
       <main className="flex-1">{children}</main>
-      <footer className="dark border-t">
+      <footer className="border-t">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 py-10 md:h-24 md:flex-row md:py-0">
           <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
             <DinaxLogo />
