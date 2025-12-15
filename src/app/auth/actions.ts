@@ -11,10 +11,18 @@ import {
   serverTimestamp,
   type Firestore,
 } from 'firebase/firestore';
-import { getSdks } from '@/firebase';
-import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeApp, getApps, getApp, type FirebaseApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
 import { firebaseConfig } from '@/firebase/config';
 import { randomUUID } from 'crypto';
+
+function getSdks(firebaseApp: FirebaseApp) {
+  return {
+    firebaseApp,
+    auth: getAuth(firebaseApp),
+    firestore: getFirestore(firebaseApp)
+  };
+}
 
 // Helper to initialize and get SDKs on the server
 function getAdminFirebase() {
