@@ -24,18 +24,19 @@ import {
 import { useLanguage } from '@/context/language-context';
 import { cn } from '@/lib/utils';
 
-const navItems = [
-  { href: '/client/dashboard', icon: Home, label: 'Inicio' },
-  { href: '/client/agenda', icon: Calendar, label: 'Mi Agenda' },
-  { href: '/client/training', icon: Dumbbell, label: 'Entrenamiento' },
-  { href: '/client/evolution', icon: LineChart, label: 'Evolución' },
-  { href: '/client/profile', icon: User, label: 'Mi Perfil' },
-];
 
 export function ClientNav() {
   const pathname = usePathname();
   const { t } = useLanguage();
   const { state } = useSidebar();
+  
+  const navItems = [
+    { href: '/client/dashboard', icon: Home, label: t.clientNav.home },
+    { href: '/client/agenda', icon: Calendar, label: t.clientNav.agenda },
+    { href: '/client/training', icon: Dumbbell, label: t.clientNav.training },
+    { href: '/client/evolution', icon: LineChart, label: t.clientNav.evolution },
+    { href: '/client/profile', icon: User, label: t.clientNav.profile },
+  ];
 
   return (
     <Sidebar>
@@ -84,13 +85,13 @@ export function ClientNav() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip="Cerrar Sesión">
+            <SidebarMenuButton asChild tooltip={t.clientNav.logout}>
                 <Link href="/">
                     <LogOut />
                     <span className={cn(
                       'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
                     )}>
-                        Cerrar Sesión
+                        {t.clientNav.logout}
                     </span>
                 </Link>
             </SidebarMenuButton>

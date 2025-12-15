@@ -54,6 +54,14 @@ export const translations = {
         renewsOn: "Renueva:",
         manage: "Gestionar",
     },
+    clientNav: {
+      home: "Inicio",
+      agenda: "Mi Agenda",
+      training: "Entrenamiento",
+      evolution: "Evolución",
+      profile: "Mi Perfil",
+      logout: "Cerrar Sesión",
+    },
     nav: {
       dashboard: "Dashboard",
       students: "Clientes",
@@ -406,6 +414,14 @@ export const translations = {
         chat247: "24/7 chat with trainer",
         renewsOn: "Renews on:",
         manage: "Manage",
+    },
+    clientNav: {
+      home: "Home",
+      agenda: "My Schedule",
+      training: "Training",
+      evolution: "Evolution",
+      profile: "My Profile",
+      logout: "Log Out",
     },
     nav: {
       dashboard: "Dashboard",

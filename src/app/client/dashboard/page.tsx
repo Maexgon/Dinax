@@ -5,12 +5,12 @@ import {
   BarChart,
   Calendar,
   CheckCircle,
-  Clock,
   Dumbbell,
   Flame,
   LineChart,
   User,
   Weight,
+  Clock,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -63,9 +63,15 @@ export default function ClientDashboardPage() {
   return (
     <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold font-headline">{t.clientDashboard.greeting}</h1>
-          <p className="text-muted-foreground">{t.clientDashboard.motivation}</p>
+        <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16 border-4 border-primary">
+                <AvatarImage src="https://images.unsplash.com/photo-1557862921-37829c790f19?q=80&w=2071&auto=format&fit=crop" data-ai-hint="person face" alt="Alex Morgan"/>
+                <AvatarFallback>AM</AvatarFallback>
+            </Avatar>
+            <div>
+                <h1 className="text-3xl font-bold font-headline">{t.clientDashboard.greeting}</h1>
+                <p className="text-muted-foreground">{t.clientDashboard.motivation}</p>
+            </div>
         </div>
         <Badge variant="outline" className="border-green-500/50 bg-green-500/10 text-green-700">
             <span className="relative flex h-2 w-2 mr-2">
@@ -77,40 +83,40 @@ export default function ClientDashboardPage() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="bg-orange-50 dark:bg-orange-900/20 border-orange-100 dark:border-orange-900/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">{t.clientDashboard.currentWeight}</CardTitle>
-            <Weight className="h-4 w-4 text-muted-foreground" />
+            <Weight className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">72.5 kg</div>
             <p className="text-xs text-destructive/80">-1.2%</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-900/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">{t.clientDashboard.bodyFat}</CardTitle>
-            <LineChart className="h-4 w-4 text-muted-foreground" />
+            <LineChart className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">14%</div>
             <p className="text-xs text-destructive/80">-0.5%</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-purple-50 dark:bg-purple-900/20 border-purple-100 dark:border-purple-900/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">{t.clientDashboard.sessions}</CardTitle>
-            <Dumbbell className="h-4 w-4 text-muted-foreground" />
+            <Dumbbell className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">24</div>
             <p className="text-xs text-muted-foreground">{t.clientDashboard.thisMonth}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-green-50 dark:bg-green-900/20 border-green-100 dark:border-green-900/30">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">{t.clientDashboard.streak}</CardTitle>
-            <Flame className="h-4 w-4 text-muted-foreground" />
+            <Flame className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">5 {t.clientDashboard.days}</div>
@@ -122,13 +128,13 @@ export default function ClientDashboardPage() {
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardContent className="p-6 flex flex-col md:flex-row gap-6">
-                <div className="w-full md:w-1/3">
+                <div className="w-full md:w-1/3 flex items-center justify-center">
                     <Image
                         src="https://i.ibb.co/yFR9LGPD/dinax.png"
                         alt="Dinax Logo"
-                        width={300}
-                        height={300}
-                        className="rounded-lg object-contain w-full h-full p-4 bg-muted/20"
+                        width={150}
+                        height={150}
+                        className="rounded-lg object-contain p-4 bg-muted/20"
                         data-ai-hint="logo"
                     />
                 </div>
