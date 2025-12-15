@@ -25,8 +25,7 @@ import { WeightChart } from '@/components/charts/weight-chart';
 import { BodyCompositionChart } from '@/components/charts/body-composition-chart';
 import { MuscleMassChart } from '@/components/charts/muscle-mass-chart';
 import { GoalProgressChart } from '@/components/charts/goal-progress-chart';
-import { useFirebase, useMemoFirebase } from '@/firebase/provider';
-import { useDoc, useCollection } from '@/firebase/firestore/use-doc';
+import { useFirebase, useMemoFirebase, useDoc, useCollection } from '@/firebase';
 import { doc, collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 
