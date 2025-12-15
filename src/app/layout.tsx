@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
+import { LanguageProvider } from '@/context/language-context';
 
 export const metadata: Metadata = {
   title: 'Dinax',
@@ -28,8 +29,10 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
         >
+          <LanguageProvider>
             {children}
             <Toaster />
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

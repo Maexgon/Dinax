@@ -3,7 +3,6 @@ import React from 'react';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { ClientNav } from './client-nav';
 import { ClientHeader } from './client-header';
-import { LanguageProvider } from '@/context/language-context';
 
 export default function ClientLayout({
   children,
@@ -11,7 +10,6 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   return (
-    <LanguageProvider>
       <SidebarProvider>
         <ClientNav />
         <SidebarInset>
@@ -21,6 +19,5 @@ export default function ClientLayout({
           </div>
         </SidebarInset>
       </SidebarProvider>
-    </LanguageProvider>
   );
 }

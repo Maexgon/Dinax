@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, Rocket, User, Languages } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { LanguageProvider, useLanguage } from '@/context/language-context';
+import { useLanguage } from '@/context/language-context';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -119,7 +119,7 @@ function HeaderNav() {
     )
 }
 
-function LandingPageLayout({
+export default function LandingLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -150,17 +150,4 @@ function LandingPageLayout({
       </footer>
     </div>
   );
-}
-
-
-export default function LandingLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <LanguageProvider>
-      <LandingPageLayout>{children}</LandingPageLayout>
-    </LanguageProvider>
-  )
 }
