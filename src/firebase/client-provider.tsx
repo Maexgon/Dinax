@@ -33,22 +33,21 @@ export function FirebaseClientProvider({
   }, [firebaseServices.auth]);
 
   useEffect(() => {
-    if (isAuthLoading) return; // Wait until auth state is resolved
+    if (isAuthLoading) return; // Don't do anything while loading
 
-    const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route));
-    
-    if (!user && !isPublicRoute) {
-      // If user is not logged in and tries to access a protected route, redirect to login
+    const isProtectedRoute = !PUBLIC_ROUTES.some(route => pathname.startsWith(route));
+
+    if (!user && isProtectedRoute) {
       router.push('/login');
     } else if (user && (pathname === '/login' || pathname === '/register')) {
-      // If user is logged in and tries to access login/register, redirect to dashboard
       router.push('/dashboard');
     }
   }, [user, isAuthLoading, pathname, router]);
 
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname.startsWith(route));
 
-  // Show a global loader while we check for auth status on protected routes
+  // If we are still loading the auth state AND it's a protected route, show a spinner.
+  // This is the main gate that prevents premature rendering of protected content.
   if (isAuthLoading && !isPublicRoute) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -57,24 +56,25 @@ export function FirebaseClientProvider({
     );
   }
 
-  // If the route is public, or the user is authenticated, show the content.
-  // The useEffect hook above will handle redirection if needed.
+  // If the route is public, or we have finished loading and have a user, render the children.
+  // The redirection logic in the useEffect above handles the case where there's no user for a protected route.
   if (isPublicRoute || user) {
-      return (
-        <FirebaseProvider
-          firebaseApp={firebaseServices.firebaseApp}
-          auth={firebaseServices.auth}
-          firestore={firebaseServices.firestore}
-        >
-          {children}
-        </FirebaseProvider>
-      );
+    return (
+      <FirebaseProvider
+        firebaseApp={firebaseServices.firebaseApp}
+        auth={firebaseServices.auth}
+        firestore={firebaseServices.firestore}
+      >
+        {children}
+      </FirebaseProvider>
+    );
   }
 
-  // This will be shown briefly for protected routes before redirection happens
+  // This will be shown for a protected route if there's no user, right before redirection.
+  // This also acts as a fallback loading screen.
   return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
+    <div className="flex h-screen w-full items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>
   );
 }
