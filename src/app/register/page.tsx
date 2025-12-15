@@ -1,0 +1,224 @@
+'use client';
+
+import { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useFormState } from 'react-dom';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { signUpWithEmailAndPassword } from '@/app/auth/actions';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { useLanguage } from '@/context/language-context';
+
+const initialState = {
+  message: '',
+  success: false,
+};
+
+export default function RegisterPage() {
+  const { t } = useLanguage();
+  const [state, formAction] = useFormState(signUpWithEmailAndPassword, initialState);
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Human validation state
+  const [num1, setNum1] = useState(0);
+  const [num2, setNum2] = useState(0);
+  const [operation, setOperation] = useState<'*'>('*'); // Only multiplication for now
+  const [humanAnswer, setHumanAnswer] = useState('');
+  const [isHuman, setIsHuman] = useState(false);
+
+  useEffect(() => {
+    setNum1(Math.floor(Math.random() * 9) + 1);
+    setNum2(Math.floor(Math.random() * 9) + 1);
+  }, []);
+
+  const handleHumanValidation = () => {
+    const correctAnswer = num1 * num2;
+    if (parseInt(humanAnswer, 10) === correctAnswer) {
+      setIsHuman(true);
+      toast({ title: t.register.human, description: t.register.humanSuccess });
+    } else {
+      setIsHuman(false);
+      toast({ variant: 'destructive', title: t.register.error, description: t.register.humanError });
+      setNum1(Math.floor(Math.random() * 9) + 1);
+      setNum2(Math.floor(Math.random() * 9) + 1);
+      setHumanAnswer('');
+    }
+  };
+
+
+  const passwordValidation = useMemo(() => {
+    const validations = {
+      minLength: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      specialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+      match: password && password === confirmPassword,
+    };
+    return validations;
+  }, [password, confirmPassword]);
+
+  useEffect(() => {
+    if (state.message) {
+      if (state.success) {
+        toast({
+          title: t.register.successTitle,
+          description: state.message,
+        });
+        router.push('/dashboard');
+      } else {
+        toast({
+          variant: 'destructive',
+          title: t.register.error,
+          description: state.message,
+        });
+      }
+    }
+  }, [state, toast, router, t]);
+
+  const isFormValid = Object.values(passwordValidation).every(Boolean) && isHuman;
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4 dark">
+      <Card className="w-full max-w-lg">
+        <CardHeader className="text-center">
+           <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={60} height={60} className="mx-auto rounded-sm" data-ai-hint="logo" />
+          <CardTitle className="font-headline text-2xl">{t.register.title}</CardTitle>
+          <CardDescription>
+            {t.register.description}{' '}
+            <Link href="/login" className="text-primary hover:underline">
+              {t.register.loginNow}
+            </Link>
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form action={formAction} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">{t.register.firstName}</Label>
+                <Input id="firstName" name="firstName" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">{t.register.lastName}</Label>
+                <Input id="lastName" name="lastName" required />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">{t.register.email}</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="entrenador@example.com"
+                required
+              />
+            </div>
+             <div className="space-y-2">
+              <Label htmlFor="phone">{t.register.phone}</Label>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                required
+              />
+            </div>
+            <div className="relative space-y-2">
+              <Label htmlFor="password">{t.register.password}</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
+            </div>
+            <div className="relative space-y-2">
+              <Label htmlFor="confirmPassword">{t.register.confirmPassword}</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                   value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2 text-xs">
+                <p className={passwordValidation.minLength ? 'text-green-500' : 'text-destructive'}>
+                    {t.register.passLength}
+                </p>
+                <p className={passwordValidation.uppercase ? 'text-green-500' : 'text-destructive'}>
+                    {t.register.passUppercase}
+                </p>
+                <p className={passwordValidation.specialChar ? 'text-green-500' : 'text-destructive'}>
+                    {t.register.passSpecialChar}
+                </p>
+                <p className={passwordValidation.match ? 'text-green-500' : 'text-destructive'}>
+                    {t.register.passMatch}
+                </p>
+            </div>
+            
+            {!isHuman && (
+              <div className="space-y-2 rounded-lg border bg-muted/50 p-4">
+                <Label>{t.register.humanValidation}</Label>
+                <div className="flex items-center gap-4">
+                  <span className="font-mono text-lg">{`${num1} * ${num2} = ?`}</span>
+                  <Input 
+                    type="number" 
+                    className="w-24" 
+                    value={humanAnswer}
+                    onChange={e => setHumanAnswer(e.target.value)}
+                  />
+                  <Button type="button" onClick={handleHumanValidation}>{t.register.verify}</Button>
+                </div>
+              </div>
+            )}
+
+            <Button type="submit" className="w-full" disabled={!isFormValid}>
+              {t.register.registerButton}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

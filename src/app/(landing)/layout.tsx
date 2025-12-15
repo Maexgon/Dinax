@@ -77,7 +77,7 @@ export default function LandingLayout({
           <div className="flex flex-1 items-center justify-end space-x-4">
             <nav className="hidden items-center space-x-2 md:flex">
                <Button variant="ghost" asChild>
-                  <Link href="/dashboard">Entrenador</Link>
+                  <Link href="/login">Entrenador</Link>
                 </Button>
                  <Button variant="outline" asChild>
                   <Link href="/client/dashboard">
@@ -86,7 +86,7 @@ export default function LandingLayout({
                   </Link>
                 </Button>
               <Button asChild>
-                  <Link href="#">
+                  <Link href="/register">
                   Register
                   <Rocket className="ml-2 h-4 w-4" />
                 </Link>
