@@ -25,10 +25,11 @@ function getAdminFirebase() {
         firestore: getFirestore(firebaseApp)
     };
   }
+  const app = getApp();
   return {
-    firebaseApp: getApp(),
-    auth: getAuth(getApp()),
-    firestore: getFirestore(getApp())
+    firebaseApp: app,
+    auth: getAuth(app),
+    firestore: getFirestore(app)
   };
 }
 
@@ -53,11 +54,13 @@ export async function signUpWithEmailAndPassword(
     // Use the user's UID as the tenantId for a simple 1-to-1 mapping
     const tenantId = user.uid;
     const tenantRef = doc(firestore, 'tenants', tenantId);
+    
+    // CRITICAL FIX: Add the 'members' map during tenant creation.
     await setDoc(tenantRef, {
       id: tenantId,
-      name: `${firstName}'s Gym`, // Or some other default name
+      name: `${firstName}'s Gym`,
       members: {
-        [user.uid]: 'owner',
+        [user.uid]: 'owner', // This user is the owner of their own tenant
       },
       createdAt: serverTimestamp(),
     });
