@@ -40,7 +40,7 @@ export default function LandingPage() {
         />
         <div className="absolute inset-0 bg-black/60" />
         <div className="relative z-10 flex h-full flex-col items-center justify-center text-center text-white px-4">
-            <div className="mb-4 inline-block rounded-full bg-primary/10 px-4 py-1 text-sm font-medium text-primary-foreground border border-primary/20">
+            <div className="mb-4 inline-block rounded-full bg-primary px-4 py-1 text-sm font-medium text-primary-foreground border border-primary/20">
             GESTIÓN INTEGRAL DEPORTIVA
             </div>
             <h1 className="text-4xl font-bold tracking-tight md:text-6xl font-headline">
