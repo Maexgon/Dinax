@@ -48,7 +48,7 @@ export function FirebaseClientProvider({
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname === route || (route !== '/' && pathname.startsWith(route)));
 
   // If we are still loading the auth state for any route, show a global spinner.
-  if (isAuthLoading) {
+  if (isAuthLoading && !isPublicRoute) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -56,25 +56,13 @@ export function FirebaseClientProvider({
     );
   }
 
-  // After loading, if there's a user OR it's a public route, render the app content.
-  // The redirection logic in the useEffect will handle unauthorized access to protected routes.
-  if (user || isPublicRoute) {
-    return (
-      <FirebaseProvider
-        firebaseApp={firebaseServices.firebaseApp}
-        auth={firebaseServices.auth}
-        firestore={firebaseServices.firestore}
-      >
-        {children}
-      </FirebaseProvider>
-    );
-  }
-
-  // This will be shown for a protected route if there's no user, right before redirection.
-  // This also acts as a fallback loading screen.
   return (
-    <div className="flex h-screen w-full items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin" />
-    </div>
+    <FirebaseProvider
+      firebaseApp={firebaseServices.firebaseApp}
+      auth={firebaseServices.auth}
+      firestore={firebaseServices.firestore}
+    >
+      {children}
+    </FirebaseProvider>
   );
 }
