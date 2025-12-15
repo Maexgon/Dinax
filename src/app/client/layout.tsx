@@ -12,7 +12,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useLanguage } from '@/context/language-context';
+import { LanguageProvider, useLanguage } from '@/context/language-context';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -23,16 +23,9 @@ const navItems = [
   { href: '/client/profile', icon: User, label: 'Mi Perfil' },
 ];
 
-export default function ClientLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function ClientLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { t } = useLanguage();
-
-  // Note: Language switching is not implemented in this layout yet.
-  // We'll use hardcoded spanish for now as per the design.
 
   return (
     <div className="flex min-h-screen bg-muted/40">
@@ -80,5 +73,18 @@ export default function ClientLayout({
       </aside>
       <main className="flex-1">{children}</main>
     </div>
+  );
+}
+
+
+export default function ClientLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <LanguageProvider>
+        <ClientLayoutContent>{children}</ClientLayoutContent>
+    </LanguageProvider>
   );
 }
