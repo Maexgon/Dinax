@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useActionState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useFormState } from 'react-dom';
 import {
   Card,
   CardContent,
@@ -27,7 +26,7 @@ const initialState = {
 
 export default function RegisterPage() {
   const { t } = useLanguage();
-  const [state, formAction] = useFormState(signUpWithEmailAndPassword, initialState);
+  const [state, formAction] = useActionState(signUpWithEmailAndPassword, initialState);
   const { toast } = useToast();
   const router = useRouter();
 
