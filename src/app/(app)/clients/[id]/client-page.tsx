@@ -219,6 +219,20 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
   }
   
   const clientName = client.name;
+
+  const calculateAge = (birthDateString: string | undefined) => {
+    if (!birthDateString) return null;
+    const birthDate = new Date(birthDateString);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return age;
+  };
+  
+  const clientAge = calculateAge(client.birthDate);
   
   const getNoteDate = (note: Note) => {
     if (!note.createdAt) return '';
@@ -270,7 +284,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                     <User className="h-6 w-6 p-1 rounded-full bg-blue-100 text-blue-500" />
                     <span>{t.clientDetail.age}</span>
                  </div>
-                 <p className="font-bold text-lg">{client.profile?.age || 'N/A'} años</p>
+                 <p className="font-bold text-lg">{clientAge !== null ? `${clientAge} años` : 'N/A'}</p>
                </div>
                <div className="flex items-center justify-between">
                  <div className="flex items-center gap-3 text-muted-foreground">
@@ -415,7 +429,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                         <CardDescription>{t.clientDetail.biomechanics.descriptionForm}</CardDescription>
                                     </div>
                                     <p className="text-sm text-muted-foreground pt-1">
-                                        {latestBiomechanics && latestBiomechanics.createdAt ? `Última act: ${format((latestBiomechanics.createdAt as unknown as Timestamp).toDate(), 'dd MMM yyyy')}` : 'Sin datos previos'}
+                                        {latestBiomechanics?.createdAt ? `Última act: ${format((latestBiomechanics.createdAt as unknown as Timestamp).toDate(), 'dd MMM yyyy')}` : 'Sin datos previos'}
                                     </p>
                                 </div>
                             </CardHeader>
