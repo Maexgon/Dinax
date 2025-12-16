@@ -93,7 +93,7 @@ export default function ProfilePage() {
     if (userData) {
       reset({
         ...userData,
-        email: userData.email || user?.email || '',
+        email: user?.email || userData.email || '',
         secondaryEmail: userData.secondaryEmail || '',
         cuit: userData.cuit || '',
         phoneNumber: userData.phoneNumber || '',
@@ -105,6 +105,10 @@ export default function ProfilePage() {
         careerExperience: userData.careerExperience || [],
         education: userData.education || [],
       });
+    } else if (user) {
+        reset({
+            email: user.email || '',
+        })
     }
   }, [userData, reset, user]);
 
@@ -114,8 +118,11 @@ export default function ProfilePage() {
     try {
       // Create a copy of the data to avoid modifying the original object
       const dataToSave: Partial<ProfileFormData> = { ...data };
+      
       // We don't want to save the primary email, as it's not editable
-      delete dataToSave.email;
+      if('email' in dataToSave) {
+        delete dataToSave.email;
+      }
 
       updateDocumentNonBlocking(userDocRef, dataToSave);
       toast({
@@ -346,3 +353,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
