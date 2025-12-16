@@ -7,9 +7,9 @@ import {
   Briefcase, Cake, Phone, Mail, MapPin, Flag, Plus, X, CheckCircle2, ChevronRight,
   VenetianMask, Calculator, Percent, Gauge, FileWarning, AlertTriangle, Target, Move,
   ArrowDownToLine, PersonStanding, Hand, Timer, Repeat, ShieldCheck, Activity, Zap,
-  Award, Heart, Droplet, TestTube, Wind, Bone, Disc3, Brain, Pill, FilePlus2,
+  Award, Heart, Droplet, TestTube, Bone, Disc3, Brain, Pill, FilePlus2,
   CalendarCheck, HeartHandshake, FlaskConical, CircleAlert, ShieldAlert, FileKey2,
-  UserCheck, Loader2, Footprints, Stretch, Core, Wind as WindIcon, Scale as ScaleIcon, MoveVertical, GitCompare, Siren, Info
+  UserCheck, Loader2, Footprints, Stretch, Wind as WindIcon, Scale as ScaleIcon, MoveVertical, GitCompare, Siren, Info
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -363,7 +363,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                             <MetricItem icon={<Stretch className="text-green-500" />} label={t.clientDetail.biomechanics.ankleDorsiflexion} value={biomechanicsData.ankleDorsiflexion} unit="°" />
                             <MetricItem icon={<Stretch className="text-green-500" />} label={t.clientDetail.biomechanics.hipMobility} value={biomechanicsData.hipMobility} unit="°" />
                             <MetricItem icon={<Stretch className="text-green-500" />} label={t.clientDetail.biomechanics.shoulderMobility} value={biomechanicsData.shoulderMobility} unit="°" />
-                            <MetricItem icon={<Core className="text-orange-500" />} label={t.clientDetail.biomechanics.coreStability} value={biomechanicsData.coreStability} unit="s" />
+                            <MetricItem icon={<Activity className="text-orange-500" />} label={t.clientDetail.biomechanics.coreStability} value={biomechanicsData.coreStability} unit="s" />
                             <MetricItem icon={<WindIcon className="text-orange-500" />} label={t.clientDetail.biomechanics.hipStability} value={biomechanicsData.hipStability} unit="/ 5" />
                             <MetricItem icon={<MoveVertical className="text-purple-500" />} label={t.clientDetail.biomechanics.squatPattern} value={biomechanicsData.squatPattern} unit="/ 5" />
                             <MetricItem icon={<Move className="text-purple-500" />} label={t.clientDetail.biomechanics.hipHingePattern} value={biomechanicsData.hipHingePattern} unit="/ 5" />
