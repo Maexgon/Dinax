@@ -2,15 +2,11 @@
  * This ruleset enforces a multi-tenant security model for a SaaS application.
  *
  * Core Philosophy:
- * Access is strictly scoped by tenant membership, which is determined by a
- * custom claim on the user's authentication token. This is a highly secure
- * and efficient model that avoids extra database reads (`get` calls) in rules.
+ * Access is strictly scoped by tenant membership. A user's right to access
+ * a resource is determined by checking if their UID exists in the `members`
+ * map of the corresponding tenant document.
  *
- * Authorization via Custom Claims:
- * When a user is created, a custom claim `tenantId` is set on their auth token.
- * This claim is sent with every authenticated request, allowing rules to instantly
- * verify which tenant the user belongs to by checking `request.auth.token.tenantId`.
- * This is faster and more reliable than using `get()` to check a "members" map.
+ * This version uses a `get()` call to read the tenant document.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -20,37 +16,46 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
-
+    
     // Helper function to check if the request is from the user themselves.
     function isSelf(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Helper function to verify if the user belongs to the specified tenant.
-    // It reads the `tenantId` directly from the user's authentication token.
-    function isTenantMember(tenantId) {
-      return isSignedIn() && request.auth.token.tenantId == tenantId;
+    // Helper function to get tenant data safely.
+    function getTenantDoc(tenantId) {
+      return get(/databases/$(database)/documents/tenants/$(tenantId));
     }
 
-    // A user is a tenant owner if they are a member and their UID matches the tenantId.
-    // This assumes a 1-to-1 relationship where the tenant creator is the owner.
-    function isTenantOwner(tenantId) {
-      return isTenantMember(tenantId) && request.auth.uid == tenantId;
+    // Helper function to verify if the user is a member of the specified tenant.
+    // It reads the tenant document and checks for the user's UID in the 'members' map.
+    function isTenantMember(tenantId) {
+      let tenantDoc = getTenantDoc(tenantId);
+      // Check if the document exists and the user's UID is a key in the members map.
+      return isSignedIn() && tenantDoc.data.members.keys().hasAny([request.auth.uid]);
     }
+
+    // Helper function to verify if the user is an owner of the specified tenant.
+    function isTenantOwner(tenantId) {
+       let tenantDoc = getTenantDoc(tenantId);
+       // Check if the user is a member and their role is 'owner'.
+       return isTenantMember(tenantId) && tenantDoc.data.members[request.auth.uid] == 'owner';
+    }
+
 
     match /tenants/{tenantId} {
-      // Allow a user to read their own tenant document.
+      // Allow a user to read their own tenant document if they are a member.
       allow get: if isTenantMember(tenantId);
       
       // Disallow listing all tenants for security.
       allow list: if false;
 
       // Allow a user to create their own tenant document.
-      // The `tenantId` in the path MUST match the user's UID.
-      allow create: if isTenantOwner(tenantId) && request.resource.data.id == tenantId;
+      // The `tenantId` in the path MUST match the user's UID, and they must be marked as owner.
+      allow create: if isSelf(tenantId) && request.resource.data.members[request.auth.uid] == 'owner';
 
       // Allow a tenant owner to update their own tenant document.
-      allow update: if isTenantOwner(tenantId) && request.resource.data.id == resource.data.id;
+      allow update: if isTenantOwner(tenantId);
 
       // Allow a tenant owner to delete their tenant.
       allow delete: if isTenantOwner(tenantId);
@@ -64,6 +69,7 @@ service cloud.firestore {
         allow list: if isTenantMember(tenantId);
 
         // Allow a tenant owner to create new users in their tenant.
+        // The new user document must have the correct tenantId.
         allow create: if isTenantOwner(tenantId) && request.resource.data.tenantId == tenantId;
         
         // Allow a user to update their own profile, or an owner to update any profile.

@@ -20,10 +20,19 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
 import { useActionState } from 'react';
+import { useFirebase, addDocumentNonBlocking } from '@/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+
 
 const initialState = {
   message: '',
   success: false,
+  uid: null,
+  email: null,
+  password: null,
+  firstName: null,
+  lastName: null,
 };
 
 export default function RegisterPage() {
@@ -31,11 +40,13 @@ export default function RegisterPage() {
   const [state, formAction, isPending] = useActionState(signUpWithEmailAndPassword, initialState);
   const { toast } = useToast();
   const router = useRouter();
+  const { auth, firestore } = useFirebase();
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [isCreatingDocs, setIsCreatingDocs] = useState(false);
 
   // Human validation state
   const [num1, setNum1] = useState(0);
@@ -62,7 +73,7 @@ export default function RegisterPage() {
       setHumanAnswer('');
     }
   };
-
+  
   const passwordValidation = useMemo(() => {
     return {
       minLength: password.length >= 8,
@@ -73,27 +84,72 @@ export default function RegisterPage() {
   }, [password, confirmPassword]);
 
   useEffect(() => {
-    // This effect runs when the server action completes
-    if (state.message) {
-      if (state.success) {
-        toast({
-          variant: 'success',
-          title: t.register.successTitle,
-          description: state.message,
-        });
-        // Server action was successful, redirect to login page to sign in
-        router.push('/login');
-      } else {
+    if (!state.success || !state.uid || !state.email || !state.password || !firestore) {
+      if (state.message && !state.success) {
         toast({
           variant: 'destructive',
           title: t.register.error,
           description: state.message,
         });
       }
+      return;
     }
-  }, [state, toast, router, t]);
 
-  const isSubmitDisabled = !Object.values(passwordValidation).every(Boolean) || !isHuman || isPending;
+    const finalizeRegistration = async () => {
+        setIsCreatingDocs(true);
+        try {
+            // Step 1: Sign in the new user on the client to get a valid token
+            await signInWithEmailAndPassword(auth, state.email!, state.password!);
+
+            // Step 2: Create the tenant and user documents in a batch
+            const tenantId = state.uid!;
+            const batch = writeBatch(firestore);
+
+            const tenantRef = doc(firestore, 'tenants', tenantId);
+            batch.set(tenantRef, {
+                id: tenantId,
+                name: `${state.firstName}'s Gym`,
+                members: { [tenantId]: 'owner' },
+                createdAt: serverTimestamp(),
+            });
+
+            const userRef = doc(firestore, `tenants/${tenantId}/users`, tenantId);
+            batch.set(userRef, {
+                id: tenantId,
+                tenantId: tenantId,
+                firstName: state.firstName,
+                lastName: state.lastName,
+                email: state.email,
+                createdAt: serverTimestamp(),
+            });
+
+            await batch.commit();
+
+            toast({
+                variant: 'success',
+                title: t.register.successTitle,
+                description: 'Setup complete. Redirecting...',
+            });
+
+            // Step 3: Redirect to the dashboard
+            router.push('/dashboard');
+
+        } catch (error: any) {
+            console.error("Error finalizing registration:", error);
+            toast({
+                variant: 'destructive',
+                title: 'Error during setup',
+                description: error.message || 'Could not create user profile.',
+            });
+            setIsCreatingDocs(false);
+        }
+    };
+
+    finalizeRegistration();
+
+  }, [state, toast, router, t, auth, firestore]);
+
+  const isSubmitDisabled = !Object.values(passwordValidation).every(Boolean) || !isHuman || isPending || isCreatingDocs;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -215,8 +271,8 @@ export default function RegisterPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t.register.registerButton}
+              {(isPending || isCreatingDocs) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isCreatingDocs ? 'Finalizando...' : t.register.registerButton}
             </Button>
           </form>
         </CardContent>

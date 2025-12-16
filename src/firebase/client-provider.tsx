@@ -40,14 +40,16 @@ export function FirebaseClientProvider({
     
     if (!user && !isPublicRoute) {
       router.push('/login');
-    } else if (user && (pathname === '/login' || pathname === '/register')) {
-      router.push('/dashboard');
     }
+    // This part is removed to allow the registration page to handle its own redirection.
+    // else if (user && (pathname === '/login' || pathname === '/register')) {
+    //   router.push('/dashboard');
+    // }
   }, [user, isAuthLoading, pathname, router]);
 
   const isPublicRoute = PUBLIC_ROUTES.some(route => pathname === route || (route !== '/' && pathname.startsWith(route)));
 
-  // If we are still loading the auth state for any route, show a global spinner.
+  // If we are still loading the auth state for any protected route, show a global spinner.
   if (isAuthLoading && !isPublicRoute) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -55,7 +57,9 @@ export function FirebaseClientProvider({
       </div>
     );
   }
-
+  
+  // If the route is public, or if the auth state has loaded and there is a user,
+  // provide the context and render the children.
   return (
     <FirebaseProvider
       firebaseApp={firebaseServices.firebaseApp}
