@@ -23,10 +23,6 @@ import { useLanguage } from '@/context/language-context';
 import type { Client, Note, Biomechanics, MedicalHistory } from '@/lib/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { WeightChart } from '@/components/charts/weight-chart';
-import { BodyCompositionChart } from '@/components/charts/body-composition-chart';
-import { MuscleMassChart } from '@/components/charts/muscle-mass-chart';
-import { GoalProgressChart } from '@/components/charts/goal-progress-chart';
 import { useFirebase, useMemoFirebase, useDoc, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -67,7 +63,7 @@ const biomechanicsSchema = z.object({
   relativeStrengthUpper: z.coerce.number().optional(),
   unilateralBalance: z.coerce.number().optional(),
   asymmetries: z.coerce.number().optional(),
-  movementPain: z.coerce.number().optional(),
+  movementPain: zcoerce.number().optional(),
 });
 
 type BiomechanicsFormData = z.infer<typeof biomechanicsSchema>;
@@ -501,9 +497,6 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                 </TabsContent>
                  <TabsContent value="progress">
                      <div className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><WeightChart /><BodyCompositionChart /></div>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><MuscleMassChart /><GoalProgressChart /></div>
-                        <Separator />
                         <div>
                             <div className="flex justify-between items-center mb-4"><h3 className="text-lg font-semibold">{t.clientDetail.trackingNotes}</h3><Button variant="outline"><Plus className="mr-2 h-4 w-4"/> {t.clientDetail.addNote}</Button></div>
                             <div className="space-y-6">
@@ -528,5 +521,3 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     </div>
   );
 }
-
-    
