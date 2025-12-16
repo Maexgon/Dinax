@@ -9,7 +9,7 @@ import {
   ArrowDownToLine, PersonStanding, Hand, Timer, Repeat, ShieldCheck, Activity, Zap,
   Award, Heart, Droplet, TestTube, Bone, Disc3, Brain, Pill, FilePlus2,
   CalendarCheck, HeartHandshake, FlaskConical, CircleAlert, ShieldAlert, FileKey2,
-  UserCheck, Loader2, Footprints, Stretch, Wind as WindIcon, Scale as ScaleIcon, MoveVertical, GitCompare, Siren, Info
+  UserCheck, Loader2, Footprints, StretchVertical, Wind as WindIcon, Scale as ScaleIcon, MoveVertical, GitCompare, Siren, Info
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -360,9 +360,9 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                             <MetricItem icon={<ScaleIcon className="text-blue-500" />} label={t.clientDetail.biomechanics.weight} value={biomechanicsData.weight} unit="kg" />
                             <MetricItem icon={<Ruler className="text-blue-500" />} label={t.clientDetail.biomechanics.height} value={biomechanicsData.height} unit="m" />
                             <MetricItem icon={<Calculator className="text-blue-500" />} label={t.clientDetail.biomechanics.bmi} value={biomechanicsData.bmi} unit="kg/m²" />
-                            <MetricItem icon={<Stretch className="text-green-500" />} label={t.clientDetail.biomechanics.ankleDorsiflexion} value={biomechanicsData.ankleDorsiflexion} unit="°" />
-                            <MetricItem icon={<Stretch className="text-green-500" />} label={t.clientDetail.biomechanics.hipMobility} value={biomechanicsData.hipMobility} unit="°" />
-                            <MetricItem icon={<Stretch className="text-green-500" />} label={t.clientDetail.biomechanics.shoulderMobility} value={biomechanicsData.shoulderMobility} unit="°" />
+                            <MetricItem icon={<StretchVertical className="text-green-500" />} label={t.clientDetail.biomechanics.ankleDorsiflexion} value={biomechanicsData.ankleDorsiflexion} unit="°" />
+                            <MetricItem icon={<StretchVertical className="text-green-500" />} label={t.clientDetail.biomechanics.hipMobility} value={biomechanicsData.hipMobility} unit="°" />
+                            <MetricItem icon={<StretchVertical className="text-green-500" />} label={t.clientDetail.biomechanics.shoulderMobility} value={biomechanicsData.shoulderMobility} unit="°" />
                             <MetricItem icon={<Activity className="text-orange-500" />} label={t.clientDetail.biomechanics.coreStability} value={biomechanicsData.coreStability} unit="s" />
                             <MetricItem icon={<WindIcon className="text-orange-500" />} label={t.clientDetail.biomechanics.hipStability} value={biomechanicsData.hipStability} unit="/ 5" />
                             <MetricItem icon={<MoveVertical className="text-purple-500" />} label={t.clientDetail.biomechanics.squatPattern} value={biomechanicsData.squatPattern} unit="/ 5" />
