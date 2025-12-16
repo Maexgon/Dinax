@@ -1,3 +1,4 @@
+
 import { Client, TrainingPlan, Payment, CalendarEvent, Service, Workout, Note } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
@@ -273,7 +274,7 @@ export const mockNotes: Note[] = [
     coachName: 'Coach Sara',
     coachAvatarUrl: coachImage.url,
     coachAvatarHint: coachImage.hint,
-    date: '2024-07-15T10:30:00Z',
+    createdAt: '2024-07-15T10:30:00Z',
     content: 'El cliente muestra una mejora significativa en la sentadilla. Aumentar el peso la próxima semana. Ligera molestia en el hombro derecho al hacer press de banca, monitorizar.'
   },
   {
@@ -281,7 +282,7 @@ export const mockNotes: Note[] = [
     coachName: 'Coach Sara',
     coachAvatarUrl: coachImage.url,
     coachAvatarHint: coachImage.hint,
-    date: '2024-07-08T11:00:00Z',
+    createdAt: '2024-07-08T11:00:00Z',
     content: 'Buena energía hoy. Foco en la técnica de peso muerto. Recordarle la importancia de la hidratación.'
   }
 ];

@@ -14,10 +14,10 @@ import {
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useLanguage } from '@/context/language-context';
-import { useFirebase } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import type { Client } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { mockClients } from '@/lib/data'; // Import mock data
+import { collection } from 'firebase/firestore';
 
 function ClientCardSkeleton() {
     return (
@@ -44,11 +44,15 @@ function ClientCardSkeleton() {
 
 export default function ClientsPage() {
   const { t } = useLanguage();
-  const { user } = useFirebase();
+  const { firestore, user } = useFirebase();
 
-  // Using mock data instead of Firestore for now to prevent errors.
-  const clients = mockClients;
-  const isLoading = false;
+  const tenantId = user?.uid;
+  const clientsCollectionRef = useMemoFirebase(
+    () => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/user_profile`) : null),
+    [firestore, tenantId]
+  );
+  
+  const { data: clients, isLoading } = useCollection<Client>(clientsCollectionRef);
 
 
   return (
@@ -72,7 +76,7 @@ export default function ClientsPage() {
           <Card key={client.id} className="flex flex-col">
             <CardHeader className="items-center">
               <Image
-                src={client.avatarUrl || 'https://picsum.photos/seed/placeholder/80/80'}
+                src={client.avatarUrl || `https://i.pravatar.cc/80?u=${client.id}`}
                 alt={`Avatar of ${client.name}`}
                 data-ai-hint={client.avatarHint || 'person face'}
                 width={80}

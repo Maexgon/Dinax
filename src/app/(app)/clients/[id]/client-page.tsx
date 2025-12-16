@@ -1,3 +1,4 @@
+
 'use client';
 import React from 'react';
 import Image from 'next/image';
@@ -35,7 +36,6 @@ import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { mockClients, mockNotes } from '@/lib/data';
 
 
 const clientSchema = z.object({
@@ -65,13 +65,22 @@ const MetricItem = ({ icon, label, value }: { icon: React.ReactNode, label: stri
 
 export default function ClientDetailClientPage({ clientId }: { clientId: string }) {
   const { t, language } = useLanguage();
-  const { user } = useFirebase();
+  const { firestore, user } = useFirebase();
   const { toast } = useToast();
   
-  const client = mockClients.find(s => s.id === clientId);
-  const notes = mockNotes; // Using mock notes
-  const isClientLoading = false;
-  const areNotesLoading = false;
+  const tenantId = user?.uid;
+
+  const clientDocRef = useMemoFirebase(
+    () => (firestore && tenantId && clientId ? doc(firestore, `tenants/${tenantId}/user_profile`, clientId) : null),
+    [firestore, tenantId, clientId]
+  );
+  const { data: client, isLoading: isClientLoading } = useDoc<Client>(clientDocRef);
+  
+  const notesCollectionRef = useMemoFirebase(
+      () => (firestore && tenantId && clientId ? collection(firestore, `tenants/${tenantId}/user_profile/${clientId}/notes`) : null),
+      [firestore, tenantId, clientId]
+  );
+  const { data: notes, isLoading: areNotesLoading } = useCollection<Note>(notesCollectionRef);
 
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<ClientFormData>({
@@ -95,23 +104,24 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
         firstName: client.name.split(' ')[0],
         lastName: client.name.split(' ').slice(1).join(' '),
         email: client.email,
-        phoneNumber: '', // Not in mock data
-        birthDate: '', // Not in mock data
-        occupation: '', // Not in mock data
-        address: '', // Not in mock data
-        objective: 'Hypertrophy', // Example
-        tags: [],
+        phoneNumber: client.phoneNumber || '',
+        birthDate: client.birthDate || '',
+        occupation: client.occupation || '',
+        address: client.address || '',
+        objective: client.objective || 'Hypertrophy',
+        tags: client.tags || [],
       });
     }
   }, [client, reset]);
   
   const onSubmit = async (data: ClientFormData) => {
-    // This is where you would update the document in a real scenario
-    console.log("Submitting data", data);
+    if (!clientDocRef) return;
+    
+    await updateDocumentNonBlocking(clientDocRef, data);
     toast({
         variant: 'success',
         title: 'Perfil Actualizado',
-        description: 'Tus datos han sido guardados correctamente.',
+        description: 'Los datos del cliente han sido guardados correctamente.',
     });
   };
 
@@ -157,7 +167,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
           <Card className="overflow-hidden text-center">
             <CardContent className="p-6">
               <Image
-                src={client.avatarUrl || 'https://picsum.photos/seed/placeholder/128/128'}
+                src={client.avatarUrl || `https://i.pravatar.cc/128?u=${client.id}`}
                 alt={`Avatar of ${clientName}`}
                 data-ai-hint={client.avatarHint || 'person face'}
                 width={128}
@@ -165,7 +175,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                 className="rounded-full mx-auto mb-4 border-4 border-primary shadow-lg"
               />
               <h1 className="text-3xl font-bold font-headline">{clientName}</h1>
-              <p className="text-muted-foreground">{t.clientDetail.objective}: {client.profile.medicalConditions}</p>
+              <p className="text-muted-foreground">{t.clientDetail.objective}: {client.objective}</p>
               <div className="mt-4 flex gap-2">
                 <Button className="flex-1 bg-primary hover:bg-primary/90">
                   <MessageSquare className="mr-2 h-4 w-4" />
@@ -180,13 +190,12 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
 
           <Card>
             <CardContent className="p-6 space-y-6">
-                {/* Simplified metrics. Biomechanics data will be in its tab */}
                <div className="flex items-center justify-between">
                  <div className="flex items-center gap-3 text-muted-foreground">
                     <User className="h-6 w-6 p-1 rounded-full bg-blue-100 text-blue-500" />
                     <span>{t.clientDetail.age}</span>
                  </div>
-                 <p className="font-bold text-lg">{client.profile.age} años</p>
+                 <p className="font-bold text-lg">{client.profile?.age || 'N/A'} años</p>
                </div>
                <div className="flex items-center justify-between">
                  <div className="flex items-center gap-3 text-muted-foreground">
@@ -194,7 +203,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                     <span>{t.clientDetail.weight}</span>
                  </div>
                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-lg">{client.profile.weight} kg</p>
+                    <p className="font-bold text-lg">{client.profile?.weight || 'N/A'} kg</p>
                  </div>
                </div>
                <div className="flex items-center justify-between">
@@ -202,7 +211,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                     <Ruler className="h-6 w-6 p-1 rounded-full bg-purple-100 text-purple-500" />
                     <span>{t.clientDetail.height}</span>
                  </div>
-                 <p className="font-bold text-lg">{client.profile.height} cm</p>
+                 <p className="font-bold text-lg">{client.profile?.height || 'N/A'} cm</p>
                </div>
             </CardContent>
           </Card>
@@ -238,21 +247,21 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="firstName">{t.clientDetail.name}</Label>
-                                        <Input id="firstName" {...register('firstName')} disabled={!isOwnProfile} />
+                                        <Input id="firstName" {...register('firstName')} />
                                         {errors.firstName && <p className="text-xs text-destructive">{errors.firstName.message}</p>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="lastName">{t.clientDetail.lastName}</Label>
-                                        <Input id="lastName" {...register('lastName')} disabled={!isOwnProfile} />
+                                        <Input id="lastName" {...register('lastName')} />
                                         {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="occupation">{t.clientDetail.occupation}</Label>
-                                        <Input id="occupation" {...register('occupation')} disabled={!isOwnProfile} placeholder="Ej: Estudiante, Programador..."/>
+                                        <Input id="occupation" {...register('occupation')} placeholder="Ej: Estudiante, Programador..."/>
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="birthDate">{t.clientDetail.birthDate}</Label>
-                                        <Input id="birthDate" type="date" {...register('birthDate')} disabled={!isOwnProfile}/>
+                                        <Input id="birthDate" type="date" {...register('birthDate')} />
                                     </div>
                                     </div>
                                 </div>
@@ -262,16 +271,16 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="md:col-span-2 space-y-2">
                                             <Label htmlFor="address">{t.clientDetail.address}</Label>
-                                            <Input id="address" {...register('address')} disabled={!isOwnProfile} placeholder="Ej: Av. Siempreviva 742" />
+                                            <Input id="address" {...register('address')} placeholder="Ej: Av. Siempreviva 742" />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="email">{t.clientDetail.email}</Label>
-                                            <Input id="email" type="email" {...register('email')} disabled={!isOwnProfile} />
+                                            <Input id="email" type="email" {...register('email')} />
                                             {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="phoneNumber">{t.clientDetail.phone}</Label>
-                                            <Input id="phoneNumber" type="tel" {...register('phoneNumber')} disabled={!isOwnProfile} />
+                                            <Input id="phoneNumber" type="tel" {...register('phoneNumber')} />
                                         </div>
                                     </div>
                                 </div>
@@ -281,23 +290,23 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                     <div className="space-y-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="objective">{t.clientDetail.objective}</Label>
-                                            <Textarea id="objective" {...register('objective')} placeholder="Ej: Ganar masa muscular, perder peso..." disabled={!isOwnProfile}/>
+                                            <Textarea id="objective" {...register('objective')} placeholder="Ej: Ganar masa muscular, perder peso..."/>
                                         </div>
                                         <div className="space-y-2">
                                             <Label>{t.clientDetail.tags}</Label>
                                             <div className="flex flex-wrap gap-2">
-                                                {client.trainingDays.map(tag => (
+                                                {client.trainingDays?.map(tag => (
                                                     <Badge key={tag} variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 dark:bg-primary/20 dark:text-primary/90 dark:border-primary/30">{tag} 
-                                                    {isOwnProfile && <X className="ml-1 h-3 w-3 cursor-pointer"/>}
+                                                    <X className="ml-1 h-3 w-3 cursor-pointer"/>
                                                     </Badge>
                                                 ))}
-                                                {isOwnProfile && <Button variant="outline" size="sm" className="text-muted-foreground"><Plus className="mr-1 h-3 w-3"/>{t.clientDetail.addTag}</Button>}
+                                                <Button variant="outline" size="sm" className="text-muted-foreground"><Plus className="mr-1 h-3 w-3"/>{t.clientDetail.addTag}</Button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {isOwnProfile && (
+                                
                                 <div className="flex justify-end gap-2">
                                     <Button variant="ghost" type="button" onClick={() => reset()}>{t.clientDetail.cancel}</Button>
                                     <Button type="submit" disabled={isSubmitting}>
@@ -305,7 +314,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                         {t.clientDetail.saveChanges}
                                     </Button>
                                 </div>
-                                )}
+                                
                             </CardContent>
                         </form>
                     </Card>
@@ -358,7 +367,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                     <div className="flex items-center justify-between">
                                         <p className="font-semibold">{note.coachName}</p>
                                         <p className="text-xs text-muted-foreground">
-                                        {format(new Date(note.date), "PPP", { locale: language === 'es' ? es : undefined })}
+                                        {format(new Date(note.createdAt), "PPP", { locale: language === 'es' ? es : undefined })}
                                         </p>
                                     </div>
                                     <p className="text-sm text-muted-foreground mt-1">{note.content}</p>

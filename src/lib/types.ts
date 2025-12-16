@@ -1,4 +1,5 @@
 
+
 export type Client = {
   id: string;
   name: string;
@@ -9,13 +10,13 @@ export type Client = {
   joinDate?: string;
   currentPlan?: string;
   progress?: number;
-  trainingDays: string[];
+  trainingDays?: string[];
   objective?: string;
   tags?: string[];
   occupation?: string;
   birthDate?: string;
   address?: string;
-  profile: {
+  profile?: {
       age: number;
       gender: string;
       weight: number;
@@ -27,7 +28,7 @@ export type Client = {
 
 export type Note = {
   id: string;
-  date: string; // ISO string from mock data
+  createdAt: string; // ISO string from mock data
   coachName: string;
   coachAvatarUrl: string;
   coachAvatarHint: string;
