@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -140,7 +139,7 @@ export function Nav() {
                 <DropdownMenuLabel>{userDisplayName}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href={`/students/${user?.uid}`}>
+                  <Link href="/profile">
                     <User className="mr-2 h-4 w-4" />
                     <span>Editar Perfil</span>
                   </Link>
