@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -16,38 +15,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { signUpWithEmailAndPassword } from '@/app/auth/actions';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
-import { useActionState } from 'react';
 import { useFirebase } from '@/firebase';
-import { signInWithEmailAndPassword, type User } from 'firebase/auth';
+import { createUserWithEmailAndPassword, type User } from 'firebase/auth';
 import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
-
-
-const initialState = {
-  message: '',
-  success: false,
-  uid: null,
-  email: null,
-  password: null,
-  firstName: null,
-  lastName: null,
-};
 
 export default function RegisterPage() {
   const { t } = useLanguage();
-  const [state, formAction, isPending] = useActionState(signUpWithEmailAndPassword, initialState);
   const { toast } = useToast();
   const router = useRouter();
   const { auth, firestore } = useFirebase();
 
+  const [email, setEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isCreatingDocs, setIsCreatingDocs] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Human validation state
   const [num1, setNum1] = useState(0);
@@ -84,83 +72,70 @@ export default function RegisterPage() {
     };
   }, [password, confirmPassword]);
 
-  useEffect(() => {
-    if (!isPending && state.message) {
-      if (state.success) {
-        // The logic is now handled in finalizeRegistration, triggered by state.uid
-      } else {
-        toast({
-          variant: 'destructive',
-          title: t.register.error,
-          description: state.message,
-        });
-      }
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!firestore || !auth) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Firebase is not initialized.',
+      });
+      return;
     }
+    setIsSubmitting(true);
+    
+    try {
+      // Step 1: Create user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      const tenantId = user.uid;
 
-    if (state.success && state.uid && state.email && state.password) {
-      const finalizeRegistration = async () => {
-        if (!firestore || !auth) return;
+      // Step 2: Create tenant and user documents in an atomic batch
+      const batch = writeBatch(firestore);
 
-        setIsCreatingDocs(true);
-        try {
-          // Step 1: Sign in the new user on the client to get a valid token.
-          const userCredential = await signInWithEmailAndPassword(auth, state.email!, state.password!);
-          const user = userCredential.user;
-          const tenantId = user.uid;
+      const tenantRef = doc(firestore, 'tenants', tenantId);
+      batch.set(tenantRef, {
+        id: tenantId,
+        name: `${firstName}'s Gym`,
+        members: { [tenantId]: 'owner' },
+        createdAt: serverTimestamp(),
+      });
 
-          // Step 2: Create the tenant and user documents in an atomic batch write.
-          const batch = writeBatch(firestore);
+      const userRef = doc(firestore, `tenants/${tenantId}/users`, tenantId);
+      batch.set(userRef, {
+        id: tenantId,
+        tenantId: tenantId,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        joinDate: new Date().toISOString().split('T')[0],
+        progress: 0,
+        createdAt: serverTimestamp(),
+      });
+      
+      await batch.commit();
 
-          // Create the tenant document
-          const tenantRef = doc(firestore, 'tenants', tenantId);
-          batch.set(tenantRef, {
-            id: tenantId,
-            name: `${state.firstName}'s Gym`,
-            members: { [tenantId]: 'owner' },
-            createdAt: serverTimestamp(),
-          });
+      toast({
+        variant: 'success',
+        title: t.register.successTitle,
+        description: 'Redirecting to your dashboard...',
+      });
 
-          // CORRECTED LOGIC: Create the coach's own user document within their new tenant's 'users' subcollection.
-          const userRef = doc(firestore, `tenants/${tenantId}/users`, tenantId);
-          batch.set(userRef, {
-            id: tenantId,
-            tenantId: tenantId,
-            firstName: state.firstName,
-            lastName: state.lastName,
-            email: state.email,
-            joinDate: new Date().toISOString().split('T')[0],
-            progress: 0,
-            createdAt: serverTimestamp(),
-          });
+      router.push('/dashboard');
 
-          await batch.commit();
-
-          toast({
-            variant: 'success',
-            title: t.register.successTitle,
-            description: 'Setup complete. Redirecting to your dashboard...',
-          });
-
-          router.push('/dashboard');
-
-        } catch (error: any) {
-          console.error("Error finalizing registration:", error);
-          toast({
-            variant: 'destructive',
-            title: 'Error during setup',
-            description: error.message || 'Could not create user profile.',
-          });
-        } finally {
-          setIsCreatingDocs(false);
-        }
-      };
-
-      finalizeRegistration();
+    } catch (error: any) {
+      console.error("Error during registration:", error);
+      toast({
+        variant: 'destructive',
+        title: t.register.error,
+        description: error.message || 'An unexpected error occurred.',
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state, auth, firestore]);
+  };
 
-  const isSubmitDisabled = !Object.values(passwordValidation).every(Boolean) || !isHuman || isPending || isCreatingDocs;
+  const isSubmitDisabled = !Object.values(passwordValidation).every(Boolean) || !isHuman || isSubmitting;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
@@ -176,15 +151,15 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form action={formAction} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="firstName">{t.register.firstName}</Label>
-                <Input id="firstName" name="firstName" required />
+                <Input id="firstName" name="firstName" required value={firstName} onChange={(e) => setFirstName(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">{t.register.lastName}</Label>
-                <Input id="lastName" name="lastName" required />
+                <Input id="lastName" name="lastName" required value={lastName} onChange={(e) => setLastName(e.target.value)} />
               </div>
             </div>
             <div className="space-y-2">
@@ -195,6 +170,8 @@ export default function RegisterPage() {
                 type="email"
                 placeholder="entrenador@example.com"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
              <div className="space-y-2">
@@ -282,8 +259,8 @@ export default function RegisterPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
-              {(isPending || isCreatingDocs) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isCreatingDocs ? 'Finalizando...' : t.register.registerButton}
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t.register.registerButton}
             </Button>
           </form>
         </CardContent>

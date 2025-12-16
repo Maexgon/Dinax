@@ -6,7 +6,9 @@
  * a resource is determined by checking if their UID exists in the `members`
  * map of the corresponding tenant document.
  *
- * This version uses a `get()` call to read the tenant document.
+ * This version uses a `get()` call to read the tenant document, which is reliable
+ * now that the client-side registration flow guarantees the tenant document exists
+ * before any reads are attempted.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -62,20 +64,20 @@ service cloud.firestore {
 
       // Subcollections for the tenant.
       match /users/{userId} {
-        // Allow a tenant member to get any user profile within their tenant.
+        // A tenant member can get any user profile within their tenant.
         allow get: if isTenantMember(tenantId);
         
-        // Allow a tenant member to list all users within their tenant.
+        // A tenant member can list all users within their tenant.
         allow list: if isTenantMember(tenantId);
 
-        // Allow a tenant owner to create new users in their tenant.
+        // A tenant owner can create new users in their tenant.
         // The new user document must have the correct tenantId.
         allow create: if isTenantOwner(tenantId) && request.resource.data.tenantId == tenantId;
         
-        // Allow a user to update their own profile, or an owner to update any profile.
+        // A user can update their own profile, or an owner can update any profile.
         allow update: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
         
-        // Allow a user to delete their own profile, or an owner to delete any profile.
+        // A user can delete their own profile, or an owner can delete any profile.
         allow delete: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
         
         // Rules for subcollections of a user. Access is granted if the user is a member of the parent tenant.
