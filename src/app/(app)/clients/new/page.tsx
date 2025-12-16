@@ -72,7 +72,7 @@ export default function NewClientPage() {
   const { firestore, user } = useFirebase();
   const { toast } = useToast();
   
-  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue } = useForm<ClientFormData>({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, setValue, watch } = useForm<ClientFormData>({
     resolver: zodResolver(clientSchema),
   });
 
