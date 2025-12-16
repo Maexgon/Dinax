@@ -118,11 +118,16 @@ export default function ProfilePage() {
 
     try {
       // Create a copy of the data to avoid modifying the original object
-      const dataToSave: Partial<ProfileFormData> = { ...data };
+      const dataToSave: Partial<ProfileFormData & { isProfileComplete?: boolean }> = { ...data };
       
       // We don't want to save the primary email, as it's not editable
       if('email' in dataToSave) {
         delete (dataToSave as { email?: string }).email;
+      }
+      
+      // Mark profile as complete after the first successful update
+      if (userData && !userData.isProfileComplete) {
+        dataToSave.isProfileComplete = true;
       }
 
       updateDocumentNonBlocking(userDocRef, dataToSave);
@@ -354,5 +359,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    

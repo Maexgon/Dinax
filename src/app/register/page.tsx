@@ -97,6 +97,7 @@ export default function RegisterPage() {
           firstName: firstName,
           lastName: lastName,
           email: email,
+          isProfileComplete: false, // NEW: Mark profile as incomplete
           joinDate: new Date().toISOString().split('T')[0],
           progress: 0,
           createdAt: serverTimestamp(),
