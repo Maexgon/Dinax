@@ -6,7 +6,9 @@
  * a resource is determined by checking if their UID exists in the `members`
  * map of the corresponding tenant document.
  *
- * This version uses a `get()` call to read the tenant document.
+ * This version uses a `get()` call to read the tenant document, which is reliable
+ * now that the client-side registration flow guarantees the tenant document exists
+ * before any reads are attempted.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -45,7 +47,8 @@ service cloud.firestore {
 
     match /tenants/{tenantId} {
       // Allow a user to read their own tenant document if they are a member.
-      allow get: if isTenantMember(tenantId);
+      // This rule is simplified to prevent race conditions during initial load.
+      allow get: if isSelf(tenantId) || isTenantMember(tenantId);
       
       // Disallow listing all tenants for security.
       allow list: if false;
@@ -62,13 +65,13 @@ service cloud.firestore {
 
       // Subcollections for the tenant.
       match /users/{userId} {
-        // A tenant member can get any user profile within their tenant, or a user can get their own.
-        allow get: if isTenantMember(tenantId) || isSelf(userId);
+        // A user can get their own profile, OR a tenant member can get any profile in their tenant.
+        allow get: if isSelf(userId) || isTenantMember(tenantId);
         
         // A tenant member can list all users within their tenant.
         allow list: if isTenantMember(tenantId);
 
-        // Allow a tenant owner to create new users in their tenant.
+        // A tenant owner can create new users in their tenant.
         // The new user document must have the correct tenantId.
         allow create: if isTenantOwner(tenantId) && request.resource.data.tenantId == tenantId;
         
