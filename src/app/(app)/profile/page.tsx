@@ -94,6 +94,7 @@ export default function ProfilePage() {
     if (userData) {
       reset({
         ...userData,
+        email: userData.email || '',
         secondaryEmail: userData.secondaryEmail || '',
         cuit: userData.cuit || '',
         phoneNumber: userData.phoneNumber || '',
@@ -341,3 +342,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
