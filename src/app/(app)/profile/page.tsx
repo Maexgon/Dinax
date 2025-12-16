@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect } from 'react';
@@ -114,7 +113,7 @@ export default function ProfilePage() {
 
     try {
       // Create a copy of the data to avoid modifying the original object
-      const dataToSave = { ...data };
+      const dataToSave: Partial<ProfileFormData> = { ...data };
       // We don't want to save the primary email, as it's not editable
       delete dataToSave.email;
 
@@ -347,4 +346,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
