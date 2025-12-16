@@ -2,7 +2,7 @@
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   Users,
@@ -10,7 +10,9 @@ import {
   Wallet,
   Settings,
   Dumbbell,
-  Bot
+  Bot,
+  LogOut,
+  User,
 } from 'lucide-react';
 
 import {
@@ -25,16 +27,25 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useLanguage } from '@/context/language-context';
 import { cn } from '@/lib/utils';
-
-const coachAvatar = PlaceHolderImages.find(p => p.id === 'student-1');
+import { useFirebase } from '@/firebase';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { signOut } from 'firebase/auth';
 
 export function Nav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { t } = useLanguage();
   const { state } = useSidebar();
+  const { user, auth } = useFirebase();
 
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: t.nav.dashboard },
@@ -44,6 +55,15 @@ export function Nav() {
     { href: '/plans', icon: Dumbbell, label: t.plans.title },
     { href: '/ai-goals', icon: Bot, label: t.aiGoals.title },
   ];
+  
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
+
+  const userDisplayName = user?.displayName || user?.email?.split('@')[0] || "User";
+  const userInitials = (user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U').toUpperCase();
+
 
   return (
     <Sidebar>
@@ -100,18 +120,38 @@ export function Nav() {
               </SidebarMenuButton>
           </SidebarMenuItem>
            <SidebarMenuItem>
-            <div className={cn("flex items-center gap-3 p-2", state === 'collapsed' && 'justify-center')}>
-                <Avatar className="h-10 w-10">
-                    <AvatarImage src={coachAvatar?.imageUrl} alt={t.nav.coachSara} data-ai-hint={coachAvatar?.imageHint} />
-                    <AvatarFallback>CS</AvatarFallback>
-                </Avatar>
-                <div className={cn(
-                      'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
-                    )}>
-                    <p className="font-semibold text-sm text-sidebar-foreground">{t.nav.coachSara}</p>
-                    <p className="text-xs text-sidebar-foreground/80">{t.nav.proAccount}</p>
-                </div>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className={cn("flex items-center w-full gap-3 p-2 rounded-md hover:bg-sidebar-accent", state === 'collapsed' && 'justify-center')}>
+                    <Avatar className="h-10 w-10">
+                        <AvatarImage src={user?.photoURL || ''} alt={userDisplayName} />
+                        <AvatarFallback>{userInitials}</AvatarFallback>
+                    </Avatar>
+                    <div className={cn(
+                          'text-left',
+                          'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
+                        )}>
+                        <p className="font-semibold text-sm text-sidebar-foreground truncate">{userDisplayName}</p>
+                        <p className="text-xs text-sidebar-foreground/80">{t.nav.proAccount}</p>
+                    </div>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent side="right" align="end" className="w-56">
+                <DropdownMenuLabel>{userDisplayName}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href={`/students/${user?.uid}`}>
+                    <User className="mr-2 h-4 w-4" />
+                    <span>Editar Perfil</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Cerrar Sesión</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
            </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
