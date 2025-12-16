@@ -33,7 +33,7 @@ service cloud.firestore {
         allow read, write: if isSignedIn() && request.auth.uid == tenantId;
 
         // This rule allows the tenant owner to manage all subcollections for their clients.
-        match /{subcollection}/{docId} {
+        match /{subcollection}/{docId=**} {
           allow read, write: if isSignedIn() && request.auth.uid == tenantId;
         }
       }
