@@ -48,7 +48,7 @@ export function Nav() {
 
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: t.nav.dashboard },
-    { href: '/students', icon: Users, label: t.nav.students },
+    { href: '/clients', icon: Users, label: t.nav.clients },
     { href: '/schedule', icon: Calendar, label: t.nav.schedule },
     { href: '/payments', icon: Wallet, label: t.nav.finances },
     { href: '/plans', icon: Dumbbell, label: t.plans.title },

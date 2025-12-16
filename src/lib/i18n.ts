@@ -138,7 +138,7 @@ export const translations = {
     },
     nav: {
       dashboard: "Dashboard",
-      students: "Clientes",
+      clients: "Clientes",
       schedule: "Agenda",
       finances: "Finanzas",
       settings: "Ajustes",
@@ -149,15 +149,15 @@ export const translations = {
         searchPlaceholder: "Buscar clientes, rutinas...",
         newClient: "Nuevo Cliente"
     },
-    students: {
+    clients: {
         title: "Clientes",
         description: "Gestiona los perfiles de tus clientes y sigue su progreso.",
-        addNewStudent: "Añadir Nuevo Cliente",
+        addNewClient: "Añadir Nuevo Cliente",
         planProgress: "Progreso del Plan",
         complete: "% completo",
         viewProfile: "Ver Perfil"
     },
-    studentDetail: {
+    clientDetail: {
         notFound: "Cliente no encontrado.",
         joined: "Se unió",
         plan: "Plan",
@@ -574,7 +574,7 @@ aiPoweredGoals: "Recomendaciones de Objetivos con IA",
     },
     nav: {
       dashboard: "Dashboard",
-      students: "Clients",
+      clients: "Clients",
       schedule: "Schedule",
       finances: "Finances",
       settings: "Settings",
@@ -585,15 +585,15 @@ aiPoweredGoals: "Recomendaciones de Objetivos con IA",
         searchPlaceholder: "Search clients, routines...",
         newClient: "New Client"
     },
-    students: {
+    clients: {
         title: "Clients",
         description: "Manage your client profiles and track their progress.",
-        addNewStudent: "Add New Client",
+        addNewClient: "Add New Client",
         planProgress: "Plan Progress",
         complete: "% complete",
         viewProfile: "View Profile"
     },
-    studentDetail: {
+    clientDetail: {
         notFound: "Client not found.",
         joined: "Joined",
         plan: "Plan",
