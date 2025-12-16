@@ -30,14 +30,14 @@ const chartConfig = {
 
 export function BodyCompositionChart() {
   const { t } = useLanguage();
-  chartConfig.fatPercentage.label = t.studentDetail.fatPercentage;
-  chartConfig.muscleMass.label = t.studentDetail.muscleMassKg;
+  chartConfig.fatPercentage.label = t.clientDetail.fatPercentage;
+  chartConfig.muscleMass.label = t.clientDetail.muscleMassKg;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t.studentDetail.bodyComposition}</CardTitle>
-        <CardDescription>{t.studentDetail.bodyCompositionDescription}</CardDescription>
+        <CardTitle>{t.clientDetail.bodyComposition}</CardTitle>
+        <CardDescription>{t.clientDetail.bodyCompositionDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
