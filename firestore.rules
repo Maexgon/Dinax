@@ -35,7 +35,8 @@ service cloud.firestore {
 
     match /tenants/{tenantId} {
       // Allow a user to read their own tenant document if they are the owner.
-      allow get: if isSelf(tenantId);
+      // A user can also read their own tenant document
+      allow get: if isTenantOwner(tenantId) || isSelf(tenantId);
       
       // Disallow listing all tenants for security.
       allow list: if false;
@@ -51,11 +52,8 @@ service cloud.firestore {
       match /users/{userId} {
         // A user can read/write their own profile if they are the owner of the tenant.
         // Or if they are the user being accessed (isSelf).
-        allow get: if isTenantOwner(tenantId) || isSelf(userId);
+        allow get, list: if isTenantOwner(tenantId) || isSelf(userId);
         
-        // The owner of a tenant can list all users within their tenant.
-        allow list: if isTenantOwner(tenantId);
-
         // A tenant owner can create new users in their tenant.
         allow create: if isTenantOwner(tenantId) && request.resource.data.tenantId == tenantId;
         
@@ -68,11 +66,12 @@ service cloud.firestore {
         
         // Rules for subcollections of a user. Access is granted if the user is the owner of the parent tenant.
         match /medicalHistory/{historyId} {
-          allow read, list, write: if isTenantOwner(tenantId);
+          allow read, list: if isTenantOwner(tenantId) || isSelf(userId);
+          allow write: if isTenantOwner(tenantId);
         }
 
         match /biomechanics/{biomechanicsId} {
-          allow read, list, write: if isTenantOwner(tenantId);
+          allow read, list, write: if isTenantOwner(tenantId) || isSelf(userId);
         }
 
         match /notes/{noteId} {
