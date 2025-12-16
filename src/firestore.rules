@@ -1,90 +1,35 @@
-/**
- * This ruleset enforces a multi-tenant security model for a SaaS application.
- *
- * Core Philosophy:
- * Access is strictly scoped by tenant membership. A user's right to access
- * a resource is determined by checking if their UID exists in the `members`
- * map of the corresponding tenant document.
- *
- * This version uses a `get()` call to read the tenant document, which is reliable
- * now that the client-side registration flow guarantees the tenant document exists
- * before any reads are attempted.
- */
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper function to check if a user is signed in.
     function isSignedIn() {
       return request.auth != null;
     }
-    
-    // Helper function to check if the request is from the user themselves.
+
     function isSelf(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Helper function to verify if the user is an owner of the specified tenant.
-    // It reads the tenant document and checks for the user's UID in the 'members' map.
-    // This function should ONLY be used in 'read' or 'list' rules where reads are safe.
-    function isTenantOwner(tenantId) {
-       return isSignedIn() && get(/databases/$(database)/documents/tenants/$(tenantId)).data.members[request.auth.uid] == 'owner';
+    match /tenants/{tenantId} {
+      allow create: if isSelf(tenantId) && request.resource.data.members[request.auth.uid] == 'owner';
+      allow get: if get(/databases/$(database)/documents/tenants/$(tenantId)).data.members[request.auth.uid] == 'owner';
     }
 
-
-    match /tenants/{tenantId} {
-      // Allow a user to read their own tenant document if they are the owner.
-      allow get: if isTenantOwner(tenantId);
+    match /user_profile/{userId} {
+      // A user can read their own profile.
+      allow get: if isSelf(userId);
       
-      // Disallow listing all tenants for security.
-      allow list: if false;
+      // A user can create their own profile.
+      allow create: if isSelf(userId);
+      
+      // A user can update their own profile.
+      allow update: if isSelf(userId);
 
-      // Allow a user to create their own tenant document.
-      // The `tenantId` in the path MUST match the user's UID, and they must be marked as owner.
-      allow create: if isSelf(tenantId) && request.resource.data.members[request.auth.uid] == 'owner';
-
-      // Allow a tenant owner to update their own tenant document.
-      // We don't use get() here to avoid race conditions. The read rule (`get`) protects who can see the data
-      // to begin with, so we trust that a user with update access is authorized.
-      allow update, delete: if isTenantOwner(tenantId);
-
-      // Subcollections for the tenant.
-      match /users/{userId} {
-        // A tenant owner can read any user profile in their tenant.
-        // A user can also read their own profile.
-        allow get, list: if isTenantOwner(tenantId) || isSelf(userId);
-        
-        // A tenant owner can create new users in their tenant.
-        // We check the incoming data to ensure the tenantId is correct.
-        allow create: if isTenantOwner(tenantId) && request.resource.data.tenantId == tenantId;
-        
-        // A tenant owner can update any profile, OR a user can update their own.
-        // This is the critical rule fix.
-        allow update: if isTenantOwner(tenantId) || isSelf(userId);
-
-        // A tenant owner can delete any profile, OR a user can delete their own.
-        allow delete: if isTenantOwner(tenantId) || isSelf(userId);
-        
-        
-        // Rules for subcollections of a user. Access is granted if the user is the owner of the parent tenant, or is the user themselves.
-        match /medicalHistory/{historyId} {
-          allow read, list: if isTenantOwner(tenantId) || isSelf(userId);
-          // Only owners can write sensitive medical data.
-          allow write: if isTenantOwner(tenantId);
-        }
-
-        match /biomechanics/{biomechanicsId} {
-          allow read, list: if isTenantOwner(tenantId) || isSelf(userId);
-          allow write: if isTenantOwner(tenantId) || isSelf(userId);
-        }
-
-        match /notes/{noteId} {
-          // A tenant owner can read/write notes for any user.
-          // A user can also read their own notes.
-          allow get, list: if isTenantOwner(tenantId) || isSelf(userId);
-          allow write: if isTenantOwner(tenantId);
-        }
-      }
+      // Disallow deleting profiles for now to prevent accidental data loss.
+      allow delete: if false;
     }
   }
 }
+
+    

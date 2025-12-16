@@ -5,7 +5,7 @@ import React, { useEffect } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useFirebase, useDoc, useMemoFirebase, updateDocumentNonBlocking } from '@/firebase';
+import { useFirebase, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
@@ -130,7 +130,8 @@ export default function ProfilePage() {
         dataToSave.isProfileComplete = true;
       }
 
-      updateDocumentNonBlocking(userDocRef, dataToSave);
+      setDocumentNonBlocking(userDocRef, dataToSave, { merge: true });
+      
       toast({
         variant: 'success',
         title: 'Perfil Actualizado',
@@ -361,3 +362,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
