@@ -26,7 +26,7 @@ service cloud.firestore {
 
     // Helper function to verify if the user is an owner of the specified tenant.
     // It reads the tenant document and checks for the user's UID in the 'members' map.
-    // This function should only be used in 'read' or 'list' rules, not in 'write' rules.
+    // This function should ONLY be used in 'read' or 'list' rules, not in 'write' rules.
     function isTenantOwner(tenantId) {
        return isSignedIn() && get(/databases/$(database)/documents/tenants/$(tenantId)).data.members[request.auth.uid] == 'owner';
     }
