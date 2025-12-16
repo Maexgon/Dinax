@@ -130,7 +130,7 @@ export default function ProfilePage() {
         dataToSave.isProfileComplete = true;
       }
 
-      setDocumentNonBlocking(userDocRef, dataToSave, { merge: true });
+      await setDocumentNonBlocking(userDocRef, dataToSave, { merge: true });
       
       toast({
         variant: 'success',
