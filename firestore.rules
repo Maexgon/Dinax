@@ -28,12 +28,12 @@ service cloud.firestore {
       allow update, delete: if isSelf(tenantId);
 
       // Allow a tenant owner (coach) to create, read, update, and delete profiles for their clients
-      // within their own tenant structure.
+      // and all related subcollections within their own tenant structure.
       match /user_profile/{userId} {
         allow read, write: if isSignedIn() && request.auth.uid == tenantId;
 
-        // Allow the tenant owner to also manage the notes for their clients.
-        match /notes/{noteId} {
+        // This rule allows the tenant owner to manage all subcollections for their clients.
+        match /{subcollection}/{docId} {
           allow read, write: if isSignedIn() && request.auth.uid == tenantId;
         }
       }
