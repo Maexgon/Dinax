@@ -2,93 +2,91 @@
  * This ruleset enforces a multi-tenant security model for a SaaS application.
  *
  * Core Philosophy:
- * Access is strictly scoped by tenant membership. All user data is nested within
- * a tenant, and a user must be a member of that tenant to access any of its
- * resources. This creates strong data isolation between different tenants.
+ * Access is strictly scoped by tenant membership, which is determined by a
+ * custom claim on the user's authentication token. This is a highly secure
+ * and efficient model that avoids extra database reads (`get` calls) in rules.
  *
- * Denormalization for Authorization:
- * To ensure fast and secure authorization, a `members` map is denormalized directly
- * onto each `/tenants/{tenantId}` document. This map stores user UIDs as keys and
- * their roles (e.g., 'owner') as values. This avoids slow and costly lookups,
- * allowing rules on subcollections like `/users` to quickly verify a user's
- * tenant membership by performing a single `get()` on the parent tenant document.
- * Example: `members: { 'user_abc': 'owner', 'user_xyz': 'member' }`
+ * Authorization via Custom Claims:
+ * When a user is created, a custom claim `tenantId` is set on their auth token.
+ * This claim is sent with every authenticated request, allowing rules to instantly
+ * verify which tenant the user belongs to by checking `request.auth.token.tenantId`.
+ * This is faster and more reliable than using `get()` to check a "members" map.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions to abstract and reuse logic.
+    // Helper function to check if a user is signed in.
     function isSignedIn() {
       return request.auth != null;
     }
 
+    // Helper function to check if the request is from the user themselves.
     function isSelf(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-    
-    function getTenantDoc(tenantId) {
-      return get(/databases/$(database)/documents/tenants/$(tenantId));
+
+    // Helper function to verify if the user belongs to the specified tenant.
+    // It reads the `tenantId` directly from the user's authentication token.
+    function isTenantMember(tenantId) {
+      return isSignedIn() && request.auth.token.tenantId == tenantId;
     }
 
-    function isTenantMember(tenantId) {
-      let tenantDoc = getTenantDoc(tenantId);
-      // Ensure the document exists and the members map has the user's UID.
-      return isSignedIn() 
-        && tenantDoc.data.members != null
-        && request.auth.uid in tenantDoc.data.members;
-    }
-    
+    // A user is a tenant owner if they are a member and their UID matches the tenantId.
+    // This assumes a 1-to-1 relationship where the tenant creator is the owner.
     function isTenantOwner(tenantId) {
-      let tenantDoc = getTenantDoc(tenantId);
-      // Ensure the doc exists, members map exists, and the user's role is 'owner'.
-      return isSignedIn() 
-        && tenantDoc.data.members != null
-        && tenantDoc.data.members[request.auth.uid] == 'owner';
+      return isTenantMember(tenantId) && request.auth.uid == tenantId;
     }
 
     match /tenants/{tenantId} {
+      // Allow a user to read their own tenant document.
       allow get: if isTenantMember(tenantId);
-      allow list: if false; // Disallow listing all tenants for security.
-      // Allow create only if the user is creating their own tenant and is the sole owner.
-      allow create: if isSignedIn() 
-                    && request.auth.uid == tenantId
-                    && request.resource.data.members[request.auth.uid] == 'owner' 
-                    && request.resource.data.members.size() == 1 
-                    && request.resource.data.id == tenantId;
-      // Allow update only if the user is the owner and isn't removing themselves as owner.
-      allow update: if isTenantOwner(tenantId) 
-                    && request.resource.data.id == resource.data.id 
-                    && request.resource.data.members[request.auth.uid] == 'owner';
-      allow delete: if isTenantOwner(tenantId);
-    }
-
-    match /tenants/{tenantId}/users/{userId} {
-      allow get: if isTenantMember(tenantId);
-      allow list: if isTenantMember(tenantId);
-      // Allow user creation only by a tenant owner.
-      allow create: if isTenantOwner(tenantId) 
-                    && request.resource.data.id == userId 
-                    && request.resource.data.tenantId == tenantId;
-      // Allow update by the user themselves or the tenant owner.
-      allow update: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
-      // Allow delete by the user themselves or the tenant owner.
-      allow delete: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
       
-      // Rules for subcollections. Access is granted if the user is a member of the parent tenant.
-      match /medicalHistory/{historyId} {
-        allow read, list: if isTenantMember(tenantId);
-        allow write: if isTenantOwner(tenantId);
-      }
+      // Disallow listing all tenants for security.
+      allow list: if false;
 
-      match /biomechanics/{biomechanicsId} {
-        allow read, list: if isTenantMember(tenantId);
-        allow write: if isTenantOwner(tenantId);
-      }
+      // Allow a user to create their own tenant document.
+      // The `tenantId` in the path MUST match the user's UID.
+      allow create: if isTenantOwner(tenantId) && request.resource.data.id == tenantId;
 
-      match /notes/{noteId} {
-        allow read, list: if isTenantMember(tenantId);
-        allow write: if isTenantOwner(tenantId);
+      // Allow a tenant owner to update their own tenant document.
+      allow update: if isTenantOwner(tenantId) && request.resource.data.id == resource.data.id;
+
+      // Allow a tenant owner to delete their tenant.
+      allow delete: if isTenantOwner(tenantId);
+
+      // Subcollections for the tenant.
+      match /users/{userId} {
+        // Allow a tenant member to get any user profile within their tenant.
+        allow get: if isTenantMember(tenantId);
+        
+        // Allow a tenant member to list all users within their tenant.
+        allow list: if isTenantMember(tenantId);
+
+        // Allow a tenant owner to create new users in their tenant.
+        allow create: if isTenantOwner(tenantId) && request.resource.data.tenantId == tenantId;
+        
+        // Allow a user to update their own profile, or an owner to update any profile.
+        allow update: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
+        
+        // Allow a user to delete their own profile, or an owner to delete any profile.
+        allow delete: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
+        
+        // Rules for subcollections of a user. Access is granted if the user is a member of the parent tenant.
+        match /medicalHistory/{historyId} {
+          allow read, list: if isTenantMember(tenantId);
+          allow write: if isTenantOwner(tenantId);
+        }
+
+        match /biomechanics/{biomechanicsId} {
+          allow read, list: if isTenantMember(tenantId);
+          allow write: if isTenantOwner(tenantId);
+        }
+
+        match /notes/{noteId} {
+          allow read, list: if isTenantMember(tenantId);
+          allow write: if isTenantOwner(tenantId);
+        }
       }
     }
   }

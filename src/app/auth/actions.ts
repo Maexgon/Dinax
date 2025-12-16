@@ -1,34 +1,31 @@
 'use server';
 
-import {
-  Auth,
-  createUserWithEmailAndPassword,
-  getAuth,
-} from 'firebase/auth';
-import { initializeApp, getApps, getApp } from 'firebase/app';
+import admin from 'firebase-admin';
+import { getFirestore, serverTimestamp, writeBatch } from 'firebase-admin/firestore';
 import { firebaseConfig } from '@/firebase/config';
-import { doc, setDoc, getFirestore, serverTimestamp, writeBatch } from 'firebase/firestore';
 
-// This function can be defined here as it's only used server-side in this file.
-// By initializing within the action, we ensure a clean, correct server-side context.
-function initializeServerSideFirebase() {
-  const apps = getApps();
-  // Use a unique app name for the server-side instance to avoid conflicts with the client-side app.
-  const appName = 'server-side-auth-app';
-  if (!apps.some(app => app.name === appName)) {
-    return initializeApp(firebaseConfig, appName);
+// Helper function to initialize Firebase Admin SDK.
+// It ensures that the app is initialized only once.
+function initializeServerSideAdmin() {
+  if (admin.apps.length > 0) {
+    return admin.app();
   }
-  return getApp(appName);
+
+  // IMPORTANT: For production, you must set the GOOGLE_APPLICATION_CREDENTIALS
+  // environment variable. In a local/dev environment, this will use the
+  // credentials from gcloud auth application-default login.
+  return admin.initializeApp({
+    projectId: firebaseConfig.projectId,
+  });
 }
 
 export async function signUpWithEmailAndPassword(
   prevState: any,
   formData: FormData
 ) {
-  // Initialize Firebase within the server action for authentication only
-  const serverApp = initializeServerSideFirebase();
-  const auth = getAuth(serverApp);
-  const firestore = getFirestore(serverApp);
+  const adminApp = initializeServerSideAdmin();
+  const auth = admin.auth();
+  const firestore = getFirestore(adminApp);
 
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
@@ -36,53 +33,59 @@ export async function signUpWithEmailAndPassword(
   const lastName = formData.get('lastName') as string;
 
   try {
-    const userCredential = await createUserWithEmailAndPassword(
-      auth,
+    // 1. Create the user in Firebase Authentication using Admin SDK.
+    const userRecord = await auth.createUser({
       email,
-      password
-    );
-    const user = userCredential.user;
-    const tenantId = user.uid;
+      password,
+      displayName: `${firstName} ${lastName}`,
+    });
 
-    // Use a write batch to ensure atomicity
-    const batch = writeBatch(firestore);
+    const uid = userRecord.uid;
+    const tenantId = uid; // Use the user's UID as their tenant ID
 
-    const tenantRef = doc(firestore, 'tenants', tenantId);
+    // 2. Set Custom Claim for tenantId. This is the key change.
+    // This attaches the tenantId to the user's auth token.
+    await auth.setCustomUserClaims(uid, { tenantId: tenantId });
+
+    // 3. Create the tenant and user documents in Firestore using a batch write.
+    const batch = firestore.batch();
+
+    const tenantRef = firestore.collection('tenants').doc(tenantId);
     batch.set(tenantRef, {
-        id: tenantId,
-        name: `${firstName}'s Gym`, // Or any other default name
-        members: {
-            [tenantId]: 'owner',
-        },
-        createdAt: serverTimestamp(),
+      id: tenantId,
+      name: `${firstName}'s Gym`,
+      members: {
+        [uid]: 'owner',
+      },
+      createdAt: serverTimestamp(),
     });
 
-    const userRef = doc(firestore, `tenants/${tenantId}/users`, user.uid);
+    const userRef = firestore.collection('tenants').doc(tenantId).collection('users').doc(uid);
     batch.set(userRef, {
-        id: user.uid,
-        tenantId: tenantId,
-        firstName: firstName,
-        lastName: lastName,
-        email: user.email,
-        createdAt: serverTimestamp(),
+      id: uid,
+      tenantId: tenantId,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      createdAt: serverTimestamp(),
     });
-
-    // CRITICAL: Await the batch commit to complete before returning success.
+    
+    // 4. Atomically commit the batch.
     await batch.commit();
 
-    // Now it's safe to return success
     return {
       success: true,
-      message: 'User account and profile created successfully. Please log in.',
+      message: 'User account created successfully. Please log in.',
     };
 
   } catch (error: any) {
     let errorMessage = 'An unexpected error occurred.';
-    if (error.code === 'auth/email-already-in-use') {
-        errorMessage = 'This email address is already in use by another account.';
+    if (error.code === 'auth/email-already-exists') {
+      errorMessage = 'This email address is already in use by another account.';
     } else if (error.message) {
-        errorMessage = error.message;
+      errorMessage = error.message;
     }
+    console.error('Error in signUpWithEmailAndPassword:', error);
     return {
       success: false,
       message: errorMessage,
