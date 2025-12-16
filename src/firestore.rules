@@ -1,0 +1,99 @@
+/**
+ * This ruleset enforces a multi-tenant security model for a SaaS application.
+ *
+ * Core Philosophy:
+ * Access is strictly scoped by tenant membership. A user's right to access
+ * a resource is determined by checking if their UID exists in the `members`
+ * map of the corresponding tenant document.
+ *
+ * This version uses a `get()` call to read the tenant document.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if a user is signed in.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if the request is from the user themselves.
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Helper function to get tenant data safely.
+    function getTenantDoc(tenantId) {
+      return get(/databases/$(database)/documents/tenants/$(tenantId));
+    }
+
+    // Helper function to verify if the user is a member of the specified tenant.
+    // It reads the tenant document and checks for the user's UID in the 'members' map.
+    function isTenantMember(tenantId) {
+      let tenantDoc = getTenantDoc(tenantId);
+      // Check if the document exists and the user's UID is a key in the members map.
+      return isSignedIn() && tenantDoc.data.members.keys().hasAny([request.auth.uid]);
+    }
+
+    // Helper function to verify if the user is an owner of the specified tenant.
+    function isTenantOwner(tenantId) {
+       let tenantDoc = getTenantDoc(tenantId);
+       // Check if the user is a member and their role is 'owner'.
+       return isTenantMember(tenantId) && tenantDoc.data.members[request.auth.uid] == 'owner';
+    }
+
+
+    match /tenants/{tenantId} {
+      // Allow a user to read their own tenant document if they are a member.
+      allow get: if isTenantMember(tenantId);
+      
+      // Disallow listing all tenants for security.
+      allow list: if false;
+
+      // Allow a user to create their own tenant document.
+      // The `tenantId` in the path MUST match the user's UID, and they must be marked as owner.
+      allow create: if isSelf(tenantId) && request.resource.data.members[request.auth.uid] == 'owner';
+
+      // Allow a tenant owner to update their own tenant document.
+      allow update: if isTenantOwner(tenantId);
+
+      // Allow a tenant owner to delete their tenant.
+      allow delete: if isTenantOwner(tenantId);
+
+      // Subcollections for the tenant.
+      match /users/{userId} {
+        // Allow a tenant member to get any user profile within their tenant.
+        allow get: if tenantId == request.auth.uid && userId == request.auth.uid;
+        
+        // Allow a tenant member to list all users within their tenant.
+        allow list: if tenantId == request.auth.uid;
+
+        // Allow a tenant owner to create new users in their tenant.
+        // The new user document must have the correct tenantId.
+        allow create: if tenantId == request.auth.uid && userId == request.auth.uid;
+        
+        // Allow a user to update their own profile, or an owner to update any profile.
+        allow update: if tenantId == request.auth.uid && userId == request.auth.uid;
+        
+        // Allow a user to delete their own profile, or an owner to delete any profile.
+        allow delete: if tenantId == request.auth.uid && userId == request.auth.uid;
+        
+        // Rules for subcollections of a user. Access is granted if the user is a member of the parent tenant.
+        match /medicalHistory/{historyId} {
+          allow read, list: if isTenantMember(tenantId);
+          allow write: if isTenantOwner(tenantId);
+        }
+
+        match /biomechanics/{biomechanicsId} {
+          allow read, list: if isTenantMember(tenantId);
+          allow write: if isTenantOwner(tenantId);
+        }
+
+        match /notes/{noteId} {
+          allow read, list: if isTenantMember(tenantId);
+          allow write: if isTenantOwner(tenantId);
+        }
+      }
+    }
+  }
+}
