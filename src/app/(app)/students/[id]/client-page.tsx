@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 import Image from 'next/image';
 import {
   Dumbbell, HeartPulse, Scale, Ruler, FileText, User, MessageSquare, CalendarDays,
