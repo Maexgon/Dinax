@@ -62,20 +62,20 @@ service cloud.firestore {
 
       // Subcollections for the tenant.
       match /users/{userId} {
-        // Allow a tenant member to get any user profile within their tenant.
-        allow get: if isTenantMember(tenantId);
+        // A tenant member can get any user profile within their tenant, or a user can get their own.
+        allow get: if isTenantMember(tenantId) || isSelf(userId);
         
-        // Allow a tenant member to list all users within their tenant.
+        // A tenant member can list all users within their tenant.
         allow list: if isTenantMember(tenantId);
 
         // Allow a tenant owner to create new users in their tenant.
         // The new user document must have the correct tenantId.
         allow create: if isTenantOwner(tenantId) && request.resource.data.tenantId == tenantId;
         
-        // Allow a user to update their own profile, or an owner to update any profile.
+        // A user can update their own profile, or an owner can update any profile.
         allow update: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
         
-        // Allow a user to delete their own profile, or an owner to delete any profile.
+        // A user can delete their own profile, or an owner can delete any profile.
         allow delete: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
         
         // Rules for subcollections of a user. Access is granted if the user is a member of the parent tenant.
@@ -90,7 +90,11 @@ service cloud.firestore {
         }
 
         match /notes/{noteId} {
-          allow read, list: if isTenantMember(tenantId);
+          // A user can get a note if they are a member of the tenant OR if it's their own note.
+          allow get: if isTenantMember(tenantId) || isSelf(userId);
+          // A user can list their own notes, or a tenant member can list any user's notes.
+          allow list: if isTenantMember(tenantId) || isSelf(userId);
+          // Only tenant owners can write notes.
           allow write: if isTenantOwner(tenantId);
         }
       }
