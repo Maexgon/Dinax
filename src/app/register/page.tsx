@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -75,7 +76,7 @@ export default function RegisterPage() {
       const user = userCredential.user;
       const tenantId = user.uid; // The coach's UID is the tenant ID
 
-      // Step 2: Create tenant and user documents in Firestore atomically.
+      // Step 2: Create tenant and user profile documents in Firestore atomically.
       const batch = writeBatch(firestore);
 
       // Document 1: Tenant document at /tenants/{coach-uid}
@@ -88,9 +89,9 @@ export default function RegisterPage() {
       };
       batch.set(tenantRef, tenantData);
 
-      // Document 2: User profile document for the coach at /tenants/{coach-uid}/users/{coach-uid}
-      const userRef = doc(firestore, `tenants/${tenantId}/users`, user.uid);
-      const userData = {
+      // Document 2: User profile document for the coach at /tenants/{coach-uid}/user_profile/{coach-uid}
+      const userProfileRef = doc(firestore, `tenants/${tenantId}/user_profile`, user.uid);
+      const userProfileData = {
           id: user.uid,
           tenantId: tenantId,
           firstName: firstName,
@@ -111,7 +112,7 @@ export default function RegisterPage() {
           careerExperience: [],
           education: [],
       };
-      batch.set(userRef, userData);
+      batch.set(userProfileRef, userProfileData);
 
       // Commit the atomic batch
       await batch.commit();
@@ -251,3 +252,5 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+    

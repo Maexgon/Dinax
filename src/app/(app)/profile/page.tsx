@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect } from 'react';
@@ -58,7 +59,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
 
   const userDocRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, `tenants/${user.uid}/users`, user.uid) : null),
+    () => (firestore && user ? doc(firestore, `tenants/${user.uid}/user_profile`, user.uid) : null),
     [firestore, user]
   );
 
@@ -353,3 +354,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    

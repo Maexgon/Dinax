@@ -1,15 +1,4 @@
-/**
- * This ruleset enforces a multi-tenant security model for a SaaS application.
- *
- * Core Philosophy:
- * Access is strictly scoped by tenant membership. A user's right to access
- * a resource is determined by checking if their UID exists in the `members`
- * map of the corresponding tenant document.
- *
- * This version uses a `get()` call to read the tenant document, which is reliable
- * now that the client-side registration flow guarantees the tenant document exists
- * before any reads are attempted.
- */
+
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -24,13 +13,11 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Helper function to verify if the user is an owner of the specified tenant.
-    // It reads the tenant document and checks for the user's UID in the 'members' map.
-    // This function should ONLY be used in 'read' or 'list' rules, not in 'write' rules.
+    // Secure helper function to check if the user is an owner of the specified tenant.
+    // This function should ONLY be used in 'read' rules to prevent security issues.
     function isTenantOwner(tenantId) {
        return isSignedIn() && get(/databases/$(database)/documents/tenants/$(tenantId)).data.members[request.auth.uid] == 'owner';
     }
-
 
     match /tenants/{tenantId} {
       // Allow a user to read their own tenant document if they are the owner.
@@ -44,15 +31,12 @@ service cloud.firestore {
       allow create: if isSelf(tenantId) && request.resource.data.members[request.auth.uid] == 'owner';
 
       // Allow a tenant owner to update their own tenant document.
-      // IMPORTANT: We cannot use get() in an update rule reliably.
-      // We trust that only the owner can get this far to update their own tenant doc.
-      // Additional security can be added via database triggers if needed.
       allow update, delete: if isTenantOwner(tenantId);
 
       // Subcollections for the tenant.
-      match /users/{userId} {
-        // A user can read/write their own profile if they are the owner of the tenant.
-        // Or if they are the user being accessed (isSelf).
+      match /user_profile/{userId} {
+        // A tenant owner can read any user profile in their tenant.
+        // A user can also read their own profile.
         allow get, list: if isTenantOwner(tenantId) || isSelf(userId);
         
         // A tenant owner can create new users in their tenant.
@@ -60,14 +44,12 @@ service cloud.firestore {
         allow create: if isTenantOwner(tenantId) && request.resource.data.tenantId == tenantId;
         
         // A tenant owner can update any profile, OR a user can update their own.
-        // This is the critical rule fix.
         allow update: if isTenantOwner(tenantId) || isSelf(userId);
 
         // A tenant owner can delete any profile, OR a user can delete their own.
         allow delete: if isTenantOwner(tenantId) || isSelf(userId);
         
-        
-        // Rules for subcollections of a user. Access is granted if the user is the owner of the parent tenant.
+        // Rules for subcollections of a user profile.
         match /medicalHistory/{historyId} {
           allow read, list: if isTenantOwner(tenantId) || isSelf(userId);
           allow write: if isTenantOwner(tenantId);
@@ -79,8 +61,6 @@ service cloud.firestore {
         }
 
         match /notes/{noteId} {
-          // The owner of the tenant can read, list, and write notes for any user.
-          // A user can also read their own notes.
           allow get, list: if isTenantOwner(tenantId) || isSelf(userId);
           allow write: if isTenantOwner(tenantId);
         }
@@ -88,3 +68,5 @@ service cloud.firestore {
     }
   }
 }
+
+    

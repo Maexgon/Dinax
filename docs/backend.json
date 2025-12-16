@@ -16,17 +16,17 @@
       },
       "required": ["id", "name", "members"]
     },
-    "User": {
+    "UserProfile": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
+      "title": "User Profile",
       "type": "object",
-      "description": "Represents a user of the application, associated with a tenant. This is the primary client/student profile.",
+      "description": "Represents a user's profile information within a tenant.",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the user." },
-        "tenantId": { "type": "string", "description": "Reference to Tenant." },
+        "id": { "type": "string", "description": "Unique identifier for the user (matches auth UID)." },
+        "tenantId": { "type": "string", "description": "Reference to the parent Tenant." },
         "firstName": { "type": "string", "description": "The first name of the user." },
         "lastName": { "type": "string", "description": "The last name of the user." },
-        "email": { "type": "string", "format": "email" },
+        "email": { "type": "string", "format": "email", "description": "Primary authentication email." },
         "secondaryEmail": { "type": "string", "format": "email", "description": "An optional secondary email for the user." },
         "phoneNumber": { "type": "string" },
         "avatarUrl": { "type": "string", "format": "uri" },
@@ -174,21 +174,23 @@
         "definition": { "schema": { "$ref": "#/entities/Tenant" }, "description": "Stores tenant data." }
       },
       {
-        "path": "/tenants/{tenantId}/users/{userId}",
-        "definition": { "schema": { "$ref": "#/entities/User" }, "description": "Stores user profiles for a tenant." }
+        "path": "/tenants/{tenantId}/user_profile/{userId}",
+        "definition": { "schema": { "$ref": "#/entities/UserProfile" }, "description": "Stores user profiles for a tenant." }
       },
       {
-        "path": "/tenants/{tenantId}/users/{userId}/medicalHistory/{historyId}",
+        "path": "/tenants/{tenantId}/user_profile/{userId}/medicalHistory/{historyId}",
         "definition": { "schema": { "$ref": "#/entities/MedicalHistory" }, "description": "Stores timestamped medical history records for a user." }
       },
       {
-        "path": "/tenants/{tenantId}/users/{userId}/biomechanics/{biomechanicsId}",
+        "path": "/tenants/{tenantId}/user_profile/{userId}/biomechanics/{biomechanicsId}",
         "definition": { "schema": { "$ref": "#/entities/Biomechanics" }, "description": "Stores timestamped biomechanical assessments for a user." }
       },
       {
-        "path": "/tenants/{tenantId}/users/{userId}/notes/{noteId}",
+        "path": "/tenants/{tenantId}/user_profile/{userId}/notes/{noteId}",
         "definition": { "schema": { "$ref": "#/entities/Note" }, "description": "Stores coach's notes for a user." }
       }
     ]
   }
 }
+
+    
