@@ -117,6 +117,7 @@
       "description": "A snapshot of a user's biomechanical assessment at a specific point in time.",
       "properties": {
         "id": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
         "weight": { "type": "number", "description": "Body weight in kg." },
         "height": { "type": "number", "description": "Height in meters." },
         "bmi": { "type": "number", "description": "Body Mass Index (kg/m²)." },
@@ -132,7 +133,8 @@
         "unilateralBalance": { "type": "number", "description": "Unilateral balance test duration in seconds." },
         "asymmetries": { "type": "number", "description": "Right-left strength or mobility difference percentage." },
         "movementPain": { "type": "number", "description": "Self-reported pain during movement on a 0-10 scale." }
-      }
+      },
+      "required": ["id", "createdAt", "weight", "height"]
     },
     "Note": {
       "$schema": "http://json-schema.org/draft-07/schema#",

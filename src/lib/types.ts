@@ -69,8 +69,9 @@ tuberculosis?: boolean;
 
 export type Biomechanics = {
     id: string;
-    weight?: number;
-    height?: number;
+    createdAt: string;
+    weight: number;
+    height: number;
     bmi?: number;
     ankleDorsiflexion?: number;
     hipMobility?: number;
