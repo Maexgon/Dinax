@@ -1,4 +1,5 @@
 
+import { Timestamp } from 'firebase/firestore';
 
 export type Client = {
   id: string;
@@ -28,7 +29,7 @@ export type Client = {
 
 export type Note = {
   id: string;
-  createdAt: string; // ISO string from mock data
+  createdAt: string | Timestamp;
   coachName: string;
   coachAvatarUrl: string;
   coachAvatarHint: string;
@@ -37,7 +38,7 @@ export type Note = {
 
 export type MedicalHistory = {
     id: string;
-    createdAt: string; // ISO date-time
+    createdAt: string | Timestamp; // ISO date-time
     fitnessCertificate?: boolean;
     certificateDate?: string; // date
     cardiovascularDiseases?: string;
@@ -69,7 +70,7 @@ tuberculosis?: boolean;
 
 export type Biomechanics = {
     id: string;
-    createdAt: string;
+    createdAt: string | Timestamp;
     weight: number;
     height: number;
     bmi?: number;
@@ -144,3 +145,5 @@ export type CalendarEvent = {
   studentName: string;
   studentAvatar?: string;
 };
+
+    

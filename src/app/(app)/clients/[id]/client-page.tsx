@@ -28,7 +28,7 @@ import { BodyCompositionChart } from '@/components/charts/body-composition-chart
 import { MuscleMassChart } from '@/components/charts/muscle-mass-chart';
 import { GoalProgressChart } from '@/components/charts/goal-progress-chart';
 import { useFirebase, useMemoFirebase, useDoc, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
-import { doc, collection, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
+import { doc, collection, query, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -95,7 +95,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
   const { data: client, isLoading: isClientLoading } = useDoc<Client>(clientDocRef);
   
   const notesCollectionRef = useMemoFirebase(
-      () => (firestore && tenantId && clientId ? collection(firestore, `tenants/${tenantId}/user_profile/${clientId}/notes`) : null),
+      () => (firestore && tenantId && clientId ? query(collection(firestore, `tenants/${tenantId}/user_profile/${clientId}/notes`), orderBy("createdAt", "desc")) : null),
       [firestore, tenantId, clientId]
   );
   const { data: notes, isLoading: areNotesLoading } = useCollection<Note>(notesCollectionRef);
@@ -146,7 +146,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
         tags: client.tags || [],
       });
     }
-  }, [client, clientForm.reset]);
+  }, [client, clientForm]);
 
   React.useEffect(() => {
     if (latestBiomechanics) {
@@ -155,12 +155,17 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
         height: latestBiomechanics.height ? latestBiomechanics.height * 100 : 0 // Convert meters to cm for display
       });
     }
-  }, [latestBiomechanics, biomechanicsForm.reset]);
+  }, [latestBiomechanics, biomechanicsForm]);
   
   const onClientSubmit = async (data: ClientFormData) => {
     if (!clientDocRef) return;
     
-    await updateDocumentNonBlocking(clientDocRef, data);
+    const dataToSave = {
+        name: `${data.firstName} ${data.lastName}`,
+        ...data
+    }
+
+    await updateDocumentNonBlocking(clientDocRef, dataToSave);
     toast({
         variant: 'success',
         title: 'Perfil Actualizado',
@@ -214,6 +219,13 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
   }
   
   const clientName = client.name;
+  
+  const getNoteDate = (note: Note) => {
+    if (!note.createdAt) return '';
+    const date = (note.createdAt as unknown as Timestamp)?.toDate ? (note.createdAt as unknown as Timestamp).toDate() : new Date(note.createdAt);
+    return format(date, "PPP", { locale: language === 'es' ? es : undefined });
+  };
+
 
   return (
     <div className="space-y-6">
@@ -403,7 +415,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                         <CardDescription>{t.clientDetail.biomechanics.descriptionForm}</CardDescription>
                                     </div>
                                     <p className="text-sm text-muted-foreground pt-1">
-                                        {latestBiomechanics ? `Última act: ${format(new Date(latestBiomechanics.createdAt), 'dd MMM yyyy')}` : 'Sin datos previos'}
+                                        {latestBiomechanics && latestBiomechanics.createdAt ? `Última act: ${format((latestBiomechanics.createdAt as unknown as Timestamp).toDate(), 'dd MMM yyyy')}` : 'Sin datos previos'}
                                     </p>
                                 </div>
                             </CardHeader>
@@ -505,7 +517,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                 <Button variant="outline"><Plus className="mr-2 h-4 w-4"/> {t.clientDetail.addNote}</Button>
                             </div>
                             <div className="space-y-6">
-                                {areNotesLoading && <Loader2 className="animate-spin" />}
+                                {areNotesLoading && <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>}
                                 {!areNotesLoading && notes?.map((note) => (
                                 <div key={note.id} className="flex items-start gap-4">
                                     <Avatar className="h-10 w-10 border">
@@ -516,7 +528,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                     <div className="flex items-center justify-between">
                                         <p className="font-semibold">{note.coachName}</p>
                                         <p className="text-xs text-muted-foreground">
-                                        {format(new Date(note.createdAt), "PPP", { locale: language === 'es' ? es : undefined })}
+                                            {getNoteDate(note)}
                                         </p>
                                     </div>
                                     <p className="text-sm text-muted-foreground mt-1">{note.content}</p>
@@ -536,3 +548,5 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     </div>
   );
 }
+
+    
