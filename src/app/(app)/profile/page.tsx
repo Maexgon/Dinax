@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect } from 'react';
@@ -38,6 +39,7 @@ const profileSchema = z.object({
   firstName: z.string().min(1, 'El nombre es obligatorio.'),
   lastName: z.string().min(1, 'El apellido es obligatorio.'),
   email: z.string().email('Email inválido.'),
+  secondaryEmail: z.string().email('Email secundario inválido.').optional().or(z.literal('')),
   cuit: z.string().optional(),
   phoneNumber: z.string().optional(),
   linkedinUrl: z.string().url('URL de LinkedIn inválida').optional().or(z.literal('')),
@@ -92,6 +94,7 @@ export default function ProfilePage() {
     if (userData) {
       reset({
         ...userData,
+        secondaryEmail: userData.secondaryEmail || '',
         cuit: userData.cuit || '',
         phoneNumber: userData.phoneNumber || '',
         linkedinUrl: userData.linkedinUrl || '',
@@ -198,11 +201,18 @@ export default function ProfilePage() {
                 <Input id="address" {...register('address')} />
                 {errors.address && <p className="text-xs text-destructive">{errors.address.message}</p>}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">{t.register.email}</Label>
-              <Input id="email" type="email" {...register('email')} disabled />
-              {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
-              <p className="text-xs text-muted-foreground">El email no se puede cambiar.</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="email">{t.register.email} (Principal)</Label>
+                    <Input id="email" type="email" {...register('email')} disabled />
+                    {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+                    <p className="text-xs text-muted-foreground">El email principal no se puede cambiar.</p>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="secondaryEmail">Email Secundario</Label>
+                    <Input id="secondaryEmail" type="email" {...register('secondaryEmail')} placeholder="tucorreo@secundario.com"/>
+                    {errors.secondaryEmail && <p className="text-xs text-destructive">{errors.secondaryEmail.message}</p>}
+                </div>
             </div>
           </CardContent>
         </Card>

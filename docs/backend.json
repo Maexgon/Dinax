@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Tenant": {
@@ -26,6 +27,7 @@
         "firstName": { "type": "string", "description": "The first name of the user." },
         "lastName": { "type": "string", "description": "The last name of the user." },
         "email": { "type": "string", "format": "email" },
+        "secondaryEmail": { "type": "string", "format": "email", "description": "An optional secondary email for the user." },
         "phoneNumber": { "type": "string" },
         "avatarUrl": { "type": "string", "format": "uri" },
         "avatarHint": { "type": "string" },
