@@ -30,7 +30,7 @@ import { GoalProgressChart } from '@/components/charts/goal-progress-chart';
 import { useFirebase, useMemoFirebase, useDoc, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, Controller, useFieldArray, UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Input } from '@/components/ui/input';
@@ -91,14 +91,14 @@ const medicalHistorySchema = z.object({
 type MedicalHistoryFormData = z.infer<typeof medicalHistorySchema>;
 
 
-const TagInput = ({ fields, append, remove, label, buttonText }: { fields: any[], append: (obj: any) => void, remove: (index: number) => void, label: string, buttonText: string }) => {
+const TagInput = ({ fields, append, remove, label, buttonText, register, name }: { fields: any[], append: (obj: any) => void, remove: (index: number) => void, label: string, buttonText: string, register: UseFormRegister<MedicalHistoryFormData>, name: 'currentConditions' | 'currentMedications' | 'preexistingInjuries' | 'previousSurgeries' | 'medicalRestrictions' }) => {
     return (
         <div className="space-y-2">
             <Label>{label}</Label>
             <div className="flex flex-col gap-2">
                 {fields.map((field, index) => (
                     <div key={field.id} className="flex items-center gap-2">
-                        <Input {...field} placeholder={`${label} ${index + 1}`} />
+                        <Input {...register(`${name}.${index}.value` as const)} placeholder={`${label} ${index + 1}`} />
                         <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
                             <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -162,6 +162,11 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
         medicalClearance: false,
         underMedicalTreatment: false,
         chronicPain: false,
+        currentConditions: [],
+        currentMedications: [],
+        preexistingInjuries: [],
+        previousSurgeries: [],
+        medicalRestrictions: [],
     }
   });
 
@@ -418,11 +423,11 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                </div>
                                <Separator />
                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                   <TagInput fields={conditions} append={appendCondition} remove={removeCondition} label={t.clientDetail.medical.currentConditions} buttonText={t.clientDetail.medical.addCondition} />
-                                   <TagInput fields={medications} append={appendMedication} remove={removeMedication} label={t.clientDetail.medical.currentMedications} buttonText={t.clientDetail.medical.addMedication} />
-                                   <TagInput fields={injuries} append={appendInjury} remove={removeInjury} label={t.clientDetail.medical.preexistingInjuries} buttonText={t.clientDetail.medical.addInjury} />
-                                   <TagInput fields={surgeries} append={appendSurgery} remove={removeSurgery} label={t.clientDetail.medical.previousSurgeries} buttonText={t.clientDetail.medical.addSurgery} />
-                                   <TagInput fields={restrictions} append={appendRestriction} remove={removeRestriction} label={t.clientDetail.medical.medicalRestrictions} buttonText={t.clientDetail.medical.addRestriction} />
+                                   <TagInput fields={conditions} append={appendCondition} remove={removeCondition} label={t.clientDetail.medical.currentConditions} buttonText={t.clientDetail.medical.addCondition} register={medicalForm.register} name="currentConditions" />
+                                   <TagInput fields={medications} append={appendMedication} remove={removeMedication} label={t.clientDetail.medical.currentMedications} buttonText={t.clientDetail.medical.addMedication} register={medicalForm.register} name="currentMedications" />
+                                   <TagInput fields={injuries} append={appendInjury} remove={removeInjury} label={t.clientDetail.medical.preexistingInjuries} buttonText={t.clientDetail.medical.addInjury} register={medicalForm.register} name="preexistingInjuries" />
+                                   <TagInput fields={surgeries} append={appendSurgery} remove={removeSurgery} label={t.clientDetail.medical.previousSurgeries} buttonText={t.clientDetail.medical.addSurgery} register={medicalForm.register} name="previousSurgeries" />
+                                   <TagInput fields={restrictions} append={appendRestriction} remove={removeRestriction} label={t.clientDetail.medical.medicalRestrictions} buttonText={t.clientDetail.medical.addRestriction} register={medicalForm.register} name="medicalRestrictions" />
 
                                    <div className="space-y-4">
                                         <div className="flex items-center justify-between rounded-lg border p-4">
@@ -460,7 +465,9 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                         <CardTitle className="flex items-center gap-2"><Footprints className="text-primary"/>{t.clientDetail.biomechanics.title}</CardTitle>
                                         <CardDescription>{t.clientDetail.biomechanics.descriptionForm}</CardDescription>
                                     </div>
-                                    <p className="text-sm text-muted-foreground pt-1">{latestBiomechanics?.createdAt ? `Última act: ${format((latestBiomechanics.createdAt as Timestamp).toDate(), 'dd MMM yyyy')}` : 'Sin datos previos'}</p>
+                                    <p className="text-sm text-muted-foreground pt-1">
+                                        {latestBiomechanics?.createdAt ? `Última act: ${format((latestBiomechanics.createdAt as Timestamp).toDate(), 'dd MMM yyyy')}` : 'Sin datos previos'}
+                                    </p>
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-6">
@@ -521,3 +528,5 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     </div>
   );
 }
+
+    
