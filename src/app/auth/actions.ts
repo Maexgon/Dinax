@@ -2,7 +2,7 @@
 
 // This server action is intentionally left empty for now.
 // The registration logic has been moved to the client-side component
-// in `src/app/register/page.tsx` to resolve credential and race condition issues.
+// in `src/app/register/page.tsx` to ensure a stable and atomic registration flow.
 // This file is kept to avoid breaking imports, but it does not perform any Firebase operations.
 
 export async function signUpWithEmailAndPassword(

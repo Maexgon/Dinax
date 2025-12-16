@@ -32,7 +32,7 @@ async function setupInitialUserData(
       // 1. Tenant Document
       const tenantData = {
         id: user.uid,
-        name: `${user.email}'s Gym`, // Default name
+        name: `${user.displayName || user.email}'s Gym`, // Default name
         members: { [user.uid]: 'owner' },
         createdAt: serverTimestamp(),
       };
@@ -43,8 +43,8 @@ async function setupInitialUserData(
       const userData = {
         id: user.uid,
         tenantId: user.uid,
-        firstName: user.displayName || 'New',
-        lastName: 'User',
+        firstName: user.displayName?.split(' ')[0] || 'New',
+        lastName: user.displayName?.split(' ')[1] || 'User',
         email: user.email,
         joinDate: new Date().toISOString().split('T')[0],
         progress: 0,
@@ -77,22 +77,9 @@ export function FirebaseClientProvider({
       firebaseServices.auth,
       async (user) => {
         if (user) {
-          try {
-            // This is the key logic: on first login, create the necessary DB records.
-            await setupInitialUserData(firebaseServices.firestore, user);
-            setUser(user);
-          } catch (error) {
-            console.error('Error during initial user setup:', error);
-            toast({
-              variant: 'destructive',
-              title: 'Error de configuración',
-              description:
-                'No se pudieron crear los datos iniciales de la cuenta. Por favor, contacta a soporte.',
-            });
-            // Log out the user if setup fails to prevent being in a broken state
-            await firebaseServices.auth.signOut();
-            setUser(null);
-          }
+          // The logic for initial data setup is now handled client-side during registration.
+          // This provider's role is now simplified to just managing auth state and routing.
+          setUser(user);
         } else {
           setUser(null);
         }
@@ -101,7 +88,7 @@ export function FirebaseClientProvider({
     );
 
     return () => unsubscribe();
-  }, [firebaseServices, toast]); // Add dependencies
+  }, [firebaseServices]);
 
   useEffect(() => {
     if (isAuthLoading) return;
@@ -110,21 +97,24 @@ export function FirebaseClientProvider({
       (route) =>
         pathname === route || (route !== '/' && pathname.startsWith(route))
     );
-    const isAppRoute = !isPublicRoute;
+    const isAppRoute = !isPublicRoute && pathname !== '/client/dashboard'; // Exclude client dashboard
 
-    if (user && !isAppRoute) {
+    // If user is logged in and tries to access a public route, redirect to app dashboard
+    if (user && isPublicRoute) {
       router.push('/dashboard');
-    } else if (!user && isAppRoute) {
+    } 
+    // If user is not logged in and tries to access a protected app route, redirect to login
+    else if (!user && isAppRoute) {
       router.push('/login');
     }
   }, [user, isAuthLoading, pathname, router]);
 
-  const isPublicRoute = PUBLIC_ROUTES.some(
+  const isProtectedRoute = !PUBLIC_ROUTES.some(
     (route) =>
       pathname === route || (route !== '/' && pathname.startsWith(route))
   );
 
-  if (isAuthLoading && !isPublicRoute) {
+  if (isAuthLoading && isProtectedRoute) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />

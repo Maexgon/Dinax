@@ -20,12 +20,13 @@ import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
 import { useFirebase } from '@/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 
 export default function RegisterPage() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const router = useRouter();
-  const { auth } = useFirebase();
+  const { auth, firestore } = useFirebase();
 
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -48,7 +49,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!auth) {
+    if (!auth || !firestore) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -70,21 +71,51 @@ export default function RegisterPage() {
     
     try {
       // Step 1: Create user in Firebase Auth.
-      // We are NOT creating any documents here. That will be handled on first login.
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      const tenantId = user.uid;
+
+      // Step 2: Create tenant and user documents in Firestore atomically.
+      const batch = writeBatch(firestore);
+
+      // Document 1: Tenant
+      const tenantRef = doc(firestore, 'tenants', tenantId);
+      const tenantData = {
+          id: tenantId,
+          name: `${firstName}'s Gym`,
+          members: { [tenantId]: 'owner' },
+          createdAt: serverTimestamp(),
+      };
+      batch.set(tenantRef, tenantData);
+
+      // Document 2: User (Coach's own profile)
+      const userRef = doc(firestore, `tenants/${tenantId}/users`, tenantId);
+      const userData = {
+          id: tenantId,
+          tenantId: tenantId,
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          joinDate: new Date().toISOString().split('T')[0],
+          progress: 0,
+          createdAt: serverTimestamp(),
+      };
+      batch.set(userRef, userData);
+
+      // Commit the atomic batch
+      await batch.commit();
 
       toast({
         variant: 'success',
         title: t.register.successTitle,
-        description: 'Please log in to continue.',
+        description: 'Redirecting to your new dashboard...',
       });
 
-      // Step 2: Redirect to login page.
-      // The FirebaseClientProvider will handle creating the tenant/user docs on first successful login.
-      router.push('/login');
+      // Step 3: Redirect to dashboard. The FirebaseClientProvider will now find a logged-in user with all necessary documents.
+      router.push('/dashboard');
 
     } catch (error: any) {
-      console.error("Error during user creation:", error);
+      console.error("Error during user registration and data setup:", error);
       toast({
         variant: 'destructive',
         title: t.register.error,
