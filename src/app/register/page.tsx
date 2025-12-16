@@ -89,17 +89,16 @@ export default function RegisterPage() {
       };
       batch.set(tenantRef, tenantData);
 
-      // Document 2: User profile document for the coach at /tenants/{coach-uid}/user_profile/{coach-uid}
-      const userProfileRef = doc(firestore, `tenants/${tenantId}/user_profile`, user.uid);
+      // Document 2: User profile document for the coach at /user_profile/{coach-uid}
+      const userProfileRef = doc(firestore, 'user_profile', user.uid);
       const userProfileData = {
           id: user.uid,
           tenantId: tenantId,
           firstName: firstName,
           lastName: lastName,
           email: email,
-          isProfileComplete: false, // NEW: Mark profile as incomplete
+          isProfileComplete: false, 
           joinDate: new Date().toISOString().split('T')[0],
-          progress: 0,
           createdAt: serverTimestamp(),
           // Initialize other fields from profile page
           secondaryEmail: '',

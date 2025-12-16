@@ -59,7 +59,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
 
   const userDocRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, `tenants/${user.uid}/user_profile`, user.uid) : null),
+    () => (firestore && user ? doc(firestore, `user_profile`, user.uid) : null),
     [firestore, user]
   );
 
@@ -148,14 +148,16 @@ export default function ProfilePage() {
   if (isUserLoading) {
       return (
           <div className="max-w-4xl mx-auto">
-              <Skeleton className="h-8 w-1/4 mb-2" />
-              <Skeleton className="h-4 w-1/2 mb-6" />
-              <Card>
+              <div>
+                  <h1 className="text-3xl font-bold font-headline">Configuración de Perfil</h1>
+                  <p className="text-muted-foreground">Administra tu información personal y de la cuenta.</p>
+              </div>
+              <Card className="mt-6">
                 <CardHeader>
                     <Skeleton className="h-8 w-1/3" />
                     <Skeleton className="h-4 w-2/3" />
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-6 pt-6">
                     <div className="space-y-2">
                         <Skeleton className="h-4 w-16" />
                         <Skeleton className="h-10 w-full" />
