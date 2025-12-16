@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
 import { mockTrainingPlans } from '@/lib/data';
-import type { Student, TrainingPlan, Exercise } from '@/lib/types';
-import { mockStudents } from '@/lib/data';
+import type { Client, TrainingPlan, Exercise } from '@/lib/types';
+import { mockClients } from '@/lib/data';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
@@ -103,7 +103,7 @@ const DaySchedule = ({ day, focus, exercises, t }: { day: string, focus: string,
 export default function PlansPage() {
     const { t } = useLanguage();
     const plan = mockTrainingPlans[0];
-    const student = mockStudents[1];
+    const client = mockClients[1];
 
     const weekSchedule = [
         { day: t.plans.day.monday, focus: t.plans.focus.legs, exercises: plan.microcycles[0].workouts.find(w => w.day === 'Monday')?.exercises },
@@ -118,11 +118,11 @@ export default function PlansPage() {
       <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-4">
           <Avatar className="h-12 w-12 border-2 border-primary">
-            <AvatarImage src={student.avatarUrl} alt={student.name} data-ai-hint={student.avatarHint}/>
-            <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={client.avatarUrl} alt={client.name} data-ai-hint={client.avatarHint}/>
+            <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <h1 className="text-2xl font-bold font-headline">{t.plans.planFor} {student.name}</h1>
+            <h1 className="text-2xl font-bold font-headline">{t.plans.planFor} {client.name}</h1>
             <p className="text-muted-foreground">
               {t.plans.planObjective}
             </p>
@@ -213,5 +213,3 @@ export default function PlansPage() {
     </div>
   );
 }
-
-    

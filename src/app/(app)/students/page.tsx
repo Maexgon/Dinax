@@ -15,11 +15,11 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { useLanguage } from '@/context/language-context';
 import { useFirebase } from '@/firebase';
-import type { Student } from '@/lib/types';
+import type { Client } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
-import { mockStudents } from '@/lib/data'; // Import mock data
+import { mockClients } from '@/lib/data'; // Import mock data
 
-function StudentCardSkeleton() {
+function ClientCardSkeleton() {
     return (
         <Card className="flex flex-col">
             <CardHeader className="items-center">
@@ -42,12 +42,12 @@ function StudentCardSkeleton() {
 }
 
 
-export default function StudentsPage() {
+export default function ClientsPage() {
   const { t } = useLanguage();
   const { user } = useFirebase();
 
   // Using mock data instead of Firestore for now to prevent errors.
-  const students = mockStudents;
+  const clients = mockClients;
   const isLoading = false;
 
 
@@ -66,34 +66,34 @@ export default function StudentsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {isLoading && !students && Array.from({ length: 4 }).map((_, i) => <StudentCardSkeleton key={i} />)}
+        {isLoading && !clients && Array.from({ length: 4 }).map((_, i) => <ClientCardSkeleton key={i} />)}
         
-        {!isLoading && students?.map((student) => (
-          <Card key={student.id} className="flex flex-col">
+        {!isLoading && clients?.map((client) => (
+          <Card key={client.id} className="flex flex-col">
             <CardHeader className="items-center">
               <Image
-                src={student.avatarUrl || 'https://picsum.photos/seed/placeholder/80/80'}
-                alt={`Avatar of ${student.name}`}
-                data-ai-hint={student.avatarHint || 'person face'}
+                src={client.avatarUrl || 'https://picsum.photos/seed/placeholder/80/80'}
+                alt={`Avatar of ${client.name}`}
+                data-ai-hint={client.avatarHint || 'person face'}
                 width={80}
                 height={80}
                 className="rounded-full border-2 border-primary"
               />
             </CardHeader>
             <CardContent className="flex-grow text-center">
-              <CardTitle className="font-headline">{student.name}</CardTitle>
-              <CardDescription>{student.email}</CardDescription>
+              <CardTitle className="font-headline">{client.name}</CardTitle>
+              <CardDescription>{client.email}</CardDescription>
               <div className="mt-4">
                 <p className="text-sm font-medium text-muted-foreground mb-1">
                   {t.students.planProgress}
                 </p>
-                <Progress value={student.progress || 0} className="h-2" />
-                <p className="text-xs text-accent mt-1">{student.progress || 0}{t.students.complete}</p>
+                <Progress value={client.progress || 0} className="h-2" />
+                <p className="text-xs text-accent mt-1">{client.progress || 0}{t.students.complete}</p>
               </div>
             </CardContent>
             <CardFooter>
               <Button asChild className="w-full">
-                <Link href={`/students/${student.id}`}>{t.students.viewProfile}</Link>
+                <Link href={`/students/${client.id}`}>{t.students.viewProfile}</Link>
               </Button>
             </CardFooter>
           </Card>

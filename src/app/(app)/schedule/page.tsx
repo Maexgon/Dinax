@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -8,7 +9,7 @@ import { mockCalendarEvents } from '@/lib/data';
 import { useLanguage } from '@/context/language-context';
 import type { CalendarEvent } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { mockStudents } from '@/lib/data';
+import { mockClients } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -21,8 +22,8 @@ const eventColors = [
     'bg-red-100 border-l-4 border-red-500 text-red-800',
 ];
 
-const getStudentForEvent = (studentName: string) => {
-    return mockStudents.find(s => s.name === studentName);
+const getClientForEvent = (clientName: string) => {
+    return mockClients.find(s => s.name === clientName);
 }
 
 
@@ -132,17 +133,17 @@ export default function SchedulePage() {
                               </span>
                               <div className="flex flex-col gap-1 mt-1">
                                   {dayEvents.map((event, eventIndex) => {
-                                      const student = getStudentForEvent(event.studentName);
+                                      const client = getClientForEvent(event.studentName);
                                       return (
                                           <div key={event.id} className={cn('p-1.5 rounded-md text-[11px]', eventColors[eventIndex % eventColors.length])}>
                                               <p className="font-semibold truncate">{format(event.start, 'HH:mm')} {event.title}</p>
-                                              {student && (
+                                              {client && (
                                                   <div className="flex items-center gap-1 mt-1">
                                                       <Avatar className="h-4 w-4">
-                                                          <AvatarImage src={student.avatarUrl} alt={student.name} data-ai-hint={student.avatarHint}/>
-                                                          <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+                                                          <AvatarImage src={client.avatarUrl} alt={client.name} data-ai-hint={client.avatarHint}/>
+                                                          <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
                                                       </Avatar>
-                                                      <span className="truncate">{student.name}</span>
+                                                      <span className="truncate">{client.name}</span>
                                                   </div>
                                               )}
                                           </div>

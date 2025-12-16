@@ -1,4 +1,4 @@
-import { Student, TrainingPlan, Payment, CalendarEvent, Service, Workout, Note } from './types';
+import { Client, TrainingPlan, Payment, CalendarEvent, Service, Workout, Note } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const getImage = (id: string) => {
@@ -9,7 +9,7 @@ const getImage = (id: string) => {
   };
 };
 
-export const mockStudents: Student[] = [
+export const mockClients: Client[] = [
   {
     id: '1',
     name: 'Carlos Rodriguez',

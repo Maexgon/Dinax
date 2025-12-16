@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import Image from 'next/image';
@@ -13,9 +14,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, List, Edit, Trash, Search, DollarSign, Users, Activity, MessageSquare, Phone, Edit2, CheckCircle, ChevronLeft, ChevronRight } from 'lucide-react';
-import { mockPayments, mockServices, mockStudents } from '@/lib/data';
+import { mockPayments, mockServices, mockClients } from '@/lib/data';
 import { useLanguage } from '@/context/language-context';
-import { Student } from '@/lib/types';
+import { Client } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 
@@ -56,10 +57,10 @@ function Pagination({ currentPage, totalItems, itemsPerPage, onPageChange }: { c
 
 export default function PaymentsPage() {
   const { t, language } = useLanguage();
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(mockStudents[0]);
+  const [selectedClient, setSelectedClient] = useState<Client | null>(mockClients[0]);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const paginatedStudents = mockStudents.slice(
+  const paginatedClients = mockClients.slice(
       (currentPage - 1) * ITEMS_PER_PAGE,
       currentPage * ITEMS_PER_PAGE
   );
@@ -154,18 +155,18 @@ export default function PaymentsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {paginatedStudents.map((student) => {
-                                const payment = mockPayments.find(p => p.studentId === student.id) || { status: 'Paid', service: student.currentPlan, amount: 65 };
+                            {paginatedClients.map((client) => {
+                                const payment = mockPayments.find(p => p.studentId === client.id) || { status: 'Paid', service: client.currentPlan, amount: 65 };
                                 const statusInfo = getStatusVariant(payment.status);
 
                                 return (
-                                <TableRow key={student.id} onClick={() => setSelectedStudent(student)} className="cursor-pointer">
+                                <TableRow key={client.id} onClick={() => setSelectedClient(client)} className="cursor-pointer">
                                     <TableCell>
                                         <div className="flex items-center gap-3">
-                                            <Image src={student.avatarUrl} alt={student.name} width={40} height={40} className="rounded-full" data-ai-hint={student.avatarHint}/>
+                                            <Image src={client.avatarUrl} alt={client.name} width={40} height={40} className="rounded-full" data-ai-hint={client.avatarHint}/>
                                             <div>
-                                                <p className="font-semibold">{student.name}</p>
-                                                <p className="text-xs text-muted-foreground">{t.payments.memberSince} {student.joinDate.split('-')[0]}</p>
+                                                <p className="font-semibold">{client.name}</p>
+                                                <p className="text-xs text-muted-foreground">{t.payments.memberSince} {client.joinDate.split('-')[0]}</p>
                                             </div>
                                         </div>
                                     </TableCell>
@@ -176,7 +177,7 @@ export default function PaymentsPage() {
                                     <TableCell>
                                         <div className="flex gap-1">
                                             {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => {
-                                                const isTrainingDay = student.trainingDays.includes(day);
+                                                const isTrainingDay = client.trainingDays.includes(day);
                                                 return (
                                                     <span key={day} className={`flex items-center justify-center h-5 w-5 rounded-full text-xs font-semibold ${isTrainingDay ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
                                                         {day}
@@ -197,7 +198,7 @@ export default function PaymentsPage() {
                     </Table>
                     <Pagination 
                         currentPage={currentPage}
-                        totalItems={mockStudents.length}
+                        totalItems={mockClients.length}
                         itemsPerPage={ITEMS_PER_PAGE}
                         onPageChange={setCurrentPage}
                     />
@@ -205,15 +206,15 @@ export default function PaymentsPage() {
             </Card>
         </div>
 
-        {selectedStudent && (
+        {selectedClient && (
           <Card className="sticky top-6">
             <CardHeader className="text-center relative">
                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-8 w-8">
                     <Edit2 className="h-4 w-4" />
                 </Button>
-                <Image src={selectedStudent.avatarUrl} alt={selectedStudent.name} width={80} height={80} className="rounded-full mx-auto border-4 border-primary" data-ai-hint={selectedStudent.avatarHint} />
-                <CardTitle className="font-headline text-2xl">{selectedStudent.name}</CardTitle>
-                <CardDescription>{selectedStudent.email}</CardDescription>
+                <Image src={selectedClient.avatarUrl} alt={selectedClient.name} width={80} height={80} className="rounded-full mx-auto border-4 border-primary" data-ai-hint={selectedClient.avatarHint} />
+                <CardTitle className="font-headline text-2xl">{selectedClient.name}</CardTitle>
+                <CardDescription>{selectedClient.email}</CardDescription>
                 <div className="flex justify-center gap-2 pt-2">
                     <Button variant="outline" size="icon"><MessageSquare className="h-4 w-4"/></Button>
                     <Button variant="outline" size="icon"><Phone className="h-4 w-4"/></Button>
@@ -223,8 +224,8 @@ export default function PaymentsPage() {
                 <div className="p-4 bg-muted/50 rounded-lg">
                     <p className="text-xs font-semibold text-muted-foreground">{t.payments.currentPlan.toUpperCase()}</p>
                     <div className="flex justify-between items-center mt-1">
-                        <p className="text-lg font-bold">{selectedStudent.currentPlan}</p>
-                        <p className="text-lg font-bold text-primary">${mockPayments.find(p => p.studentId === selectedStudent.id)?.amount.toFixed(2) || '65.00'}</p>
+                        <p className="text-lg font-bold">{selectedClient.currentPlan}</p>
+                        <p className="text-lg font-bold text-primary">${mockPayments.find(p => p.studentId === selectedClient.id)?.amount.toFixed(2) || '65.00'}</p>
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">{t.payments.renewsOn} 15 Mar</p>
                     <Progress value={(12/16)*100} className="h-2 mt-2"/>
@@ -235,8 +236,8 @@ export default function PaymentsPage() {
                     <h4 className="font-semibold mb-2">{t.payments.trainingDays}</h4>
                     <div className="grid grid-cols-7 gap-2">
                         {['L', 'M', 'X', 'J', 'V', 'S', 'D'].map(day => (
-                            <div key={day} className={`flex items-center justify-center h-8 w-8 rounded-lg text-sm font-semibold ${selectedStudent.trainingDays.includes(day) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
-                                {selectedStudent.trainingDays.includes(day) ? day : 'X'}
+                            <div key={day} className={`flex items-center justify-center h-8 w-8 rounded-lg text-sm font-semibold ${selectedClient.trainingDays.includes(day) ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}>
+                                {selectedClient.trainingDays.includes(day) ? day : 'X'}
                             </div>
                         ))}
                     </div>
@@ -248,7 +249,7 @@ export default function PaymentsPage() {
                          <Button variant="link" size="sm" className="text-primary">{t.payments.viewAll}</Button>
                     </div>
                     <div className="space-y-3">
-                        {mockPayments.filter(p => p.studentId === selectedStudent.id).slice(0,2).map(payment => (
+                        {mockPayments.filter(p => p.studentId === selectedClient.id).slice(0,2).map(payment => (
                              <div key={payment.id} className="flex items-center justify-between text-sm">
                                 <div className="flex items-center gap-3">
                                     <div className={`h-8 w-8 rounded-full flex items-center justify-center ${payment.status === 'Paid' ? 'bg-green-100' : 'bg-gray-100'}`}>
@@ -275,5 +276,3 @@ export default function PaymentsPage() {
     </div>
   );
 }
-
-    

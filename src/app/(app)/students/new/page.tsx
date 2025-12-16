@@ -1,3 +1,4 @@
+
 'use client';
 import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
@@ -15,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { randomUUID } from 'crypto';
 
-const studentSchema = z.object({
+const clientSchema = z.object({
   firstName: z.string().min(1, 'El nombre es obligatorio.'),
   lastName: z.string().min(1, 'El apellido es obligatorio.'),
   email: z.string().email('Email inválido.'),
@@ -26,20 +27,20 @@ const studentSchema = z.object({
   objective: z.string().optional(),
 });
 
-type StudentFormData = z.infer<typeof studentSchema>;
+type ClientFormData = z.infer<typeof clientSchema>;
 
-export default function NewStudentPage() {
+export default function NewClientPage() {
   const { t } = useLanguage();
   const router = useRouter();
   const { firestore, user } = useFirebase();
   const { toast } = useToast();
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<StudentFormData>({
-    resolver: zodResolver(studentSchema),
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<ClientFormData>({
+    resolver: zodResolver(clientSchema),
   });
 
   const tenantId = user?.uid;
 
-  const onSubmit = async (data: StudentFormData) => {
+  const onSubmit = async (data: ClientFormData) => {
     if (!firestore || !tenantId) {
       toast({
         variant: 'destructive',
@@ -50,12 +51,12 @@ export default function NewStudentPage() {
     }
 
     try {
-      // Generate a new ID for the student document
-      const newStudentRef = doc(collection(firestore, `tenants/${tenantId}/users`));
+      // Generate a new ID for the client document
+      const newClientRef = doc(collection(firestore, `tenants/${tenantId}/users`));
       
-      const newStudentData = {
+      const newClientData = {
         ...data,
-        id: newStudentRef.id, // Add the generated ID to the data
+        id: newClientRef.id, // Add the generated ID to the data
         tenantId,
         joinDate: new Date().toISOString().split('T')[0],
         progress: 0,
@@ -63,7 +64,7 @@ export default function NewStudentPage() {
       };
 
       // Use setDoc with the new reference
-      await addDocumentNonBlocking(newStudentRef, newStudentData);
+      await addDocumentNonBlocking(newClientRef, newClientData);
 
       toast({
         variant: 'success',

@@ -1,7 +1,7 @@
 
-export type Student = {
+export type Client = {
   id: string;
-  name: string; // Changed from firstName/lastName to match mock data
+  name: string;
   email: string;
   phoneNumber?: string;
   avatarUrl?: string;
@@ -15,7 +15,6 @@ export type Student = {
   occupation?: string;
   birthDate?: string;
   address?: string;
-  // Merging profile into the main type to match mock data structure
   profile: {
       age: number;
       gender: string;
@@ -24,7 +23,6 @@ export type Student = {
       medicalConditions: string;
       biomechanicalData: string;
   };
-  // tenantId is no longer needed in the mock data version
 };
 
 export type Note = {

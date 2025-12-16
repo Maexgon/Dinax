@@ -13,7 +13,7 @@ export const translations = {
       hero: {
         tag: "GESTIÓN INTEGRAL DEPORTIVA",
         title: "Potencia tu <span class='text-primary'>Rendimiento</span>",
-        subtitle: "La plataforma definitiva para entrenadores personales y alumnos. Gestiona planes, sigue el progreso y alcanza metas con Dinax.",
+        subtitle: "La plataforma definitiva para entrenadores personales y clientes. Gestiona planes, sigue el progreso y alcanza metas con Dinax.",
         cta: {
           start: "Comenzar Ahora",
           demo: "Ver Demo",
@@ -25,7 +25,7 @@ export const translations = {
         subtitle: "Diseñado específicamente para optimizar la relación entre coach y atleta con herramientas profesionales.",
         controlPanel: {
           title: "Panel de Control",
-          description: "Visualiza métricas clave, próximas sesiones y estado de alumnos en un dashboard intuitivo y personalizable.",
+          description: "Visualiza métricas clave, próximas sesiones y estado de clientes en un dashboard intuitivo y personalizable.",
         },
         liveTracking: {
           title: "Seguimiento en Vivo",
@@ -158,6 +158,7 @@ export const translations = {
         viewProfile: "Ver Perfil"
     },
     studentDetail: {
+        notFound: "Cliente no encontrado.",
         joined: "Se unió",
         plan: "Plan",
         age: "Edad",
@@ -349,6 +350,7 @@ export const translations = {
         upcomingSessions: "Próximas Sesiones",
         noUpcomingSessions: "No hay próximas sesiones."
     },
+
     plans: {
         title: "Planes de Entrenamiento",
         description: "Crea y gestiona planes de entrenamiento personalizados para tus clientes.",
@@ -393,11 +395,11 @@ export const translations = {
         description: "Administra cuotas y planes de entrenamiento.",
         revenueThisMonth: "Ingresos este mes",
         pendingPayments: "Pagos Pendientes",
-        activeClients: "Alumnos Activos",
+        activeClients: "Clientes Activos",
         searchByName: "Buscar por nombre...",
         all: "Todos",
         upToDate: "Al día",
-        student: "ALUMNO",
+        student: "CLIENTE",
         currentPlan: "PLAN ACTUAL",
         days: "DÍAS",
         status: "ESTADO",
@@ -447,7 +449,7 @@ aiPoweredGoals: "Recomendaciones de Objetivos con IA",
       hero: {
         tag: "INTEGRATED SPORTS MANAGEMENT",
         title: "Boost Your <span class='text-primary'>Performance</span>",
-        subtitle: "The ultimate platform for personal trainers and students. Manage plans, track progress, and achieve goals with Dinax.",
+        subtitle: "The ultimate platform for personal trainers and clients. Manage plans, track progress, and achieve goals with Dinax.",
         cta: {
           start: "Get Started Now",
           demo: "Watch Demo",
@@ -459,7 +461,7 @@ aiPoweredGoals: "Recomendaciones de Objetivos con IA",
         subtitle: "Specifically designed to optimize the coach-athlete relationship with professional tools.",
         controlPanel: {
           title: "Control Panel",
-          description: "View key metrics, upcoming sessions, and student status on an intuitive and customizable dashboard.",
+          description: "View key metrics, upcoming sessions, and client status on an intuitive and customizable dashboard.",
         },
         liveTracking: {
           title: "Live Tracking",
@@ -592,6 +594,7 @@ aiPoweredGoals: "Recomendaciones de Objetivos con IA",
         viewProfile: "View Profile"
     },
     studentDetail: {
+        notFound: "Client not found.",
         joined: "Joined",
         plan: "Plan",
         age: "Age",

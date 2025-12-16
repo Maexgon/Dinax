@@ -9,18 +9,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mockStudents } from '@/lib/data';
+import { mockClients } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Student } from '@/lib/types';
+import type { Client } from '@/lib/types';
 import { useLanguage } from '@/context/language-context';
 
 export default function AIGoalsPage() {
-    const [selectedStudent, setSelectedStudent] = useState<Student | null>(mockStudents[0]);
+    const [selectedClient, setSelectedClient] = useState<Client | null>(mockClients[0]);
     const { t } = useLanguage();
 
-    const handleStudentChange = (studentId: string) => {
-        const student = mockStudents.find(s => s.id === studentId);
-        setSelectedStudent(student || null);
+    const handleClientChange = (clientId: string) => {
+        const client = mockClients.find(s => s.id === clientId);
+        setSelectedClient(client || null);
     }
 
   return (
@@ -38,21 +38,21 @@ export default function AIGoalsPage() {
           <CardDescription>{t.aiGoals.selectStudentDescription}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Select onValueChange={handleStudentChange} defaultValue={selectedStudent?.id}>
+          <Select onValueChange={handleClientChange} defaultValue={selectedClient?.id}>
             <SelectTrigger className="w-full md:w-1/2">
               <SelectValue placeholder={t.aiGoals.selectStudent} />
             </SelectTrigger>
             <SelectContent>
-              {mockStudents.map(student => (
-                <SelectItem key={student.id} value={student.id}>{student.name}</SelectItem>
+              {mockClients.map(client => (
+                <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </CardContent>
       </Card>
 
-      {selectedStudent ? (
-        <AIGoalSuggester studentProfile={selectedStudent.profile} />
+      {selectedClient ? (
+        <AIGoalSuggester studentProfile={selectedClient.profile} />
       ) : (
         <div className="text-center py-10 text-muted-foreground">
             {t.aiGoals.pleaseSelectStudent}
