@@ -85,72 +85,80 @@ export default function RegisterPage() {
   }, [password, confirmPassword]);
 
   useEffect(() => {
-    if (!state.success || !state.uid || !state.email || !state.password || !firestore || !auth) {
-      if (state.message && !state.success) {
+    if (!isPending && state.message) {
+      if (state.success) {
+        // The logic is now handled in finalizeRegistration, triggered by state.uid
+      } else {
         toast({
           variant: 'destructive',
           title: t.register.error,
           description: state.message,
         });
       }
-      return;
     }
 
-    const finalizeRegistration = async () => {
+    if (state.success && state.uid && state.email && state.password) {
+      const finalizeRegistration = async () => {
+        if (!firestore || !auth) return;
+
         setIsCreatingDocs(true);
         try {
-            // Step 1: Sign in the new user on the client to get a valid token.
-            const userCredential = await signInWithEmailAndPassword(auth, state.email!, state.password!);
-            const user = userCredential.user;
+          // Step 1: Sign in the new user on the client to get a valid token.
+          const userCredential = await signInWithEmailAndPassword(auth, state.email!, state.password!);
+          const user = userCredential.user;
+          const tenantId = user.uid;
 
-            // Step 2: Create the tenant and user documents in a batch write.
-            const tenantId = user.uid;
-            const batch = writeBatch(firestore);
+          // Step 2: Create the tenant and user documents in an atomic batch write.
+          const batch = writeBatch(firestore);
 
-            const tenantRef = doc(firestore, 'tenants', tenantId);
-            batch.set(tenantRef, {
-                id: tenantId,
-                name: `${state.firstName}'s Gym`,
-                members: { [tenantId]: 'owner' },
-                createdAt: serverTimestamp(),
-            });
+          // Create the tenant document
+          const tenantRef = doc(firestore, 'tenants', tenantId);
+          batch.set(tenantRef, {
+            id: tenantId,
+            name: `${state.firstName}'s Gym`,
+            members: { [tenantId]: 'owner' },
+            createdAt: serverTimestamp(),
+          });
 
-            const userRef = doc(firestore, `tenants/${tenantId}/users`, tenantId);
-            batch.set(userRef, {
-                id: tenantId,
-                tenantId: tenantId,
-                firstName: state.firstName,
-                lastName: state.lastName,
-                email: state.email,
-                createdAt: serverTimestamp(),
-            });
+          // CORRECTED LOGIC: Create the coach's own user document within their new tenant's 'users' subcollection.
+          const userRef = doc(firestore, `tenants/${tenantId}/users`, tenantId);
+          batch.set(userRef, {
+            id: tenantId,
+            tenantId: tenantId,
+            firstName: state.firstName,
+            lastName: state.lastName,
+            email: state.email,
+            joinDate: new Date().toISOString().split('T')[0],
+            progress: 0,
+            createdAt: serverTimestamp(),
+          });
 
-            await batch.commit();
+          await batch.commit();
 
-            toast({
-                variant: 'success',
-                title: t.register.successTitle,
-                description: 'Setup complete. Redirecting to your dashboard...',
-            });
+          toast({
+            variant: 'success',
+            title: t.register.successTitle,
+            description: 'Setup complete. Redirecting to your dashboard...',
+          });
 
-            // Step 3: Redirect to the dashboard.
-            router.push('/dashboard');
+          router.push('/dashboard');
 
         } catch (error: any) {
-            console.error("Error finalizing registration:", error);
-            toast({
-                variant: 'destructive',
-                title: 'Error during setup',
-                description: error.message || 'Could not create user profile.',
-            });
+          console.error("Error finalizing registration:", error);
+          toast({
+            variant: 'destructive',
+            title: 'Error during setup',
+            description: error.message || 'Could not create user profile.',
+          });
         } finally {
-            setIsCreatingDocs(false);
+          setIsCreatingDocs(false);
         }
-    };
+      };
 
-    finalizeRegistration();
-
-  }, [state, toast, router, t, auth, firestore]);
+      finalizeRegistration();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, auth, firestore]);
 
   const isSubmitDisabled = !Object.values(passwordValidation).every(Boolean) || !isHuman || isPending || isCreatingDocs;
 
