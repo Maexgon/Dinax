@@ -18,16 +18,37 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/context/language-context';
-import type { Student, Note, MedicalHistory, Biomechanics } from '@/lib/types';
+import type { Student, Note } from '@/lib/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { WeightChart } from '@/components/charts/weight-chart';
 import { BodyCompositionChart } from '@/components/charts/body-composition-chart';
 import { MuscleMassChart } from '@/components/charts/muscle-mass-chart';
 import { GoalProgressChart } from '@/components/charts/goal-progress-chart';
-import { useFirebase, useMemoFirebase, useDoc, useCollection } from '@/firebase';
+import { useFirebase, useMemoFirebase, useDoc, useCollection, updateDocumentNonBlocking } from '@/firebase';
 import { doc, collection } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+
+
+const studentSchema = z.object({
+  firstName: z.string().min(1, 'El nombre es obligatorio.'),
+  lastName: z.string().min(1, 'El apellido es obligatorio.'),
+  email: z.string().email('Email inválido.'),
+  phoneNumber: z.string().optional(),
+  birthDate: z.string().optional(),
+  occupation: z.string().optional(),
+  address: z.string().optional(),
+  objective: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
+type StudentFormData = z.infer<typeof studentSchema>;
 
 const MetricItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | React.ReactNode }) => (
     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
@@ -43,6 +64,7 @@ const MetricItem = ({ icon, label, value }: { icon: React.ReactNode, label: stri
 export default function StudentDetailClientPage({ studentId }: { studentId: string }) {
   const { t, language } = useLanguage();
   const { firestore, user } = useFirebase();
+  const { toast } = useToast();
   // The tenantId is the UID of the logged-in user (coach)
   const tenantId = user?.uid;
 
@@ -57,6 +79,51 @@ export default function StudentDetailClientPage({ studentId }: { studentId: stri
     [firestore, tenantId, studentId]
   );
   const { data: notes, isLoading: areNotesLoading } = useCollection<Note>(notesCollectionRef);
+
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<StudentFormData>({
+    resolver: zodResolver(studentSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phoneNumber: '',
+      birthDate: '',
+      occupation: '',
+      address: '',
+      objective: '',
+      tags: [],
+    },
+  });
+
+  React.useEffect(() => {
+    if (student) {
+      reset({
+        firstName: student.firstName,
+        lastName: student.lastName,
+        email: student.email,
+        phoneNumber: student.phoneNumber || '',
+        birthDate: student.birthDate || '',
+        occupation: student.occupation || '',
+        address: student.address || '',
+        objective: student.objective || '',
+        tags: student.tags || [],
+      });
+    }
+  }, [student, reset]);
+  
+  const onSubmit = async (data: StudentFormData) => {
+    if (!studentDocRef) return;
+    
+    updateDocumentNonBlocking(studentDocRef, data);
+    
+    toast({
+        variant: 'success',
+        title: 'Perfil Actualizado',
+        description: 'Tus datos han sido guardados correctamente.',
+    });
+  };
+
+  const isOwnProfile = user?.uid === studentId;
   
   if (isStudentLoading) {
       return (
@@ -163,7 +230,7 @@ export default function StudentDetailClientPage({ studentId }: { studentId: stri
 
         {/* Right Column */}
         <div className="lg:col-span-2">
-            <Tabs defaultValue="progress">
+            <Tabs defaultValue="personal-info">
                 <TabsList className="grid w-full grid-cols-4 bg-muted">
                     <TabsTrigger value="personal-info">{t.studentDetail.personalInfo}</TabsTrigger>
                     <TabsTrigger value="medical">{t.studentDetail.medicalTitle}</TabsTrigger>
@@ -172,67 +239,83 @@ export default function StudentDetailClientPage({ studentId }: { studentId: stri
                 </TabsList>
                 <TabsContent value="personal-info">
                     <Card>
-                        <CardContent className="p-6 space-y-8">
-                             <div>
-                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><User className="text-primary"/> {t.studentDetail.basicData}</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                   <div className="space-y-1">
-                                       <label className="text-xs text-muted-foreground">{t.studentDetail.name}</label>
-                                       <div className="p-3 bg-muted rounded-md">{student.firstName}</div>
-                                   </div>
-                                    <div className="space-y-1">
-                                       <label className="text-xs text-muted-foreground">{t.studentDetail.lastName}</label>
-                                       <div className="p-3 bg-muted rounded-md">{student.lastName}</div>
-                                   </div>
-                                   <div className="space-y-1">
-                                       <label className="text-xs text-muted-foreground">{t.studentDetail.occupation}</label>
-                                       <div className="p-3 bg-muted rounded-md flex items-center gap-2"><Briefcase className="h-4 w-4 text-muted-foreground"/> {student.occupation || 'N/A'}</div>
-                                   </div>
-                                   <div className="space-y-1">
-                                       <label className="text-xs text-muted-foreground">{t.studentDetail.birthDate}</label>
-                                       <div className="p-3 bg-muted rounded-md flex items-center justify-between"><span>{student.birthDate || 'N/A'}</span> <Cake className="h-4 w-4 text-muted-foreground"/></div>
-                                   </div>
+                        <form onSubmit={handleSubmit(onSubmit)}>
+                            <CardContent className="p-6 space-y-8">
+                                <div>
+                                    <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><User className="text-primary"/> {t.studentDetail.basicData}</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="firstName">{t.studentDetail.name}</Label>
+                                        <Input id="firstName" {...register('firstName')} disabled={!isOwnProfile} />
+                                        {errors.firstName && <p className="text-xs text-destructive">{errors.firstName.message}</p>}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="lastName">{t.studentDetail.lastName}</Label>
+                                        <Input id="lastName" {...register('lastName')} disabled={!isOwnProfile} />
+                                        {errors.lastName && <p className="text-xs text-destructive">{errors.lastName.message}</p>}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="occupation">{t.studentDetail.occupation}</Label>
+                                        <Input id="occupation" {...register('occupation')} disabled={!isOwnProfile} placeholder="Ej: Estudiante, Programador..."/>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="birthDate">{t.studentDetail.birthDate}</Label>
+                                        <Input id="birthDate" type="date" {...register('birthDate')} disabled={!isOwnProfile}/>
+                                    </div>
+                                    </div>
                                 </div>
-                            </div>
 
-                             <div>
-                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Phone className="text-primary"/> {t.studentDetail.contact}</h3>
-                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="md:col-span-2 space-y-1">
-                                       <label className="text-xs text-muted-foreground">{t.studentDetail.address}</label>
-                                       <div className="p-3 bg-muted rounded-md flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground"/>{student.address || 'N/A'}</div>
-                                   </div>
-                                   <div className="space-y-1">
-                                       <label className="text-xs text-muted-foreground">{t.studentDetail.email}</label>
-                                       <div className="p-3 bg-muted rounded-md flex items-center gap-2"><Mail className="h-4 w-4 text-muted-foreground"/> {student.email}</div>
-                                   </div>
-                                   <div className="space-y-1">
-                                       <label className="text-xs text-muted-foreground">{t.studentDetail.phone}</label>
-                                       <div className="p-3 bg-muted rounded-md">{student.phoneNumber || 'N/A'}</div>
-                                   </div>
-                                </div>
-                            </div>
-                            
-                            <div>
-                                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Flag className="text-primary"/> {t.studentDetail.goalsAndNotes}</h3>
-                                 <div className="space-y-4">
-                                     <div className="space-y-1">
-                                        <label className="text-xs text-muted-foreground">{t.studentDetail.tags}</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {(student.tags || []).map(tag => (
-                                                <Badge key={tag} variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 dark:bg-primary/20 dark:text-primary/90 dark:border-primary/30">{tag} <X className="ml-1 h-3 w-3"/></Badge>
-                                            ))}
-                                            <Button variant="outline" size="sm" className="text-muted-foreground"><Plus className="mr-1 h-3 w-3"/>{t.studentDetail.addTag}</Button>
+                                <div>
+                                    <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Phone className="text-primary"/> {t.studentDetail.contact}</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="md:col-span-2 space-y-2">
+                                            <Label htmlFor="address">{t.studentDetail.address}</Label>
+                                            <Input id="address" {...register('address')} disabled={!isOwnProfile} placeholder="Ej: Av. Siempreviva 742" />
                                         </div>
-                                     </div>
-                                 </div>
-                            </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="email">{t.studentDetail.email}</Label>
+                                            <Input id="email" type="email" {...register('email')} disabled={!isOwnProfile} />
+                                            {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="phoneNumber">{t.studentDetail.phone}</Label>
+                                            <Input id="phoneNumber" type="tel" {...register('phoneNumber')} disabled={!isOwnProfile} />
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Flag className="text-primary"/> {t.studentDetail.goalsAndNotes}</h3>
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="objective">{t.studentDetail.objective}</Label>
+                                            <Textarea id="objective" {...register('objective')} placeholder="Ej: Ganar masa muscular, perder peso..." disabled={!isOwnProfile}/>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>{t.studentDetail.tags}</Label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {(student.tags || []).map(tag => (
+                                                    <Badge key={tag} variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 dark:bg-primary/20 dark:text-primary/90 dark:border-primary/30">{tag} 
+                                                    {isOwnProfile && <X className="ml-1 h-3 w-3 cursor-pointer"/>}
+                                                    </Badge>
+                                                ))}
+                                                {isOwnProfile && <Button variant="outline" size="sm" className="text-muted-foreground"><Plus className="mr-1 h-3 w-3"/>{t.studentDetail.addTag}</Button>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
-                             <div className="flex justify-end gap-2">
-                                <Button variant="ghost">{t.studentDetail.cancel}</Button>
-                                <Button className="bg-primary hover:bg-primary/90">{t.studentDetail.saveChanges}</Button>
-                            </div>
-                        </CardContent>
+                                {isOwnProfile && (
+                                <div className="flex justify-end gap-2">
+                                    <Button variant="ghost" type="button" onClick={() => reset()}>{t.studentDetail.cancel}</Button>
+                                    <Button type="submit" disabled={isSubmitting}>
+                                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        {t.studentDetail.saveChanges}
+                                    </Button>
+                                </div>
+                                )}
+                            </CardContent>
+                        </form>
                     </Card>
                 </TabsContent>
                 <TabsContent value="medical">
