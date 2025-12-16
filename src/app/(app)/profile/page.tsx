@@ -351,16 +351,18 @@ export default function ProfilePage() {
 
         <div className="flex justify-end gap-2 mt-6">
             <Button variant="ghost" type="button" onClick={() => reset()} disabled={!isDirty || isSubmitting}>
-              {t.studentDetail.cancel}
+              {t.clientDetail.cancel}
             </Button>
             <Button type="submit" disabled={!isDirty || isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t.studentDetail.saveChanges}
+              {t.clientDetail.saveChanges}
             </Button>
         </div>
       </form>
     </div>
   );
 }
+
+    
 
     
