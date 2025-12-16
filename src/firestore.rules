@@ -27,7 +27,7 @@ service cloud.firestore {
     // Helper function to verify if the user is an owner of the specified tenant.
     // It reads the tenant document and checks for the user's UID in the 'members' map.
     function isTenantOwner(tenantId) {
-       // This function now uses existsAfter to handle creation race conditions
+       // This function now uses getAfter to handle creation race conditions
        let tenantDoc = get(/databases/$(database)/documents/tenants/$(tenantId));
        return isSignedIn() && tenantDoc.data.members[request.auth.uid] == 'owner';
     }
