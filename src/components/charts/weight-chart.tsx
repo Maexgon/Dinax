@@ -32,8 +32,8 @@ export function WeightChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t.studentDetail.weightTracking}</CardTitle>
-        <CardDescription>{t.studentDetail.weightTrackingDescription}</CardDescription>
+        <CardTitle>{t.clientDetail.weightTracking}</CardTitle>
+        <CardDescription>{t.clientDetail.weightTrackingDescription}</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
@@ -71,10 +71,10 @@ export function WeightChart() {
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
             <div className="flex items-center gap-2 font-medium leading-none">
-               {t.studentDetail.trendingDown} <TrendingDown className="h-4 w-4" />
+               {t.clientDetail.trendingDown} <TrendingDown className="h-4 w-4" />
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              {t.studentDetail.slightDecrease}
+              {t.clientDetail.slightDecrease}
             </div>
           </div>
         </div>
