@@ -73,12 +73,12 @@ export default function RegisterPage() {
       // Step 1: Create user in Firebase Auth.
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      const tenantId = user.uid;
+      const tenantId = user.uid; // The coach's UID is the tenant ID
 
       // Step 2: Create tenant and user documents in Firestore atomically.
       const batch = writeBatch(firestore);
 
-      // Document 1: Tenant
+      // Document 1: Tenant document at /tenants/{coach-uid}
       const tenantRef = doc(firestore, 'tenants', tenantId);
       const tenantData = {
           id: tenantId,
@@ -88,10 +88,10 @@ export default function RegisterPage() {
       };
       batch.set(tenantRef, tenantData);
 
-      // Document 2: User (Coach's own profile)
-      const userRef = doc(firestore, `tenants/${tenantId}/users`, tenantId);
+      // Document 2: User profile document for the coach at /tenants/{coach-uid}/users/{coach-uid}
+      const userRef = doc(firestore, `tenants/${tenantId}/users`, user.uid);
       const userData = {
-          id: tenantId,
+          id: user.uid,
           tenantId: tenantId,
           firstName: firstName,
           lastName: lastName,
@@ -99,6 +99,17 @@ export default function RegisterPage() {
           joinDate: new Date().toISOString().split('T')[0],
           progress: 0,
           createdAt: serverTimestamp(),
+          // Initialize other fields from profile page
+          secondaryEmail: '',
+          cuit: '',
+          phoneNumber: '',
+          linkedinUrl: '',
+          instagramUrl: '',
+          xUrl: '',
+          whatsapp: '',
+          address: '',
+          careerExperience: [],
+          education: [],
       };
       batch.set(userRef, userData);
 
@@ -111,7 +122,7 @@ export default function RegisterPage() {
         description: 'Redirecting to your new dashboard...',
       });
 
-      // Step 3: Redirect to dashboard. The FirebaseClientProvider will now find a logged-in user with all necessary documents.
+      // Step 3: Redirect to dashboard.
       router.push('/dashboard');
 
     } catch (error: any) {

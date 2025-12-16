@@ -110,7 +110,7 @@ export default function ProfilePage() {
             email: user.email || '',
         })
     }
-  }, [userData, reset, user]);
+  }, [userData, user, reset]);
 
   const onSubmit = async (data: ProfileFormData) => {
     if (!userDocRef) return;
@@ -121,7 +121,7 @@ export default function ProfilePage() {
       
       // We don't want to save the primary email, as it's not editable
       if('email' in dataToSave) {
-        delete dataToSave.email;
+        delete (dataToSave as { email?: string }).email;
       }
 
       updateDocumentNonBlocking(userDocRef, dataToSave);
@@ -353,5 +353,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
