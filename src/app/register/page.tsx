@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -20,9 +21,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
 import { useActionState } from 'react';
-import { useFirebase, addDocumentNonBlocking } from '@/firebase';
+import { useFirebase } from '@/firebase';
 import { signInWithEmailAndPassword, type User } from 'firebase/auth';
-import { collection, doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 
 
 const initialState = {
@@ -99,25 +100,21 @@ export default function RegisterPage() {
         setIsCreatingDocs(true);
         try {
             // Step 1: Sign in the new user on the client to get a valid token.
-            // This is crucial to ensure the subsequent Firestore writes are authenticated.
             const userCredential = await signInWithEmailAndPassword(auth, state.email!, state.password!);
             const user = userCredential.user;
 
             // Step 2: Create the tenant and user documents in a batch write.
-            // This ensures atomicity: both documents are created, or neither is.
             const tenantId = user.uid;
             const batch = writeBatch(firestore);
 
-            // Tenant document
             const tenantRef = doc(firestore, 'tenants', tenantId);
             batch.set(tenantRef, {
                 id: tenantId,
                 name: `${state.firstName}'s Gym`,
-                members: { [tenantId]: 'owner' }, // This map is what the security rules check.
+                members: { [tenantId]: 'owner' },
                 createdAt: serverTimestamp(),
             });
 
-            // User document (within the tenant's subcollection)
             const userRef = doc(firestore, `tenants/${tenantId}/users`, tenantId);
             batch.set(userRef, {
                 id: tenantId,
@@ -126,7 +123,6 @@ export default function RegisterPage() {
                 lastName: state.lastName,
                 email: state.email,
                 createdAt: serverTimestamp(),
-                // Add any other initial user data here
             });
 
             await batch.commit();
@@ -147,6 +143,7 @@ export default function RegisterPage() {
                 title: 'Error during setup',
                 description: error.message || 'Could not create user profile.',
             });
+        } finally {
             setIsCreatingDocs(false);
         }
     };

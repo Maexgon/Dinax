@@ -62,21 +62,21 @@ service cloud.firestore {
 
       // Subcollections for the tenant.
       match /users/{userId} {
-        // Allow a tenant member to get any user profile within their tenant.
-        allow get: if tenantId == request.auth.uid && userId == request.auth.uid;
+        // A user can only get their own document within their own tenant
+        allow get: if isTenantMember(tenantId) && isSelf(userId);
         
-        // Allow a tenant member to list all users within their tenant.
-        allow list: if tenantId == request.auth.uid;
+        // A tenant member can list all users within their tenant.
+        allow list: if isTenantMember(tenantId);
 
-        // Allow a tenant owner to create new users in their tenant.
+        // A tenant owner can create new users in their tenant.
         // The new user document must have the correct tenantId.
-        allow create: if tenantId == request.auth.uid && userId == request.auth.uid;
+        allow create: if isTenantOwner(tenantId) && request.resource.data.tenantId == tenantId;
         
-        // Allow a user to update their own profile, or an owner to update any profile.
-        allow update: if tenantId == request.auth.uid && userId == request.auth.uid;
+        // A user can update their own profile, or an owner can update any profile.
+        allow update: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
         
-        // Allow a user to delete their own profile, or an owner to delete any profile.
-        allow delete: if tenantId == request.auth.uid && userId == request.auth.uid;
+        // A user can delete their own profile, or an owner can delete any profile.
+        allow delete: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
         
         // Rules for subcollections of a user. Access is granted if the user is a member of the parent tenant.
         match /medicalHistory/{historyId} {
