@@ -63,7 +63,7 @@ const biomechanicsSchema = z.object({
   relativeStrengthUpper: z.coerce.number().optional(),
   unilateralBalance: z.coerce.number().optional(),
   asymmetries: z.coerce.number().optional(),
-  movementPain: zcoerce.number().optional(),
+  movementPain: z.coerce.number().optional(),
 });
 
 type BiomechanicsFormData = z.infer<typeof biomechanicsSchema>;
@@ -521,3 +521,5 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     </div>
   );
 }
+
+    
