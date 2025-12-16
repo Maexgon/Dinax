@@ -1,8 +1,7 @@
+
 export type Student = {
   id: string;
-  tenantId: string;
-  firstName: string;
-  lastName: string;
+  name: string; // Changed from firstName/lastName to match mock data
   email: string;
   phoneNumber?: string;
   avatarUrl?: string;
@@ -10,19 +9,30 @@ export type Student = {
   joinDate?: string;
   currentPlan?: string;
   progress?: number;
-  trainingDays?: string[];
+  trainingDays: string[];
   objective?: string;
   tags?: string[];
   occupation?: string;
   birthDate?: string;
   address?: string;
+  // Merging profile into the main type to match mock data structure
+  profile: {
+      age: number;
+      gender: string;
+      weight: number;
+      height: number;
+      medicalConditions: string;
+      biomechanicalData: string;
+  };
+  // tenantId is no longer needed in the mock data version
 };
 
 export type Note = {
   id: string;
-  createdAt: string; // ISO string
+  date: string; // ISO string from mock data
   coachName: string;
   coachAvatarUrl: string;
+  coachAvatarHint: string;
   content: string;
 };
 

@@ -24,30 +24,18 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Helper function to get tenant data safely.
-    function getTenantDoc(tenantId) {
-      return get(/databases/$(database)/documents/tenants/$(tenantId));
-    }
-
-    // Helper function to verify if the user is a member of the specified tenant.
-    // It reads the tenant document and checks for the user's UID in the 'members' map.
-    function isTenantMember(tenantId) {
-      let tenantDoc = getTenantDoc(tenantId);
-      // Check if the document exists and the user's UID is a key in the members map.
-      return isSignedIn() && tenantDoc.data.members.keys().hasAny([request.auth.uid]);
-    }
-
     // Helper function to verify if the user is an owner of the specified tenant.
+    // It reads the tenant document and checks for the user's UID in the 'members' map.
     function isTenantOwner(tenantId) {
-       let tenantDoc = getTenantDoc(tenantId);
-       // Check if the user is a member and their role is 'owner'.
-       return isTenantMember(tenantId) && tenantDoc.data.members[request.auth.uid] == 'owner';
+       // This function now uses existsAfter to handle creation race conditions
+       let tenantDoc = getAfter(/databases/$(database)/documents/tenants/$(tenantId));
+       return isSignedIn() && tenantDoc.data.members[request.auth.uid] == 'owner';
     }
 
 
     match /tenants/{tenantId} {
-      // Allow a user to read their own tenant document if they are a member.
-      allow get: if isTenantMember(tenantId);
+      // Allow a user to read their own tenant document if they are the owner.
+      allow get: if isSelf(tenantId);
       
       // Disallow listing all tenants for security.
       allow list: if false;
@@ -57,45 +45,33 @@ service cloud.firestore {
       allow create: if isSelf(tenantId) && request.resource.data.members[request.auth.uid] == 'owner';
 
       // Allow a tenant owner to update their own tenant document.
-      allow update: if isTenantOwner(tenantId);
-
-      // Allow a tenant owner to delete their tenant.
-      allow delete: if isTenantOwner(tenantId);
+      allow update, delete: if isTenantOwner(tenantId);
 
       // Subcollections for the tenant.
       match /users/{userId} {
-        // A tenant member can get any user profile within their tenant.
-        allow get: if isTenantMember(tenantId);
+        // A user can read/write their own profile if they are the owner of the tenant.
+        // Or if they are the user being accessed (isSelf).
+        allow get, update, delete: if isTenantOwner(tenantId) || isSelf(userId);
         
-        // A tenant member can list all users within their tenant.
-        allow list: if isTenantMember(tenantId);
+        // The owner of a tenant can list all users within their tenant.
+        allow list: if isTenantOwner(tenantId);
 
         // A tenant owner can create new users in their tenant.
-        // The new user document must have the correct tenantId.
         allow create: if isTenantOwner(tenantId) && request.resource.data.tenantId == tenantId;
         
-        // A user can update their own profile, or an owner can update any profile.
-        allow update: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
         
-        // A user can delete their own profile, or an owner can delete any profile.
-        allow delete: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
-        
-        // Rules for subcollections of a user. Access is granted if the user is a member of the parent tenant.
+        // Rules for subcollections of a user. Access is granted if the user is the owner of the parent tenant.
         match /medicalHistory/{historyId} {
-          allow read, list: if isTenantMember(tenantId);
-          allow write: if isTenantOwner(tenantId);
+          allow read, list, write: if isTenantOwner(tenantId);
         }
 
         match /biomechanics/{biomechanicsId} {
-          allow read, list: if isTenantMember(tenantId);
-          allow write: if isTenantOwner(tenantId);
+          allow read, list, write: if isTenantOwner(tenantId);
         }
 
         match /notes/{noteId} {
-          allow get: if isTenantMember(tenantId);
-          // A user can list their own notes, or a tenant member can list any user's notes.
-          allow list: if isTenantMember(tenantId);
-          allow write: if isTenantOwner(tenantId);
+          // The owner of the tenant can read, list, and write notes for any user.
+          allow read, list, write: if isTenantOwner(tenantId);
         }
       }
     }

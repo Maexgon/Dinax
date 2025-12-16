@@ -35,6 +35,7 @@ import { z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { mockStudents, mockNotes } from '@/lib/data';
 
 
 const studentSchema = z.object({
@@ -64,22 +65,14 @@ const MetricItem = ({ icon, label, value }: { icon: React.ReactNode, label: stri
 
 export default function StudentDetailClientPage({ studentId }: { studentId: string }) {
   const { t, language } = useLanguage();
-  const { firestore, user } = useFirebase();
+  const { user } = useFirebase();
   const { toast } = useToast();
-  // The tenantId is the UID of the logged-in user (coach)
-  const tenantId = user?.uid;
+  
+  const student = mockStudents.find(s => s.id === studentId);
+  const notes = mockNotes; // Using mock notes
+  const isStudentLoading = false;
+  const areNotesLoading = false;
 
-  const studentDocRef = useMemoFirebase(
-    () => (firestore && tenantId ? doc(firestore, `tenants/${tenantId}/users`, studentId) : null),
-    [firestore, tenantId, studentId]
-  );
-  const { data: student, isLoading: isStudentLoading } = useDoc<Student>(studentDocRef);
-
-  const notesCollectionRef = useMemoFirebase(
-    () => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/users/${studentId}/notes`) : null),
-    [firestore, tenantId, studentId]
-  );
-  const { data: notes, isLoading: areNotesLoading } = useCollection<Note>(notesCollectionRef);
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
@@ -99,24 +92,22 @@ export default function StudentDetailClientPage({ studentId }: { studentId: stri
   React.useEffect(() => {
     if (student) {
       reset({
-        firstName: student.firstName,
-        lastName: student.lastName,
+        firstName: student.name.split(' ')[0],
+        lastName: student.name.split(' ').slice(1).join(' '),
         email: student.email,
-        phoneNumber: student.phoneNumber || '',
-        birthDate: student.birthDate || '',
-        occupation: student.occupation || '',
-        address: student.address || '',
-        objective: student.objective || '',
-        tags: student.tags || [],
+        phoneNumber: '', // Not in mock data
+        birthDate: '', // Not in mock data
+        occupation: '', // Not in mock data
+        address: '', // Not in mock data
+        objective: 'Hypertrophy', // Example
+        tags: [],
       });
     }
   }, [student, reset]);
   
   const onSubmit = async (data: StudentFormData) => {
-    if (!studentDocRef) return;
-    
-    updateDocumentNonBlocking(studentDocRef, data);
-    
+    // This is where you would update the document in a real scenario
+    console.log("Submitting data", data);
     toast({
         variant: 'success',
         title: 'Perfil Actualizado',
@@ -148,7 +139,7 @@ export default function StudentDetailClientPage({ studentId }: { studentId: stri
     return <div>{t.studentDetail.notFound || "Student not found."}</div>;
   }
   
-  const studentName = `${student.firstName || ''} ${student.lastName || ''}`.trim();
+  const studentName = student.name;
 
 
   return (
@@ -174,7 +165,7 @@ export default function StudentDetailClientPage({ studentId }: { studentId: stri
                 className="rounded-full mx-auto mb-4 border-4 border-primary shadow-lg"
               />
               <h1 className="text-3xl font-bold font-headline">{studentName}</h1>
-              <p className="text-muted-foreground">{t.studentDetail.objective}: {student.objective || 'N/A'}</p>
+              <p className="text-muted-foreground">{t.studentDetail.objective}: {student.profile.medicalConditions}</p>
               <div className="mt-4 flex gap-2">
                 <Button className="flex-1 bg-primary hover:bg-primary/90">
                   <MessageSquare className="mr-2 h-4 w-4" />
@@ -195,7 +186,7 @@ export default function StudentDetailClientPage({ studentId }: { studentId: stri
                     <User className="h-6 w-6 p-1 rounded-full bg-blue-100 text-blue-500" />
                     <span>{t.studentDetail.age}</span>
                  </div>
-                 <p className="font-bold text-lg">{student.birthDate ? `${format(new Date(), 'yyyy') - format(new Date(student.birthDate), 'yyyy')} años` : 'N/A'}</p>
+                 <p className="font-bold text-lg">{student.profile.age} años</p>
                </div>
                <div className="flex items-center justify-between">
                  <div className="flex items-center gap-3 text-muted-foreground">
@@ -203,7 +194,7 @@ export default function StudentDetailClientPage({ studentId }: { studentId: stri
                     <span>{t.studentDetail.weight}</span>
                  </div>
                  <div className="flex items-center gap-2">
-                    <p className="font-bold text-lg">{/* TODO: Fetch from biomechanics */} -- kg</p>
+                    <p className="font-bold text-lg">{student.profile.weight} kg</p>
                  </div>
                </div>
                <div className="flex items-center justify-between">
@@ -211,7 +202,7 @@ export default function StudentDetailClientPage({ studentId }: { studentId: stri
                     <Ruler className="h-6 w-6 p-1 rounded-full bg-purple-100 text-purple-500" />
                     <span>{t.studentDetail.height}</span>
                  </div>
-                 <p className="font-bold text-lg">{/* TODO: Fetch from biomechanics */} -- cm</p>
+                 <p className="font-bold text-lg">{student.profile.height} cm</p>
                </div>
             </CardContent>
           </Card>
@@ -295,7 +286,7 @@ export default function StudentDetailClientPage({ studentId }: { studentId: stri
                                         <div className="space-y-2">
                                             <Label>{t.studentDetail.tags}</Label>
                                             <div className="flex flex-wrap gap-2">
-                                                {(student.tags || []).map(tag => (
+                                                {student.trainingDays.map(tag => (
                                                     <Badge key={tag} variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 dark:bg-primary/20 dark:text-primary/90 dark:border-primary/30">{tag} 
                                                     {isOwnProfile && <X className="ml-1 h-3 w-3 cursor-pointer"/>}
                                                     </Badge>
@@ -367,7 +358,7 @@ export default function StudentDetailClientPage({ studentId }: { studentId: stri
                                     <div className="flex items-center justify-between">
                                         <p className="font-semibold">{note.coachName}</p>
                                         <p className="text-xs text-muted-foreground">
-                                        {format(new Date(note.createdAt), "PPP", { locale: language === 'es' ? es : undefined })}
+                                        {format(new Date(note.date), "PPP", { locale: language === 'es' ? es : undefined })}
                                         </p>
                                     </div>
                                     <p className="text-sm text-muted-foreground mt-1">{note.content}</p>

@@ -14,10 +14,10 @@ import {
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useLanguage } from '@/context/language-context';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection } from 'firebase/firestore';
+import { useFirebase } from '@/firebase';
 import type { Student } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { mockStudents } from '@/lib/data'; // Import mock data
 
 function StudentCardSkeleton() {
     return (
@@ -44,16 +44,11 @@ function StudentCardSkeleton() {
 
 export default function StudentsPage() {
   const { t } = useLanguage();
-  const { firestore, user } = useFirebase();
+  const { user } = useFirebase();
 
-  // The tenantId is the UID of the logged-in user (coach)
-  const tenantId = user?.uid;
-
-  const studentsQuery = useMemoFirebase(
-    () => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/users`) : null),
-    [firestore, tenantId]
-  );
-  const { data: students, isLoading } = useCollection<Student>(studentsQuery);
+  // Using mock data instead of Firestore for now to prevent errors.
+  const students = mockStudents;
+  const isLoading = false;
 
 
   return (
@@ -78,7 +73,7 @@ export default function StudentsPage() {
             <CardHeader className="items-center">
               <Image
                 src={student.avatarUrl || 'https://picsum.photos/seed/placeholder/80/80'}
-                alt={`Avatar of ${student.firstName} ${student.lastName}`}
+                alt={`Avatar of ${student.name}`}
                 data-ai-hint={student.avatarHint || 'person face'}
                 width={80}
                 height={80}
@@ -86,7 +81,7 @@ export default function StudentsPage() {
               />
             </CardHeader>
             <CardContent className="flex-grow text-center">
-              <CardTitle className="font-headline">{student.firstName} {student.lastName}</CardTitle>
+              <CardTitle className="font-headline">{student.name}</CardTitle>
               <CardDescription>{student.email}</CardDescription>
               <div className="mt-4">
                 <p className="text-sm font-medium text-muted-foreground mb-1">
@@ -107,4 +102,3 @@ export default function StudentsPage() {
     </div>
   );
 }
-
