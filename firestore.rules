@@ -27,41 +27,55 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
     
-    function getTenantData(tenantId) {
+    function getTenantDoc(tenantId) {
       return get(/databases/$(database)/documents/tenants/$(tenantId));
     }
 
     function isTenantMember(tenantId) {
-      let tenantData = getTenantData(tenantId).data;
-      return isSignedIn() && request.auth.uid in tenantData.members;
+      let tenantDoc = getTenantDoc(tenantId);
+      // Ensure the document exists and the members map has the user's UID.
+      return isSignedIn() 
+        && tenantDoc.data.members != null
+        && request.auth.uid in tenantDoc.data.members;
     }
     
     function isTenantOwner(tenantId) {
-      let tenantData = getTenantData(tenantId).data;
-      return isSignedIn() && tenantData.members[request.auth.uid] == 'owner';
-    }
-
-    function isExistingTenantOwner(tenantId) {
-        let tenant = getTenantData(tenantId);
-        return isSignedIn() && tenant != null && tenant.data.members[request.auth.uid] == 'owner';
+      let tenantDoc = getTenantDoc(tenantId);
+      // Ensure the doc exists, members map exists, and the user's role is 'owner'.
+      return isSignedIn() 
+        && tenantDoc.data.members != null
+        && tenantDoc.data.members[request.auth.uid] == 'owner';
     }
 
     match /tenants/{tenantId} {
       allow get: if isTenantMember(tenantId);
       allow list: if false; // Disallow listing all tenants for security.
-      allow create: if isSignedIn() && request.resource.data.members[request.auth.uid] == 'owner' && request.resource.data.members.size() == 1 && request.resource.data.id == tenantId;
-      allow update: if isTenantOwner(tenantId) && request.resource.data.id == resource.data.id && request.resource.data.members[request.auth.uid] == 'owner';
+      // Allow create only if the user is creating their own tenant and is the sole owner.
+      allow create: if isSignedIn() 
+                    && request.auth.uid == tenantId
+                    && request.resource.data.members[request.auth.uid] == 'owner' 
+                    && request.resource.data.members.size() == 1 
+                    && request.resource.data.id == tenantId;
+      // Allow update only if the user is the owner and isn't removing themselves as owner.
+      allow update: if isTenantOwner(tenantId) 
+                    && request.resource.data.id == resource.data.id 
+                    && request.resource.data.members[request.auth.uid] == 'owner';
       allow delete: if isTenantOwner(tenantId);
     }
 
     match /tenants/{tenantId}/users/{userId} {
       allow get: if isTenantMember(tenantId);
       allow list: if isTenantMember(tenantId);
-      allow create: if isTenantOwner(tenantId) && request.resource.data.id == userId && request.resource.data.tenantId == tenantId;
-      allow update: if (isSelf(userId) || isTenantOwner(tenantId));
-      allow delete: if (isSelf(userId) || isTenantOwner(tenantId));
+      // Allow user creation only by a tenant owner.
+      allow create: if isTenantOwner(tenantId) 
+                    && request.resource.data.id == userId 
+                    && request.resource.data.tenantId == tenantId;
+      // Allow update by the user themselves or the tenant owner.
+      allow update: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
+      // Allow delete by the user themselves or the tenant owner.
+      allow delete: if isTenantMember(tenantId) && (isSelf(userId) || isTenantOwner(tenantId));
       
-      // Rules for subcollections
+      // Rules for subcollections. Access is granted if the user is a member of the parent tenant.
       match /medicalHistory/{historyId} {
         allow read, list: if isTenantMember(tenantId);
         allow write: if isTenantOwner(tenantId);

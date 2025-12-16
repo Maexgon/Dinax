@@ -7,7 +7,7 @@ import {
 } from 'firebase/auth';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { firebaseConfig } from '@/firebase/config';
-import { doc, setDoc, getFirestore, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, getFirestore, serverTimestamp, writeBatch } from 'firebase/firestore';
 
 // This function can be defined here as it's only used server-side in this file.
 // By initializing within the action, we ensure a clean, correct server-side context.
@@ -44,21 +44,21 @@ export async function signUpWithEmailAndPassword(
     const user = userCredential.user;
     const tenantId = user.uid;
 
-    const tenantRef = doc(firestore, 'tenants', tenantId);
-    const userRef = doc(firestore, `tenants/${tenantId}/users`, user.uid);
+    // Use a write batch to ensure atomicity
+    const batch = writeBatch(firestore);
 
-    // CRITICAL: Await both Firestore writes to complete before returning success.
-    // This ensures the security rules will find the necessary documents.
-    await setDoc(tenantRef, {
+    const tenantRef = doc(firestore, 'tenants', tenantId);
+    batch.set(tenantRef, {
         id: tenantId,
-        name: `${firstName}'s Gym`,
+        name: `${firstName}'s Gym`, // Or any other default name
         members: {
             [tenantId]: 'owner',
         },
         createdAt: serverTimestamp(),
     });
 
-    await setDoc(userRef, {
+    const userRef = doc(firestore, `tenants/${tenantId}/users`, user.uid);
+    batch.set(userRef, {
         id: user.uid,
         tenantId: tenantId,
         firstName: firstName,
@@ -67,10 +67,13 @@ export async function signUpWithEmailAndPassword(
         createdAt: serverTimestamp(),
     });
 
+    // CRITICAL: Await the batch commit to complete before returning success.
+    await batch.commit();
+
     // Now it's safe to return success
     return {
       success: true,
-      message: 'User account and profile created successfully.',
+      message: 'User account and profile created successfully. Please log in.',
     };
 
   } catch (error: any) {
