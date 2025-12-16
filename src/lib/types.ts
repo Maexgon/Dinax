@@ -69,36 +69,21 @@ tuberculosis?: boolean;
 
 export type Biomechanics = {
     id: string;
-    createdAt: string; // ISO date-time
-    age?: number;
-    gender?: string;
-    height?: number;
     weight?: number;
+    height?: number;
     bmi?: number;
-    bodyFat?: number;
-    muscleMass?: number;
-    restingHr?: number;
-    bloodPressure?: string;
-    previousInjuries?: string;
-    currentPain?: string;
-    painZone?: string;
-    shoulderMobility?: string;
-    hipMobility?: string;
-    ankleMobility?: string;
-    spineMobility?: string;
-    trunkFlexion?: string;
-    shoulderPosture?: string;
-    pelvicPosition?: string;
-    kneeValgus?: string;
-    dominance?: string;
-    unipodalBalance?: number;
-    pushUps?: number;
-    bodyweightSquats?: number;
-    abdominalPlank?: number;
-    generalStrengthLevel?: string;
-    cardioCapacity?: string;
-    postEffortRecovery?: string;
-    experienceLevel?: string;
+    ankleDorsiflexion?: number;
+    hipMobility?: number;
+    shoulderMobility?: number;
+    coreStability?: number;
+    hipStability?: number;
+    squatPattern?: number;
+    hipHingePattern?: number;
+    relativeStrengthLower?: number;
+    relativeStrengthUpper?: number;
+    unilateralBalance?: number;
+    asymmetries?: number;
+    movementPain?: number;
 };
 
 

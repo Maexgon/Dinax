@@ -9,7 +9,7 @@ import {
   ArrowDownToLine, PersonStanding, Hand, Timer, Repeat, ShieldCheck, Activity, Zap,
   Award, Heart, Droplet, TestTube, Wind, Bone, Disc3, Brain, Pill, FilePlus2,
   CalendarCheck, HeartHandshake, FlaskConical, CircleAlert, ShieldAlert, FileKey2,
-  UserCheck, Loader2
+  UserCheck, Loader2, Footprints, Stretch, Core, Wind as WindIcon, Scale as ScaleIcon, MoveVertical, GitCompare, Siren, Info
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -20,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/context/language-context';
-import type { Client, Note } from '@/lib/types';
+import type { Client, Note, Biomechanics } from '@/lib/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { WeightChart } from '@/components/charts/weight-chart';
@@ -52,13 +52,13 @@ const clientSchema = z.object({
 
 type ClientFormData = z.infer<typeof clientSchema>;
 
-const MetricItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | React.ReactNode }) => (
+const MetricItem = ({ icon, label, value, unit }: { icon: React.ReactNode, label: string, value: string | number | undefined, unit?: string }) => (
     <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
         <div className="flex items-center gap-3">
             {icon}
             <span className="text-sm font-medium">{label}</span>
         </div>
-        <span className="text-sm font-semibold">{value}</span>
+        <span className="text-sm font-semibold">{value ?? 'N/A'} {unit}</span>
     </div>
 );
 
@@ -81,6 +81,26 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
       [firestore, tenantId, clientId]
   );
   const { data: notes, isLoading: areNotesLoading } = useCollection<Note>(notesCollectionRef);
+  
+  // MOCK DATA FOR BIOMECHANICS, will be replaced by Firestore data
+  const biomechanicsData: Biomechanics = {
+    id: 'bio1',
+    weight: 72.5,
+    height: 1.78,
+    bmi: 22.9,
+    ankleDorsiflexion: 20,
+    hipMobility: 120,
+    shoulderMobility: 160,
+    coreStability: 90,
+    hipStability: 4,
+    squatPattern: 3,
+    hipHingePattern: 4,
+    relativeStrengthLower: 1.8,
+    relativeStrengthUpper: 1.2,
+    unilateralBalance: 45,
+    asymmetries: 5,
+    movementPain: 1,
+  };
 
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<ClientFormData>({
@@ -235,7 +255,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                 <TabsList className="grid w-full grid-cols-4 bg-muted">
                     <TabsTrigger value="personal-info">{t.clientDetail.personalInfo}</TabsTrigger>
                     <TabsTrigger value="medical">{t.clientDetail.medicalTitle}</TabsTrigger>
-                    <TabsTrigger value="biomechanics">{t.clientDetail.biomechanics}</TabsTrigger>
+                    <TabsTrigger value="biomechanics">{t.clientDetail.biomechanics.title}</TabsTrigger>
                     <TabsTrigger value="progress">{t.clientDetail.progress}</TabsTrigger>
                 </TabsList>
                 <TabsContent value="personal-info">
@@ -332,9 +352,33 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                 </TabsContent>
                  <TabsContent value="biomechanics">
                     <Card>
-                        <CardHeader><CardTitle>{t.clientDetail.biomechanics}</CardTitle></CardHeader>
-                        <CardContent className="space-y-2">
-                           <p className="text-muted-foreground">No se han añadido datos biomecánicos todavía.</p>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2"><Footprints className="text-primary"/>{t.clientDetail.biomechanics.title}</CardTitle>
+                            <CardDescription>{t.clientDetail.biomechanics.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
+                            <MetricItem icon={<ScaleIcon className="text-blue-500" />} label={t.clientDetail.biomechanics.weight} value={biomechanicsData.weight} unit="kg" />
+                            <MetricItem icon={<Ruler className="text-blue-500" />} label={t.clientDetail.biomechanics.height} value={biomechanicsData.height} unit="m" />
+                            <MetricItem icon={<Calculator className="text-blue-500" />} label={t.clientDetail.biomechanics.bmi} value={biomechanicsData.bmi} unit="kg/m²" />
+                            <MetricItem icon={<Stretch className="text-green-500" />} label={t.clientDetail.biomechanics.ankleDorsiflexion} value={biomechanicsData.ankleDorsiflexion} unit="°" />
+                            <MetricItem icon={<Stretch className="text-green-500" />} label={t.clientDetail.biomechanics.hipMobility} value={biomechanicsData.hipMobility} unit="°" />
+                            <MetricItem icon={<Stretch className="text-green-500" />} label={t.clientDetail.biomechanics.shoulderMobility} value={biomechanicsData.shoulderMobility} unit="°" />
+                            <MetricItem icon={<Core className="text-orange-500" />} label={t.clientDetail.biomechanics.coreStability} value={biomechanicsData.coreStability} unit="s" />
+                            <MetricItem icon={<WindIcon className="text-orange-500" />} label={t.clientDetail.biomechanics.hipStability} value={biomechanicsData.hipStability} unit="/ 5" />
+                            <MetricItem icon={<MoveVertical className="text-purple-500" />} label={t.clientDetail.biomechanics.squatPattern} value={biomechanicsData.squatPattern} unit="/ 5" />
+                            <MetricItem icon={<Move className="text-purple-500" />} label={t.clientDetail.biomechanics.hipHingePattern} value={biomechanicsData.hipHingePattern} unit="/ 5" />
+                            <MetricItem icon={<Dumbbell className="text-red-500" />} label={t.clientDetail.biomechanics.relativeStrengthLower} value={biomechanicsData.relativeStrengthLower} unit="kg/kg" />
+                            <MetricItem icon={<Dumbbell className="text-red-500" />} label={t.clientDetail.biomechanics.relativeStrengthUpper} value={biomechanicsData.relativeStrengthUpper} unit="kg/kg" />
+                            <MetricItem icon={<PersonStanding className="text-yellow-500" />} label={t.clientDetail.biomechanics.unilateralBalance} value={biomechanicsData.unilateralBalance} unit="s" />
+                            <MetricItem icon={<GitCompare className="text-yellow-500" />} label={t.clientDetail.biomechanics.asymmetries} value={biomechanicsData.asymmetries} unit="%" />
+                            <MetricItem icon={<Siren className="text-destructive" />} label={t.clientDetail.biomechanics.movementPain} value={biomechanicsData.movementPain} unit="/ 10" />
+                            <div className="md:col-span-2 p-3 bg-blue-50/50 dark:bg-blue-900/10 rounded-lg flex items-start gap-3">
+                                <Info className="h-5 w-5 text-blue-500 mt-0.5"/>
+                                <div>
+                                    <p className="font-semibold text-blue-800 dark:text-blue-300">{t.clientDetail.biomechanics.observationTitle}</p>
+                                    <p className="text-sm text-blue-700 dark:text-blue-400">{t.clientDetail.biomechanics.observationText}</p>
+                                </div>
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>

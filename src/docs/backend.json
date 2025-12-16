@@ -1,0 +1,179 @@
+
+{
+  "entities": {
+    "Tenant": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Tenant",
+      "type": "object",
+      "description": "Represents a tenant (e.g., a gym or training center) within the application.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the tenant." },
+        "name": { "type": "string", "description": "The name of the tenant." },
+        "members": {
+          "type": "object",
+          "description": "A map of user UIDs to their roles within the tenant (e.g., 'owner', 'member')."
+        }
+      },
+      "required": ["id", "name", "members"]
+    },
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User Profile",
+      "type": "object",
+      "description": "Represents a user's profile information within a tenant.",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the user (matches auth UID)." },
+        "tenantId": { "type": "string", "description": "Reference to the parent Tenant." },
+        "firstName": { "type": "string", "description": "The first name of the user." },
+        "lastName": { "type": "string", "description": "The last name of the user." },
+        "email": { "type": "string", "format": "email", "description": "Primary authentication email." },
+        "secondaryEmail": { "type": "string", "format": "email", "description": "An optional secondary email for the user." },
+        "phoneNumber": { "type": "string" },
+        "avatarUrl": { "type": "string", "format": "uri" },
+        "avatarHint": { "type": "string" },
+        "joinDate": { "type": "string", "format": "date" },
+        "currentPlan": { "type": "string" },
+        "progress": { "type": "number" },
+        "trainingDays": { "type": "array", "items": { "type": "string" } },
+        "objective": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "occupation": { "type": "string" },
+        "birthDate": { "type": "string", "format": "date" },
+        "address": { "type": "string" },
+        "cuit": { "type": "string" },
+        "linkedinUrl": { "type": "string", "format": "uri" },
+        "instagramUrl": { "type": "string", "format": "uri" },
+        "xUrl": { "type": "string", "format": "uri" },
+        "whatsapp": { "type": "string" },
+        "careerExperience": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title": { "type": "string" },
+              "company": { "type": "string" },
+              "startDate": { "type": "string", "format": "date" },
+              "endDate": { "type": "string", "format": "date" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "education": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "institution": { "type": "string" },
+              "degree": { "type": "string" },
+              "fieldOfStudy": { "type": "string" },
+              "startDate": { "type": "string", "format": "date" },
+              "endDate": { "type": "string", "format": "date" }
+            }
+          }
+        }
+      },
+      "required": ["id", "tenantId", "firstName", "lastName", "email"]
+    },
+    "MedicalHistory": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Medical History",
+      "type": "object",
+      "description": "A snapshot of a user's medical information at a specific point in time.",
+      "properties": {
+        "id": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "fitnessCertificate": { "type": "boolean" },
+        "certificateDate": { "type": "string", "format": "date" },
+        "cardiovascularDiseases": { "type": "string" },
+        "bloodPressure": { "type": "string" },
+        "restingHeartRate": { "type": "number" },
+        "diabetes": { "type": "string" },
+        "fastingGlucose": { "type": "string" },
+        "totalCholesterol": { "type": "string" },
+        "triglycerides": { "type": "string" },
+        "asthmaCopd": { "type": "boolean" },
+        "chronicJointProblems": { "type": "string" },
+        "discHernias": { "type": "boolean" },
+        "osteoporosis": { "type": "boolean" },
+        "neurologicalProblems": { "type": "boolean" },
+        "currentMedication": { "type": "string" },
+        "cardiovascularMedication": { "type": "boolean" },
+        "metabolicMedication": { "type": "boolean" },
+        "dizzinessSyncope": { "type": "boolean" },
+        "exertionalChestPain": { "type": "boolean" },
+        "exertionalShortnessOfBreath": { "type": "boolean" },
+        "relevantSurgeries": { "type": "string" },
+        "pregnancy": { "type": "boolean" },
+        "relevantAllergies": { "type": "string" },
+        "medicalRestrictions": { "type": "string" },
+        "exerciseAuthorization": { "type": "string" },
+        "riskLevel": { "type": "string", "enum": ["low", "medium", "high"] }
+      }
+    },
+    "Biomechanics": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Biomechanics",
+      "type": "object",
+      "description": "A snapshot of a user's biomechanical assessment at a specific point in time.",
+      "properties": {
+        "id": { "type": "string" },
+        "weight": { "type": "number", "description": "Body weight in kg." },
+        "height": { "type": "number", "description": "Height in meters." },
+        "bmi": { "type": "number", "description": "Body Mass Index (kg/m²)." },
+        "ankleDorsiflexion": { "type": "number", "description": "Ankle dorsiflexion mobility in degrees." },
+        "hipMobility": { "type": "number", "description": "Hip mobility (flexion/rotation) in degrees." },
+        "shoulderMobility": { "type": "number", "description": "Functional shoulder range of motion in degrees." },
+        "coreStability": { "type": "number", "description": "Core stability test (e.g., plank) duration in seconds." },
+        "hipStability": { "type": "number", "description": "Unilateral hip stability test score (e.g., 0-5)." },
+        "squatPattern": { "type": "number", "description": "Squat pattern technical evaluation score (e.g., 0-5)." },
+        "hipHingePattern": { "type": "number", "description": "Hip hinge pattern technical evaluation score (e.g., 0-5)." },
+        "relativeStrengthLower": { "type": "number", "description": "Normalized lower body relative strength (kg lifted / body weight)." },
+        "relativeStrengthUpper": { "type": "number", "description": "Normalized upper body relative strength (kg lifted / body weight)." },
+        "unilateralBalance": { "type": "number", "description": "Unilateral balance test duration in seconds." },
+        "asymmetries": { "type": "number", "description": "Right-left strength or mobility difference percentage." },
+        "movementPain": { "type": "number", "description": "Self-reported pain during movement on a 0-10 scale." }
+      }
+    },
+    "Note": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Note",
+      "type": "object",
+      "description": "A note about a client, written by a coach.",
+      "properties": {
+        "id": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "coachName": { "type": "string" },
+        "coachAvatarUrl": { "type": "string", "format": "uri" },
+        "content": { "type": "string" }
+      },
+      "required": ["id", "createdAt", "coachName", "content"]
+    }
+  },
+  "auth": {
+    "providers": ["password", "anonymous"]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/tenants/{tenantId}",
+        "definition": { "schema": { "$ref": "#/entities/Tenant" }, "description": "Stores tenant data." }
+      },
+      {
+        "path": "/tenants/{tenantId}/user_profile/{userId}",
+        "definition": { "schema": { "$ref": "#/entities/UserProfile" }, "description": "Stores user profiles for a tenant." }
+      },
+      {
+        "path": "/tenants/{tenantId}/user_profile/{userId}/medicalHistory/{historyId}",
+        "definition": { "schema": { "$ref": "#/entities/MedicalHistory" }, "description": "Stores timestamped medical history records for a user." }
+      },
+      {
+        "path": "/tenants/{tenantId}/user_profile/{userId}/biomechanics/{biomechanicsId}",
+        "definition": { "schema": { "$ref": "#/entities/Biomechanics" }, "description": "Stores timestamped biomechanical assessments for a user." }
+      },
+      {
+        "path": "/tenants/{tenantId}/user_profile/{userId}/notes/{noteId}",
+        "definition": { "schema": { "$ref": "#/entities/Note" }, "description": "Stores coach's notes for a user." }
+      }
+    ]
+  }
+}
