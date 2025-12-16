@@ -18,7 +18,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
-import { useFirebase } from '@/firebase';
+import { useFirebase, FirestorePermissionError } from '@/firebase';
 import { createUserWithEmailAndPassword, type User } from 'firebase/auth';
 import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
 
@@ -84,25 +84,27 @@ export default function RegisterPage() {
     }
     setIsSubmitting(true);
     
+    let user: User | null = null;
     try {
       // Step 1: Create user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      user = userCredential.user;
       const tenantId = user.uid;
 
       // Step 2: Create tenant and user documents in an atomic batch
       const batch = writeBatch(firestore);
 
       const tenantRef = doc(firestore, 'tenants', tenantId);
-      batch.set(tenantRef, {
+      const tenantData = {
         id: tenantId,
         name: `${firstName}'s Gym`,
         members: { [tenantId]: 'owner' },
         createdAt: serverTimestamp(),
-      });
+      };
+      batch.set(tenantRef, tenantData);
 
       const userRef = doc(firestore, `tenants/${tenantId}/users`, tenantId);
-      batch.set(userRef, {
+      const userData = {
         id: tenantId,
         tenantId: tenantId,
         firstName: firstName,
@@ -111,9 +113,21 @@ export default function RegisterPage() {
         joinDate: new Date().toISOString().split('T')[0],
         progress: 0,
         createdAt: serverTimestamp(),
-      });
+      };
+      batch.set(userRef, userData);
       
-      await batch.commit();
+      // Step 3: Commit the batch and throw a detailed error on failure
+      try {
+        await batch.commit();
+      } catch (firestoreError) {
+        // Throw a detailed, contextual error to be caught by the outer catch block
+        // and displayed on the Next.js error overlay.
+        throw new FirestorePermissionError({
+            path: `tenants/${tenantId}`,
+            operation: 'write',
+            requestResourceData: { tenant: tenantData, user: userData }
+        });
+      }
 
       toast({
         variant: 'success',
@@ -124,12 +138,31 @@ export default function RegisterPage() {
       router.push('/dashboard');
 
     } catch (error: any) {
+      // This will now catch the detailed FirestorePermissionError as well
       console.error("Error during registration:", error);
       toast({
         variant: 'destructive',
         title: t.register.error,
         description: error.message || 'An unexpected error occurred.',
       });
+       if (user) {
+        // If user was created in Auth but Firestore failed, try to delete the user
+        // to allow re-registration with the same email.
+        try {
+            await user.delete();
+            toast({
+                variant: 'destructive',
+                title: 'Registro Incompleto',
+                description: 'Se ha borrado el usuario de autenticación. Por favor, intente registrarse de nuevo.'
+            });
+        } catch (deleteError) {
+             toast({
+                variant: 'destructive',
+                title: 'Error Crítico de Registro',
+                description: 'No se pudo escribir en la base de datos y no se pudo borrar el usuario de autenticación. Contacte a soporte.'
+            });
+        }
+      }
     } finally {
       setIsSubmitting(false);
     }
