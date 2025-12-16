@@ -38,34 +38,20 @@ export type Note = {
 
 export type MedicalHistory = {
     id: string;
-    createdAt: string | Timestamp; // ISO date-time
-    fitnessCertificate?: boolean;
-    certificateDate?: string; // date
-    cardiovascularDiseases?: string;
-    bloodPressure?: string;
-tuberculosis?: boolean;
-    restingHeartRate?: number;
-    diabetes?: string;
-    fastingGlucose?: string;
-    totalCholesterol?: string;
-    triglycerides?: string;
-    asthmaCopd?: boolean;
-    chronicJointProblems?: string;
-    discHernias?: boolean;
-    osteoporosis?: boolean;
-    neurologicalProblems?: boolean;
-    currentMedication?: string;
-    cardiovascularMedication?: boolean;
-    metabolicMedication?: boolean;
-    dizzinessSyncope?: boolean;
-    exertionalChestPain?: boolean;
-    exertionalShortnessOfBreath?: boolean;
-    relevantSurgeries?: string;
-    pregnancy?: boolean;
-    relevantAllergies?: string;
-    medicalRestrictions?: string;
-    exerciseAuthorization?: string;
-    riskLevel?: 'low' | 'medium' | 'high';
+    createdAt: string | Timestamp;
+    medicalClearance?: boolean;
+    bloodType?: string;
+    currentConditions?: string[];
+    underMedicalTreatment?: boolean;
+    currentMedications?: string[];
+    preexistingInjuries?: string[];
+    previousSurgeries?: string[];
+    chronicPain?: boolean;
+    medicalRestrictions?: string[];
+    emergencyContact?: {
+        name: string;
+        phone: string;
+    };
 };
 
 export type Biomechanics = {
@@ -145,5 +131,3 @@ export type CalendarEvent = {
   studentName: string;
   studentAvatar?: string;
 };
-
-    

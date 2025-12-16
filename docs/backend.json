@@ -82,33 +82,25 @@
       "properties": {
         "id": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "fitnessCertificate": { "type": "boolean" },
-        "certificateDate": { "type": "string", "format": "date" },
-        "cardiovascularDiseases": { "type": "string" },
-        "bloodPressure": { "type": "string" },
-        "restingHeartRate": { "type": "number" },
-        "diabetes": { "type": "string" },
-        "fastingGlucose": { "type": "string" },
-        "totalCholesterol": { "type": "string" },
-        "triglycerides": { "type": "string" },
-        "asthmaCopd": { "type": "boolean" },
-        "chronicJointProblems": { "type": "string" },
-        "discHernias": { "type": "boolean" },
-        "osteoporosis": { "type": "boolean" },
-        "neurologicalProblems": { "type": "boolean" },
-        "currentMedication": { "type": "string" },
-        "cardiovascularMedication": { "type": "boolean" },
-        "metabolicMedication": { "type": "boolean" },
-        "dizzinessSyncope": { "type": "boolean" },
-        "exertionalChestPain": { "type": "boolean" },
-        "exertionalShortnessOfBreath": { "type": "boolean" },
-        "relevantSurgeries": { "type": "string" },
-        "pregnancy": { "type": "boolean" },
-        "relevantAllergies": { "type": "string" },
-        "medicalRestrictions": { "type": "string" },
-        "exerciseAuthorization": { "type": "string" },
-        "riskLevel": { "type": "string", "enum": ["low", "medium", "high"] }
-      }
+        "medicalClearance": { "type": "boolean", "description": "Indicates if the user has medical clearance to exercise." },
+        "bloodType": { "type": "string", "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"], "description": "The user's blood type." },
+        "currentConditions": { "type": "array", "items": { "type": "string" }, "description": "Any current medical conditions." },
+        "underMedicalTreatment": { "type": "boolean", "description": "Indicates if the user is currently under medical treatment." },
+        "currentMedications": { "type": "array", "items": { "type": "string" }, "description": "A list of current medications." },
+        "preexistingInjuries": { "type": "array", "items": { "type": "string" }, "description": "A list of known preexisting injuries." },
+        "previousSurgeries": { "type": "array", "items": { "type": "string" }, "description": "A list of previous surgeries." },
+        "chronicPain": { "type": "boolean", "description": "Indicates if the user suffers from chronic pain." },
+        "medicalRestrictions": { "type": "array", "items": { "type": "string" }, "description": "Any medical restrictions for physical activity." },
+        "emergencyContact": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "phone": { "type": "string" }
+          },
+          "description": "The user's emergency contact information."
+        }
+      },
+       "required": ["id", "createdAt"]
     },
     "Biomechanics": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -118,36 +110,23 @@
       "properties": {
         "id": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "age": { "type": "number" },
-        "gender": { "type": "string" },
-        "height": { "type": "number" },
-        "weight": { "type": "number" },
-        "bmi": { "type": "number" },
-        "bodyFat": { "type": "number" },
-        "muscleMass": { "type": "number" },
-        "restingHr": { "type": "number" },
-        "bloodPressure": { "type": "string" },
-        "previousInjuries": { "type": "string" },
-        "currentPain": { "type": "string" },
-        "painZone": { "type": "string" },
-        "shoulderMobility": { "type": "string" },
-        "hipMobility": { "type": "string" },
-        "ankleMobility": { "type": "string" },
-        "spineMobility": { "type": "string" },
-        "trunkFlexion": { "type": "string" },
-        "shoulderPosture": { "type": "string" },
-        "pelvicPosition": { "type": "string" },
-        "kneeValgus": { "type": "string" },
-        "dominance": { "type": "string" },
-        "unipodalBalance": { "type": "number" },
-        "pushUps": { "type": "number" },
-        "bodyweightSquats": { "type": "number" },
-        "abdominalPlank": { "type": "number" },
-        "generalStrengthLevel": { "type": "string" },
-        "cardioCapacity": { "type": "string" },
-        "postEffortRecovery": { "type": "string" },
-        "experienceLevel": { "type": "string" }
-      }
+        "weight": { "type": "number", "description": "Body weight in kg." },
+        "height": { "type": "number", "description": "Height in meters." },
+        "bmi": { "type": "number", "description": "Body Mass Index (kg/m²)." },
+        "ankleDorsiflexion": { "type": "number", "description": "Ankle dorsiflexion mobility in degrees." },
+        "hipMobility": { "type": "number", "description": "Hip mobility (flexion/rotation) in degrees." },
+        "shoulderMobility": { "type": "number", "description": "Functional shoulder range of motion in degrees." },
+        "coreStability": { "type": "number", "description": "Core stability test (e.g., plank) duration in seconds." },
+        "hipStability": { "type": "number", "description": "Unilateral hip stability test score (e.g., 0-5)." },
+        "squatPattern": { "type": "number", "description": "Squat pattern technical evaluation score (e.g., 0-5)." },
+        "hipHingePattern": { "type": "number", "description": "Hip hinge pattern technical evaluation score (e.g., 0-5)." },
+        "relativeStrengthLower": { "type": "number", "description": "Normalized lower body relative strength (kg lifted / body weight)." },
+        "relativeStrengthUpper": { "type": "number", "description": "Normalized upper body relative strength (kg lifted / body weight)." },
+        "unilateralBalance": { "type": "number", "description": "Unilateral balance test duration in seconds." },
+        "asymmetries": { "type": "number", "description": "Right-left strength or mobility difference percentage." },
+        "movementPain": { "type": "number", "description": "Self-reported pain during movement on a 0-10 scale." }
+      },
+      "required": ["id", "createdAt", "weight", "height"]
     },
     "Note": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -192,5 +171,3 @@
     ]
   }
 }
-
-    
