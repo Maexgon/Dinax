@@ -13,15 +13,9 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Secure helper function to check if the user is an owner of the specified tenant.
-    // This function should ONLY be used in 'read' rules to prevent security issues.
-    function isTenantOwner(tenantId) {
-       return isSignedIn() && get(/databases/$(database)/documents/tenants/$(tenantId)).data.members[request.auth.uid] == 'owner';
-    }
-
     match /tenants/{tenantId} {
-      // Allow a user to read their own tenant document if they are the owner.
-      allow get: if isTenantOwner(tenantId);
+      // A user can read their own tenant document if they are the owner.
+      allow get: if isSelf(tenantId);
       
       // Disallow listing all tenants for security.
       allow list: if false;
@@ -31,12 +25,18 @@ service cloud.firestore {
       allow create: if isSelf(tenantId) && request.resource.data.members[request.auth.uid] == 'owner';
 
       // Allow a tenant owner to update their own tenant document.
-      allow update, delete: if isTenantOwner(tenantId);
+      allow update, delete: if isSelf(tenantId);
+
+      // Allow a tenant owner (coach) to create, read, update, and delete profiles for their clients
+      // within their own tenant structure.
+      match /user_profile/{userId} {
+        allow read, write: if isSignedIn() && request.auth.uid == tenantId;
+      }
     }
     
     match /user_profile/{userId} {
-        // A user can read and write their own profile.
-        allow read, write: if isSelf(userId);
+      // A user can read and write their own profile (the coach's profile).
+      allow read, write: if isSelf(userId);
     }
   }
 }
