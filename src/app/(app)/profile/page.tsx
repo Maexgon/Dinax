@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,10 +14,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Loader2, User, Trash2, PlusCircle, Briefcase, GraduationCap, Building, Link2, CaseSensitive } from 'lucide-react';
+import { Loader2, User, Trash2, PlusCircle, Briefcase, GraduationCap, Link2, Upload } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const experienceSchema = z.object({
   title: z.string().min(1, "El cargo es obligatorio"),
@@ -36,6 +36,7 @@ const educationSchema = z.object({
 });
 
 const profileSchema = z.object({
+  avatarUrl: z.string().optional(),
   firstName: z.string().min(1, 'El nombre es obligatorio.'),
   lastName: z.string().min(1, 'El apellido es obligatorio.'),
   email: z.string().email('Email inválido.').optional(),
@@ -57,6 +58,8 @@ export default function ProfilePage() {
   const { t } = useLanguage();
   const { firestore, user } = useFirebase();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const userDocRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, `user_profile`, user.uid) : null),
@@ -70,6 +73,8 @@ export default function ProfilePage() {
     control,
     handleSubmit,
     reset,
+    setValue,
+    watch,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -89,6 +94,7 @@ export default function ProfilePage() {
     name: "education",
   });
 
+  const currentAvatarUrl = watch('avatarUrl');
 
   useEffect(() => {
     if (userData) {
@@ -105,7 +111,11 @@ export default function ProfilePage() {
         address: userData.address || '',
         careerExperience: userData.careerExperience || [],
         education: userData.education || [],
+        avatarUrl: userData.avatarUrl || '',
       });
+      if(userData.avatarUrl) {
+        setAvatarPreview(userData.avatarUrl)
+      }
     } else if (user) {
         reset({
             email: user.email || '',
@@ -117,15 +127,12 @@ export default function ProfilePage() {
     if (!userDocRef) return;
 
     try {
-      // Create a copy of the data to avoid modifying the original object
       const dataToSave: Partial<ProfileFormData & { isProfileComplete?: boolean }> = { ...data };
       
-      // We don't want to save the primary email, as it's not editable
       if('email' in dataToSave) {
         delete (dataToSave as { email?: string }).email;
       }
       
-      // Mark profile as complete after the first successful update
       if (userData && !userData.isProfileComplete) {
         dataToSave.isProfileComplete = true;
       }
@@ -143,6 +150,19 @@ export default function ProfilePage() {
             title: 'Error al actualizar',
             description: error.message || 'No se pudo guardar el perfil.',
         });
+    }
+  };
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setAvatarPreview(base64String);
+        setValue('avatarUrl', base64String, { shouldDirty: true });
+      };
+      reader.readAsDataURL(file);
     }
   };
   
@@ -180,6 +200,8 @@ export default function ProfilePage() {
       )
   }
 
+  const userInitials = (user?.email?.charAt(0) || 'U').toUpperCase();
+
   return (
     <div className="max-w-4xl mx-auto">
        <div>
@@ -193,6 +215,22 @@ export default function ProfilePage() {
             <CardDescription>Esta información se mostrará públicamente en tu perfil.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="flex flex-col items-center gap-4 sm:flex-row">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage src={avatarPreview || ''} alt="User Avatar" />
+                  <AvatarFallback className="text-3xl">{userInitials}</AvatarFallback>
+                </Avatar>
+                <div className="flex-1 text-center sm:text-left">
+                  <h4 className="text-lg font-semibold">Tu Foto de Perfil</h4>
+                  <p className="text-sm text-muted-foreground">Sube una foto para personalizar tu cuenta.</p>
+                  <Button type="button" variant="outline" size="sm" className="mt-2" onClick={() => fileInputRef.current?.click()}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Subir Foto
+                  </Button>
+                  <Input type="file" ref={fileInputRef} onChange={handleAvatarChange} className="hidden" accept="image/png, image/jpeg, image/gif"/>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <Label htmlFor="firstName">{t.register.firstName}</Label>
@@ -362,7 +400,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-
-    
-
-    
