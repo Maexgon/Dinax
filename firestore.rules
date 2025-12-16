@@ -92,7 +92,9 @@ service cloud.firestore {
         }
 
         match /notes/{noteId} {
-          allow read, list: if isTenantMember(tenantId);
+          allow get: if isTenantMember(tenantId);
+          // A user can list their own notes, or a tenant member can list any user's notes.
+          allow list: if isTenantMember(tenantId);
           allow write: if isTenantOwner(tenantId);
         }
       }
