@@ -94,7 +94,7 @@ export default function ProfilePage() {
     if (userData) {
       reset({
         ...userData,
-        email: userData.email || '',
+        email: userData.email || user?.email || '',
         secondaryEmail: userData.secondaryEmail || '',
         cuit: userData.cuit || '',
         phoneNumber: userData.phoneNumber || '',
@@ -107,7 +107,7 @@ export default function ProfilePage() {
         education: userData.education || [],
       });
     }
-  }, [userData, reset]);
+  }, [userData, reset, user]);
 
   const onSubmit = async (data: ProfileFormData) => {
     if (!userDocRef) return;
