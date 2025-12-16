@@ -24,6 +24,7 @@ export function FirebaseClientProvider({
   const firebaseServices = useMemo(() => initializeFirebase(), []);
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isProfileLoading, setIsProfileLoading] = useState(true); // New state for profile check
   const router = useRouter();
   const pathname = usePathname();
 
@@ -48,6 +49,7 @@ export function FirebaseClientProvider({
 
     if (user) {
       // User is logged in, check profile status
+      setIsProfileLoading(true); // Start profile check
       const profileRef = doc(firebaseServices.firestore, `tenants/${user.uid}/user_profile`, user.uid);
       getDoc(profileRef).then(profileSnap => {
         const isProfileComplete = profileSnap.exists() && profileSnap.data().isProfileComplete;
@@ -69,24 +71,30 @@ export function FirebaseClientProvider({
         if (isPublicRoute) {
           router.push('/dashboard');
         }
+      }).finally(() => {
+        setIsProfileLoading(false); // Finish profile check
       });
     } else {
       // User is not logged in
+      setIsProfileLoading(false); // No profile to load
       if (!isPublicRoute) {
         router.push('/login');
       }
     }
   }, [user, isAuthLoading, pathname, router, firebaseServices.firestore]);
-
-  // Show a loader while we are determining auth state on any route.
+  
+  // Show a loader while we are determining auth state OR checking the profile.
   // This prevents brief flashes of content before redirection logic kicks in.
-  if (isAuthLoading) {
+  const isLoading = isAuthLoading || (user && isProfileLoading && !PUBLIC_ROUTES.includes(pathname));
+
+  if (isLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
+
 
   return (
     <FirebaseProvider
