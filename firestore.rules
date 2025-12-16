@@ -37,10 +37,6 @@ service cloud.firestore {
     match /user_profile/{userId} {
         // A user can read and write their own profile.
         allow read, write: if isSelf(userId);
-        
-        // A tenant owner can also read any user profile in their tenant.
-        // This rule is additive to the one above.
-        allow get, list: if get(/databases/$(database)/documents/tenants/$(request.resource.data.tenantId)).data.members[request.auth.uid] == 'owner';
     }
   }
 }
