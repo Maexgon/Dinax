@@ -16,51 +16,8 @@ interface FirebaseClientProviderProps {
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = ['/login', '/register', '/'];
-
-async function setupInitialUserData(
-  firestore: any,
-  user: User
-): Promise<void> {
-  const tenantRef = doc(firestore, 'tenants', user.uid);
-  const tenantSnap = await getDoc(tenantRef);
-
-  // Only proceed if the tenant document does NOT exist
-  if (!tenantSnap.exists()) {
-    try {
-      const batch = writeBatch(firestore);
-
-      // 1. Tenant Document
-      const tenantData = {
-        id: user.uid,
-        name: `${user.displayName || user.email}'s Gym`, // Default name
-        members: { [user.uid]: 'owner' },
-        createdAt: serverTimestamp(),
-      };
-      batch.set(tenantRef, tenantData);
-
-      // 2. User Document (within the new tenant's subcollection)
-      const userRef = doc(firestore, `tenants/${user.uid}/users`, user.uid);
-      const userData = {
-        id: user.uid,
-        tenantId: user.uid,
-        firstName: user.displayName?.split(' ')[0] || 'New',
-        lastName: user.displayName?.split(' ')[1] || 'User',
-        email: user.email,
-        joinDate: new Date().toISOString().split('T')[0],
-        progress: 0,
-        createdAt: serverTimestamp(),
-      };
-      batch.set(userRef, userData);
-
-      // Commit the atomic batch
-      await batch.commit();
-    } catch (error) {
-      console.error('Failed to create initial user data:', error);
-      // Optional: Add user-facing error handling here
-      throw error; // Re-throw to be caught by caller if needed
-    }
-  }
-}
+// Routes that are part of the initial onboarding and should be accessible right after login/register
+const ONBOARDING_ROUTES = ['/profile'];
 
 export function FirebaseClientProvider({
   children,
@@ -76,13 +33,7 @@ export function FirebaseClientProvider({
     const unsubscribe = onAuthStateChanged(
       firebaseServices.auth,
       async (user) => {
-        if (user) {
-          // The logic for initial data setup is now handled client-side during registration.
-          // This provider's role is now simplified to just managing auth state and routing.
-          setUser(user);
-        } else {
-          setUser(null);
-        }
+        setUser(user);
         setIsAuthLoading(false);
       }
     );
@@ -93,26 +44,26 @@ export function FirebaseClientProvider({
   useEffect(() => {
     if (isAuthLoading) return;
 
-    const isPublicRoute = PUBLIC_ROUTES.some(
-      (route) =>
-        pathname === route || (route !== '/' && pathname.startsWith(route))
-    );
-    const isAppRoute = !isPublicRoute && pathname !== '/client/dashboard'; // Exclude client dashboard
-
-    // If user is logged in and tries to access a public route, redirect to app dashboard
-    if (user && isPublicRoute) {
-      router.push('/dashboard');
+    const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+    const isOnboardingRoute = ONBOARDING_ROUTES.includes(pathname);
+    
+    // If user is logged in...
+    if (user) {
+        // ...and they are on a public route (like /login), redirect to dashboard.
+        if (isPublicRoute) {
+            router.push('/dashboard');
+        }
     } 
-    // If user is not logged in and tries to access a protected app route, redirect to login
-    else if (!user && isAppRoute) {
-      router.push('/login');
+    // If user is NOT logged in...
+    else {
+        // ...and they try to access a protected route (not public and not onboarding), redirect to login.
+        if (!isPublicRoute && !isOnboardingRoute) {
+            router.push('/login');
+        }
     }
   }, [user, isAuthLoading, pathname, router]);
 
-  const isProtectedRoute = !PUBLIC_ROUTES.some(
-    (route) =>
-      pathname === route || (route !== '/' && pathname.startsWith(route))
-  );
+  const isProtectedRoute = !PUBLIC_ROUTES.includes(pathname) && !ONBOARDING_ROUTES.includes(pathname);
 
   if (isAuthLoading && isProtectedRoute) {
     return (

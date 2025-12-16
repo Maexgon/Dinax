@@ -120,11 +120,11 @@ export default function RegisterPage() {
       toast({
         variant: 'success',
         title: t.register.successTitle,
-        description: 'Redirecting to your new dashboard...',
+        description: 'Redirigiendo a tu perfil para completar tus datos...',
       });
 
-      // Step 3: Redirect to dashboard.
-      router.push('/dashboard');
+      // Step 3: Redirect to profile page to complete setup.
+      router.push('/profile');
 
     } catch (error: any) {
       console.error("Error during user registration and data setup:", error);
@@ -252,5 +252,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-
-    

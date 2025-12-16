@@ -40,8 +40,9 @@ service cloud.firestore {
         allow get, list: if isTenantOwner(tenantId) || isSelf(userId);
         
         // A tenant owner can create new users in their tenant.
-        // We check the incoming data to ensure the tenantId is correct.
-        allow create: if isTenantOwner(tenantId) && request.resource.data.tenantId == tenantId;
+        // The incoming data must have the correct tenantId.
+        // Also allow a user to create their OWN profile document.
+        allow create: if (isTenantOwner(tenantId) && request.resource.data.tenantId == tenantId) || (isSelf(userId) && request.resource.data.id == userId);
         
         // A tenant owner can update any profile, OR a user can update their own.
         allow update: if isTenantOwner(tenantId) || isSelf(userId);
