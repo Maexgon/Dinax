@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -18,15 +18,14 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
-import { useFirebase, FirestorePermissionError } from '@/firebase';
-import { createUserWithEmailAndPassword, type User } from 'firebase/auth';
-import { doc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { useFirebase } from '@/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
 
 export default function RegisterPage() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const router = useRouter();
-  const { auth, firestore } = useFirebase();
+  const { auth } = useFirebase();
 
   const [email, setEmail] = useState('');
   const [firstName, setFirstName] = useState('');
@@ -37,32 +36,6 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Human validation state
-  const [num1, setNum1] = useState(0);
-  const [num2, setNum2] = useState(0);
-  const [humanAnswer, setHumanAnswer] = useState('');
-  const [isHuman, setIsHuman] = useState(false);
-
-  useEffect(() => {
-    // Generate new numbers for the human check only on component mount
-    setNum1(Math.floor(Math.random() * 9) + 1);
-    setNum2(Math.floor(Math.random() * 9) + 1);
-  }, []);
-
-  const handleHumanValidation = () => {
-    const correctAnswer = num1 * num2;
-    if (parseInt(humanAnswer, 10) === correctAnswer) {
-      setIsHuman(true);
-      toast({ variant: 'success', title: t.register.human, description: t.register.humanSuccess });
-    } else {
-      setIsHuman(false);
-      toast({ variant: 'destructive', title: t.register.error, description: t.register.humanError });
-      setNum1(Math.floor(Math.random() * 9) + 1);
-      setNum2(Math.floor(Math.random() * 9) + 1);
-      setHumanAnswer('');
-    }
-  };
-  
   const passwordValidation = useMemo(() => {
     return {
       minLength: password.length >= 8,
@@ -74,7 +47,8 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!firestore || !auth) {
+
+    if (!auth) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -82,91 +56,50 @@ export default function RegisterPage() {
       });
       return;
     }
+    
+    if (!Object.values(passwordValidation).every(Boolean)) {
+        toast({
+            variant: 'destructive',
+            title: 'Error',
+            description: 'Password does not meet the requirements.',
+        });
+        return;
+    }
+
     setIsSubmitting(true);
     
-    let user: User | null = null;
     try {
-      // Step 1: Create user in Firebase Auth
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      user = userCredential.user;
-      const tenantId = user.uid;
-
-      // Step 2: Create tenant and user documents in an atomic batch
-      const batch = writeBatch(firestore);
-
-      // Define the reference and data for the tenant document
-      const tenantRef = doc(firestore, 'tenants', tenantId);
-      const tenantData = {
-        id: tenantId,
-        name: `${firstName}'s Gym`,
-        members: { [tenantId]: 'owner' },
-        createdAt: serverTimestamp(),
-      };
-      // Add the tenant document creation to the batch
-      batch.set(tenantRef, tenantData);
-      
-      // Define the reference and data for the user document (within the tenant's 'users' subcollection)
-      const userRef = doc(firestore, `tenants/${tenantId}/users`, tenantId);
-      const userData = {
-        id: tenantId,
-        tenantId: tenantId,
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        joinDate: new Date().toISOString().split('T')[0],
-        progress: 0,
-        createdAt: serverTimestamp(),
-      };
-      // Add the user document creation to the batch
-      batch.set(userRef, userData);
-      
-      // Step 3: Commit the batch
-      await batch.commit();
+      // Step 1: Create user in Firebase Auth.
+      // We are NOT creating any documents here. That will be handled on first login.
+      await createUserWithEmailAndPassword(auth, email, password);
 
       toast({
         variant: 'success',
         title: t.register.successTitle,
-        description: 'Redirecting to your dashboard...',
+        description: 'Please log in to continue.',
       });
 
-      router.push('/dashboard');
+      // Step 2: Redirect to login page.
+      // The FirebaseClientProvider will handle creating the tenant/user docs on first successful login.
+      router.push('/login');
 
     } catch (error: any) {
-      // This will now catch the detailed FirestorePermissionError as well
-      console.error("Error during registration:", error);
+      console.error("Error during user creation:", error);
       toast({
         variant: 'destructive',
         title: t.register.error,
         description: error.message || 'An unexpected error occurred.',
       });
-       if (user) {
-        // If user was created in Auth but Firestore failed, try to delete the user
-        // to allow re-registration with the same email.
-        try {
-            await user.delete();
-            toast({
-                variant: 'destructive',
-                title: 'Registro Incompleto',
-                description: 'Se ha borrado el usuario de autenticación. Por favor, intente registrarse de nuevo.'
-            });
-        } catch (deleteError) {
-             toast({
-                variant: 'destructive',
-                title: 'Error Crítico de Registro',
-                description: 'No se pudo escribir en la base de datos y no se pudo borrar el usuario de autenticación. Contacte a soporte.'
-            });
-        }
-      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const isSubmitDisabled = !Object.values(passwordValidation).every(Boolean) || !isHuman || isSubmitting;
+  const isSubmitDisabled = !Object.values(passwordValidation).every(Boolean) || isSubmitting;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-lg border border-primary shadow-lg shadow-primary/30">
+      <Card className="w-full max-w-lg border-primary/20 shadow-lg">
         <CardHeader className="text-center">
            <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={60} height={60} className="mx-auto rounded-sm" data-ai-hint="logo" />
           <CardTitle className="font-headline text-2xl">{t.register.title}</CardTitle>
@@ -199,14 +132,6 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-             <div className="space-y-2">
-              <Label htmlFor="phone">{t.register.phone}</Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
               />
             </div>
             <div className="relative space-y-2">
@@ -254,7 +179,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div className="space-y-2 text-xs">
+            <div className="space-y-1 text-xs">
                 <p className={passwordValidation.minLength ? 'text-green-500' : 'text-destructive'}>
                     {t.register.passLength}
                 </p>
@@ -268,22 +193,6 @@ export default function RegisterPage() {
                     {t.register.passMatch}
                 </p>
             </div>
-            
-            {!isHuman && (
-              <div className="space-y-2 rounded-lg border bg-muted/50 p-4">
-                <Label>{t.register.humanValidation}</Label>
-                <div className="flex items-center gap-4">
-                  <span className="font-mono text-lg">{`${num1} * ${num2} = ?`}</span>
-                  <Input 
-                    type="number" 
-                    className="w-24" 
-                    value={humanAnswer}
-                    onChange={e => setHumanAnswer(e.target.value)}
-                  />
-                  <Button type="button" onClick={handleHumanValidation}>{t.register.verify}</Button>
-                </div>
-              </div>
-            )}
 
             <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
