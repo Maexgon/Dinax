@@ -38,7 +38,7 @@ const educationSchema = z.object({
 const profileSchema = z.object({
   firstName: z.string().min(1, 'El nombre es obligatorio.'),
   lastName: z.string().min(1, 'El apellido es obligatorio.'),
-  email: z.string().email('Email inválido.'),
+  email: z.string().email('Email inválido.').optional(),
   secondaryEmail: z.string().email('Email secundario inválido.').optional().or(z.literal('')),
   cuit: z.string().optional(),
   phoneNumber: z.string().optional(),
@@ -113,7 +113,12 @@ export default function ProfilePage() {
     if (!userDocRef) return;
 
     try {
-      updateDocumentNonBlocking(userDocRef, data);
+      // Create a copy of the data to avoid modifying the original object
+      const dataToSave = { ...data };
+      // We don't want to save the primary email, as it's not editable
+      delete dataToSave.email;
+
+      updateDocumentNonBlocking(userDocRef, dataToSave);
       toast({
         variant: 'success',
         title: 'Perfil Actualizado',
@@ -343,4 +348,3 @@ export default function ProfilePage() {
   );
 }
 
-    
