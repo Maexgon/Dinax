@@ -94,6 +94,7 @@ export default function RegisterPage() {
       // Step 2: Create tenant and user documents in an atomic batch
       const batch = writeBatch(firestore);
 
+      // Define the reference and data for the tenant document
       const tenantRef = doc(firestore, 'tenants', tenantId);
       const tenantData = {
         id: tenantId,
@@ -101,8 +102,10 @@ export default function RegisterPage() {
         members: { [tenantId]: 'owner' },
         createdAt: serverTimestamp(),
       };
+      // Add the tenant document creation to the batch
       batch.set(tenantRef, tenantData);
-
+      
+      // Define the reference and data for the user document (within the tenant's 'users' subcollection)
       const userRef = doc(firestore, `tenants/${tenantId}/users`, tenantId);
       const userData = {
         id: tenantId,
@@ -114,20 +117,11 @@ export default function RegisterPage() {
         progress: 0,
         createdAt: serverTimestamp(),
       };
+      // Add the user document creation to the batch
       batch.set(userRef, userData);
       
-      // Step 3: Commit the batch and throw a detailed error on failure
-      try {
-        await batch.commit();
-      } catch (firestoreError) {
-        // Throw a detailed, contextual error to be caught by the outer catch block
-        // and displayed on the Next.js error overlay.
-        throw new FirestorePermissionError({
-            path: `tenants/${tenantId}`,
-            operation: 'write',
-            requestResourceData: { tenant: tenantData, user: userData }
-        });
-      }
+      // Step 3: Commit the batch
+      await batch.commit();
 
       toast({
         variant: 'success',
