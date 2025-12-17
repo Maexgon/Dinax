@@ -14,7 +14,6 @@ service cloud.firestore {
     }
 
     // Secure helper function to check if the user is an owner of the specified tenant.
-    // This now checks if the user's UID matches the tenantId in the path.
     function isTenantOwner(tenantId) {
        return isSignedIn() && request.auth.uid == tenantId;
     }
@@ -33,18 +32,8 @@ service cloud.firestore {
       // Allow a tenant owner to update their own tenant document.
       allow update, delete: if isTenantOwner(tenantId);
 
-      // Allow tenant owners to manage user profiles within their tenant.
-      match /user_profile/{userId} {
-        allow read, write: if isTenantOwner(tenantId);
-
-        // This rule allows the tenant owner to manage all subcollections for their clients.
-        match /{subcollection}/{docId=**} {
-          allow read, write: if isTenantOwner(tenantId);
-        }
-      }
-      
-      // Allow tenant owners to manage exercises within their tenant.
-      match /exercises/{exerciseId} {
+      // This rule allows the tenant owner to manage all subcollections for their clients.
+      match /{subcollection}/{docId=**} {
         allow read, write: if isTenantOwner(tenantId);
       }
     }
