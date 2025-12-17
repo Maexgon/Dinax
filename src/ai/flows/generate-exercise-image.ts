@@ -27,14 +27,19 @@ const GenerateExerciseImageOutputSchema = z.object({
 export type GenerateExerciseImageOutput = z.infer<typeof GenerateExerciseImageOutputSchema>;
 
 // Define the prompt for the image generation model
-const generateImagePrompt = `
+const generateImagePrompt = ai.definePrompt({
+    name: 'generateExerciseImagePrompt',
+    input: { schema: GenerateExerciseImageInputSchema },
+    prompt: `
 Generate a fun, minimalist, vector-style schematic image of the following fitness exercise.
 The image should be simple, clear, and focus on the movement, like a diagram.
 Use a white background. The main colors should be black for outlines and a single accent color like orange or blue for emphasis on the muscles involved.
 
-Exercise Name: {{name}}
-Instructions: {{instructions}}
-`;
+Exercise Name: {{{name}}}
+Instructions: {{{instructions}}}
+`,
+});
+
 
 // Define the flow
 const generateExerciseImageFlow = ai.defineFlow(
@@ -46,7 +51,7 @@ const generateExerciseImageFlow = ai.defineFlow(
   async (input) => {
     const { media } = await ai.generate({
         model: 'googleai/imagen-4.0-fast-generate-001',
-        prompt: generateImagePrompt.replace('{{name}}', input.name).replace('{{instructions}}', input.instructions),
+        prompt: await generateImagePrompt.render({input}),
     });
 
     if (!media.url) {
