@@ -1,11 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
+import { getAIExerciseImage } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
+
 import {
   Save,
   Image as ImageIcon,
@@ -15,7 +19,9 @@ import {
   Accessibility,
   Video,
   Plus,
-  X
+  X,
+  Bot,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +37,7 @@ const exerciseSchema = z.object({
   instructions: z.string().optional(),
   muscleGroups: z.array(z.string()).optional(),
   videoUrl: z.string().url('URL de video inválida').optional().or(z.literal('')),
+  imageUrl: z.string().optional(),
 });
 
 type ExerciseFormData = z.infer<typeof exerciseSchema>;
@@ -38,12 +45,15 @@ type ExerciseFormData = z.infer<typeof exerciseSchema>;
 export default function NewExercisePage() {
   const { t } = useLanguage();
   const router = useRouter();
+  const { toast } = useToast();
+
   const {
     register,
     control,
     handleSubmit,
     watch,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<ExerciseFormData>({
     resolver: zodResolver(exerciseSchema),
@@ -52,8 +62,10 @@ export default function NewExercisePage() {
     },
   });
 
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const selectedMuscles = watch('muscleGroups') || [];
   const videoUrl = watch('videoUrl');
+  const imageUrl = watch('imageUrl');
 
   const muscleGroupsList = t.plans.muscleGroupsList;
   const equipmentList = t.plans.equipmentList;
@@ -81,6 +93,37 @@ export default function NewExercisePage() {
   }
 
   const embedUrl = getYouTubeEmbedUrl(videoUrl);
+
+  const handleGenerateImage = async () => {
+    const { name, instructions } = getValues();
+    if (!name) {
+      toast({
+        variant: 'destructive',
+        title: t.plans.error,
+        description: t.plans.nameRequiredForImage,
+      });
+      return;
+    }
+
+    setIsGeneratingImage(true);
+    const result = await getAIExerciseImage({ name, instructions: instructions || '' });
+    setIsGeneratingImage(false);
+
+    if (result.success && result.data?.imageUrl) {
+      setValue('imageUrl', result.data.imageUrl, { shouldDirty: true });
+      toast({
+        variant: 'success',
+        title: t.plans.imageGeneratedSuccess,
+      });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: t.plans.error,
+        description: result.error || 'Unknown error generating image.',
+      });
+    }
+  };
+
 
   const onSubmit = (data: ExerciseFormData) => {
     console.log(data);
@@ -131,15 +174,26 @@ export default function NewExercisePage() {
               </div>
 
               <div className="p-4 bg-muted/50 rounded-lg border border-dashed flex flex-col sm:flex-row gap-4 items-center">
-                <div className="size-16 flex-shrink-0 rounded-lg bg-background border flex items-center justify-center">
-                  <ImageIcon className="text-muted-foreground h-8 w-8" />
+                <div className="size-24 flex-shrink-0 rounded-lg bg-background border flex items-center justify-center overflow-hidden">
+                  {isGeneratingImage ? (
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  ) : imageUrl ? (
+                    <Image src={imageUrl} alt="Generated Exercise Image" width={96} height={96} className="object-cover" />
+                  ) : (
+                    <ImageIcon className="text-muted-foreground h-10 w-10" />
+                  )}
                 </div>
                 <div className="flex-1 text-center sm:text-left">
                   <h4 className="text-sm font-semibold">{t.plans.schematicImage}</h4>
                   <p className="text-xs text-muted-foreground mt-1">{t.plans.schematicImageDesc}</p>
                 </div>
-                <Button type="button" variant="secondary" className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                  {t.plans.createWithAI}
+                <Button type="button" onClick={handleGenerateImage} disabled={isGeneratingImage} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                   {isGeneratingImage ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                   ) : (
+                      <Bot className="mr-2 h-4 w-4" />
+                   )}
+                  {isGeneratingImage ? t.plans.generating : t.plans.createWithAI}
                 </Button>
               </div>
 

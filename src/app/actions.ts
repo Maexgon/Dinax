@@ -1,6 +1,7 @@
 'use server';
 
 import { suggestGoals, type SuggestGoalsInput } from '@/ai/flows/ai-generated-goals';
+import { generateExerciseImage, type GenerateExerciseImageInput } from '@/ai/flows/generate-exercise-image';
 
 // A mock for past performance data. In a real app, this would be fetched from a database.
 const pastPerformanceData = `
@@ -23,5 +24,15 @@ export async function getAIGoalSuggestions(studentProfile: SuggestGoalsInput['st
   } catch (error) {
     console.error('Error in getAIGoalSuggestions:', error);
     return { success: false, error: 'Failed to get AI suggestions. Please try again.' };
+  }
+}
+
+export async function getAIExerciseImage(input: GenerateExerciseImageInput) {
+  try {
+    const result = await generateExerciseImage(input);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('Error in getAIExerciseImage:', error);
+    return { success: false, error: 'Failed to generate AI image. Please try again.' };
   }
 }
