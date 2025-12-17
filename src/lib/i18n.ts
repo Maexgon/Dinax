@@ -330,6 +330,7 @@ export const translations = {
         saveExercise: "Guardar Ejercicio",
         basicDetails: "Detalles Básicos",
         exerciseName: "Nombre del Ejercicio",
+        exerciseNamePlaceholder: "Ej: Press de Banca Plano",
         schematicImage: "Imagen Esquemática",
         schematicImageDesc: "Genera una imagen vectorial simple para identificar este ejercicio en las tablas.",
         createWithAI: "Crear con IA",
@@ -377,7 +378,23 @@ export const translations = {
             wednesday: "Miércoles",
             thursday: "Jueves",
             friday: "Viernes",
-        }
+        },
+        equipmentList: [
+            { value: 'none', label: 'Sin equipamiento' },
+            { value: 'dumbbells', label: 'Mancuernas' },
+            { value: 'barbell', label: 'Barra Olímpica' },
+            { value: 'cable', label: 'Polea' },
+            { value: 'bodyweight', label: 'Peso Corporal' },
+            { value: 'kettlebell', label: 'Kettlebell' },
+        ],
+        difficultyList: [
+            { value: 'beginner', label: 'Principiante' },
+            { value: 'intermediate', label: 'Intermedio' },
+            { value: 'advanced', label: 'Avanzado' },
+        ],
+        muscleGroupsList: [
+            'Pecho', 'Espalda', 'Piernas', 'Hombros', 'Bíceps', 'Tríceps', 'Abdominales', 'Glúteos', 'Isquiotibiales', 'Cuádriceps'
+        ],
     },
     payments: {
         title: "Gestión de Pagos",
@@ -756,6 +773,7 @@ export const translations = {
         saveExercise: "Save Exercise",
         basicDetails: "Basic Details",
         exerciseName: "Exercise Name",
+        exerciseNamePlaceholder: "e.g., Flat Bench Press",
         schematicImage: "Schematic Image",
         schematicImageDesc: "Generate a simple vector image to identify this exercise in tables.",
         createWithAI: "Create with AI",
@@ -803,7 +821,23 @@ export const translations = {
             wednesday: "Wednesday",
             thursday: "Thursday",
             friday: "Friday",
-        }
+        },
+        equipmentList: [
+            { value: 'none', label: 'No equipment' },
+            { value: 'dumbbells', label: 'Dumbbells' },
+            { value: 'barbell', label: 'Barbell' },
+            { value: 'cable', label: 'Cable' },
+            { value: 'bodyweight', label: 'Bodyweight' },
+            { value: 'kettlebell', label: 'Kettlebell' },
+        ],
+        difficultyList: [
+            { value: 'beginner', label: 'Beginner' },
+            { value: 'intermediate', label: 'Intermediate' },
+            { value: 'advanced', label: 'Advanced' },
+        ],
+        muscleGroupsList: [
+            'Chest', 'Back', 'Legs', 'Shoulders', 'Biceps', 'Triceps', 'Abs', 'Glutes', 'Hamstrings', 'Quads'
+        ],
     },
     payments: {
         title: "Payment Management",

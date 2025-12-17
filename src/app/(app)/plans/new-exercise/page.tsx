@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
 import {
   Save,
-  ArrowLeft,
   Image as ImageIcon,
   Link as LinkIcon,
   Info,
@@ -21,11 +20,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import Image from 'next/image';
 
 const exerciseSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio.'),
@@ -37,10 +34,6 @@ const exerciseSchema = z.object({
 });
 
 type ExerciseFormData = z.infer<typeof exerciseSchema>;
-
-const muscleGroupsList = [
-    'Pecho', 'Espalda', 'Piernas', 'Hombros', 'Bíceps', 'Tríceps', 'Abdominales', 'Glúteos', 'Isquiotibiales', 'Cuádriceps'
-];
 
 export default function NewExercisePage() {
   const { t } = useLanguage();
@@ -55,12 +48,16 @@ export default function NewExercisePage() {
   } = useForm<ExerciseFormData>({
     resolver: zodResolver(exerciseSchema),
     defaultValues: {
-      muscleGroups: ['Pecho'], // Example default
+      muscleGroups: [],
     },
   });
 
   const selectedMuscles = watch('muscleGroups') || [];
   const videoUrl = watch('videoUrl');
+
+  const muscleGroupsList = t.plans.muscleGroupsList;
+  const equipmentList = t.plans.equipmentList;
+  const difficultyList = t.plans.difficultyList;
 
   const toggleMuscleGroup = (muscle: string) => {
     const currentMuscles = watch('muscleGroups') || [];
@@ -129,7 +126,7 @@ export default function NewExercisePage() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">{t.plans.exerciseName} <span className="text-primary">*</span></Label>
-                <Input id="name" {...register('name')} placeholder="Ej: Press de Banca Plano" />
+                <Input id="name" {...register('name')} placeholder={t.plans.exerciseNamePlaceholder} />
                 {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
               </div>
 
@@ -158,11 +155,9 @@ export default function NewExercisePage() {
                           <SelectValue placeholder={t.plans.selectOption} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="dumbbells">Mancuernas</SelectItem>
-                          <SelectItem value="barbell">Barra Olímpica</SelectItem>
-                          <SelectItem value="cable">Polea</SelectItem>
-                          <SelectItem value="bodyweight">Peso Corporal</SelectItem>
-                          <SelectItem value="kettlebell">Kettlebell</SelectItem>
+                          {equipmentList.map(item => (
+                            <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     )}
@@ -180,9 +175,9 @@ export default function NewExercisePage() {
                            <SelectValue placeholder={t.plans.selectLevel} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="beginner">Principiante</SelectItem>
-                          <SelectItem value="intermediate">Intermedio</SelectItem>
-                          <SelectItem value="advanced">Avanzado</SelectItem>
+                           {difficultyList.map(item => (
+                            <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     )}
