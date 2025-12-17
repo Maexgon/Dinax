@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/language-context';
-import { getAIExerciseImage } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { useFirebase, addDocumentNonBlocking } from '@/firebase';
 import { collection, doc } from 'firebase/firestore';
+import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 
 import {
@@ -23,9 +24,9 @@ import {
   Video,
   Plus,
   X,
-  Bot,
   Loader2,
-  Zap,
+  Upload,
+  Crop,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,6 +34,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 const exerciseSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio.'),
@@ -47,11 +49,47 @@ const exerciseSchema = z.object({
 
 type ExerciseFormData = z.infer<typeof exerciseSchema>;
 
+function getCroppedImg(image: HTMLImageElement, crop: CropType): Promise<string> {
+    const canvas = document.createElement('canvas');
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    canvas.width = crop.width * scaleX;
+    canvas.height = crop.height * scaleY;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+        return Promise.reject(new Error('Failed to get canvas context'));
+    }
+
+    ctx.drawImage(
+        image,
+        crop.x * scaleX,
+        crop.y * scaleY,
+        crop.width * scaleX,
+        crop.height * scaleY,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+    return new Promise((resolve) => {
+        resolve(canvas.toDataURL('image/jpeg'));
+    });
+}
+
 export default function NewExercisePage() {
   const { t } = useLanguage();
   const router = useRouter();
   const { toast } = useToast();
   const { firestore, user } = useFirebase();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const [imgSrc, setImgSrc] = useState('');
+  const [crop, setCrop] = useState<CropType>();
+  const [completedCrop, setCompletedCrop] = useState<CropType>();
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
 
   const {
     register,
@@ -59,7 +97,6 @@ export default function NewExercisePage() {
     handleSubmit,
     watch,
     setValue,
-    getValues,
     formState: { errors, isSubmitting },
   } = useForm<ExerciseFormData>({
     resolver: zodResolver(exerciseSchema),
@@ -68,7 +105,6 @@ export default function NewExercisePage() {
     },
   });
 
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const selectedMuscles = watch('muscleGroups') || [];
   const videoUrl = watch('videoUrl');
   const imageUrl = watch('imageUrl');
@@ -101,36 +137,38 @@ export default function NewExercisePage() {
 
   const embedUrl = getYouTubeEmbedUrl(videoUrl);
 
-  const handleGenerateImage = async () => {
-    const { name, instructions } = getValues();
-    if (!name) {
-      toast({
-        variant: 'destructive',
-        title: t.plans.error,
-        description: t.plans.nameRequiredForImage,
-      });
-      return;
-    }
-
-    setIsGeneratingImage(true);
-    const result = await getAIExerciseImage({ name, instructions: instructions || '' });
-    setIsGeneratingImage(false);
-
-    if (result.success && result.data?.imageUrl) {
-      setValue('imageUrl', result.data.imageUrl, { shouldDirty: true });
-      toast({
-        variant: 'success',
-        title: t.plans.imageGeneratedSuccess,
-      });
-    } else {
-      toast({
-        variant: 'destructive',
-        title: t.plans.error,
-        description: result.error || 'Unknown error generating image.',
-      });
+  const onSelectFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+        setCrop(undefined);
+        const reader = new FileReader();
+        reader.addEventListener('load', () => setImgSrc(reader.result?.toString() || ''));
+        reader.readAsDataURL(e.target.files[0]);
+        setIsCropModalOpen(true);
     }
   };
 
+  const handleCropConfirm = async () => {
+    if (completedCrop && imgRef.current) {
+        try {
+            const croppedImageUrl = await getCroppedImg(imgRef.current, completedCrop);
+            setValue('imageUrl', croppedImageUrl, { shouldDirty: true });
+            setIsCropModalOpen(false);
+        } catch (e) {
+            console.error(e);
+            toast({
+                variant: 'destructive',
+                title: 'Error al recortar',
+                description: 'No se pudo procesar la imagen.',
+            });
+        }
+    }
+  };
+
+  function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
+      const { width, height } = e.currentTarget;
+      const crop = centerCrop(makeAspectCrop({ unit: '%', width: 90 }, 1, width, height), width, height);
+      setCrop(crop);
+  }
 
   const onSubmit = async (data: ExerciseFormData) => {
     if (!firestore || !user?.uid) {
@@ -158,6 +196,23 @@ export default function NewExercisePage() {
   };
 
   return (
+    <>
+    <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
+        <DialogContent className="max-w-md">
+            <DialogHeader><DialogTitle>Recortar Imagen</DialogTitle></DialogHeader>
+            {imgSrc && (
+                <div className="flex justify-center">
+                    <ReactCrop crop={crop} onChange={(_, pc) => setCrop(pc)} onComplete={(c) => setCompletedCrop(c)} aspect={1} minWidth={100} minHeight={100}>
+                        <img ref={imgRef} alt="Crop me" src={imgSrc} onLoad={onImageLoad} style={{ maxHeight: '70vh' }}/>
+                    </ReactCrop>
+                </div>
+            )}
+            <DialogFooter>
+                <Button variant="ghost" onClick={() => setIsCropModalOpen(false)}>Cancelar</Button>
+                <Button onClick={handleCropConfirm} disabled={!completedCrop}><Crop className="mr-2 h-4 w-4" />Confirmar</Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div>
@@ -199,28 +254,23 @@ export default function NewExercisePage() {
                 {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
               </div>
 
-              <div className="p-4 bg-muted/50 rounded-lg border border-dashed flex flex-col sm:flex-row gap-4 items-center">
+               <div className="p-4 bg-muted/50 rounded-lg border border-dashed flex flex-col sm:flex-row gap-4 items-center">
                 <div className="size-24 flex-shrink-0 rounded-lg bg-background border flex items-center justify-center overflow-hidden">
-                  {isGeneratingImage ? (
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  ) : imageUrl ? (
-                    <Image src={imageUrl} alt="Generated Exercise Image" width={96} height={96} className="object-cover" />
+                  {imageUrl ? (
+                    <Image src={imageUrl} alt="Vista previa del ejercicio" width={96} height={96} className="object-cover" />
                   ) : (
                     <ImageIcon className="text-muted-foreground h-10 w-10" />
                   )}
                 </div>
                 <div className="flex-1 text-center sm:text-left">
-                  <h4 className="text-sm font-semibold">{t.plans.schematicImage}</h4>
-                  <p className="text-xs text-muted-foreground mt-1">{t.plans.schematicImageDesc}</p>
+                  <h4 className="text-sm font-semibold">Imagen del Ejercicio</h4>
+                  <p className="text-xs text-muted-foreground mt-1">Sube una imagen para representar este ejercicio.</p>
                 </div>
-                <Button type="button" onClick={handleGenerateImage} disabled={isGeneratingImage} className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-                   {isGeneratingImage ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                   ) : (
-                      <Bot className="mr-2 h-4 w-4" />
-                   )}
-                  {isGeneratingImage ? t.plans.generating : t.plans.createWithAI}
+                <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                   <Upload className="mr-2 h-4 w-4" />
+                   Subir Imagen
                 </Button>
+                <Input type="file" ref={fileInputRef} onChange={onSelectFile} className="hidden" accept="image/png, image/jpeg, image/gif"/>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -365,7 +415,6 @@ export default function NewExercisePage() {
         </div>
       </div>
     </form>
+    </>
   );
 }
-
-    
