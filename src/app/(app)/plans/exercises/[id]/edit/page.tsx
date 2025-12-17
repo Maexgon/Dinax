@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -319,9 +318,9 @@ export default function EditExercisePage() {
                     name="type"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                         <SelectTrigger id="type">
-                          <SelectValue placeholder={t.plans.selectOption} />
+                           <SelectValue placeholder={t.plans.selectOption} />
                         </SelectTrigger>
                         <SelectContent>
                           {exerciseTypeList.map(item => (
@@ -338,7 +337,7 @@ export default function EditExercisePage() {
                     name="equipment"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                         <SelectTrigger id="equipment">
                           <SelectValue placeholder={t.plans.selectOption} />
                         </SelectTrigger>
@@ -358,7 +357,7 @@ export default function EditExercisePage() {
                     name="difficulty"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                         <SelectTrigger id="difficulty">
                            <SelectValue placeholder={t.plans.selectLevel} />
                         </SelectTrigger>
