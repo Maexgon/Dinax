@@ -1,4 +1,3 @@
-
 'use client';
 import React from 'react';
 import Image from 'next/image';
@@ -292,32 +291,51 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
       return format(d, 'dd MMM yyyy');
   }
 
-  const calculateProfileCompletion = () => {
-    let completed = 0;
-    const total = 5; // Total de campos a verificar
-    let missingFields: string[] = [];
+    const calculateProfileCompletion = () => {
+        let totalFields = 0;
+        let completedFields = 0;
 
-    // 1. Datos personales
-    if (client.birthDate && client.occupation && client.objective) completed++;
-    else missingFields.push("datos personales");
-    
-    // 2. Historial médico
-    if (latestMedicalHistory) completed++;
-    else missingFields.push("historial médico");
+        // Personal Info
+        const personalInfoFields = ['birthDate', 'occupation', 'objective', 'phoneNumber', 'address'];
+        totalFields += personalInfoFields.length;
+        personalInfoFields.forEach(field => {
+            if (client[field as keyof Client]) completedFields++;
+        });
 
-    // 3. Biomecánica
-    if (latestBiomechanics) completed++;
-    else missingFields.push("evaluación biomecánica");
+        // Medical History
+        if (latestMedicalHistory) {
+            const medicalFields = ['bloodType', 'currentConditions', 'currentMedications', 'preexistingInjuries', 'previousSurgeries', 'medicalRestrictions', 'emergencyContact'];
+            totalFields += medicalFields.length;
+            if (latestMedicalHistory.bloodType) completedFields++;
+            if (latestMedicalHistory.currentConditions && latestMedicalHistory.currentConditions.length > 0) completedFields++;
+            if (latestMedicalHistory.currentMedications && latestMedicalHistory.currentMedications.length > 0) completedFields++;
+            if (latestMedicalHistory.preexistingInjuries && latestMedicalHistory.preexistingInjuries.length > 0) completedFields++;
+            if (latestMedicalHistory.previousSurgeries && latestMedicalHistory.previousSurgeries.length > 0) completedFields++;
+            if (latestMedicalHistory.medicalRestrictions && latestMedicalHistory.medicalRestrictions.length > 0) completedFields++;
+            if (latestMedicalHistory.emergencyContact?.name && latestMedicalHistory.emergencyContact?.phone) completedFields++;
+        } else {
+             totalFields += 7; // if no record, all are considered empty
+        }
 
-    // Podemos agregar más checks
-    if(client.phoneNumber) completed++;
-    if(client.address) completed++;
+        // Biomechanics
+        if (latestBiomechanics) {
+            const biomechanicsFields = ['ankleDorsiflexion', 'hipMobility', 'shoulderMobility', 'coreStability', 'hipStability', 'squatPattern', 'hipHingePattern', 'relativeStrengthLower', 'relativeStrengthUpper', 'unilateralBalance', 'asymmetries', 'movementPain'];
+            totalFields += biomechanicsFields.length;
+            biomechanicsFields.forEach(field => {
+                const value = latestBiomechanics[field as keyof Biomechanics];
+                if (typeof value === 'number' && value > 0) completedFields++;
+            });
+        } else {
+            totalFields += 12; // if no record, all are considered empty
+        }
+        
+        if (totalFields === 0) return { percentage: 0, message: "No hay datos para calcular el progreso." };
 
-    const percentage = Math.round((completed / total) * 100);
-    const message = missingFields.length > 0 ? `Falta: ${missingFields.join(', ')}` : "¡Perfil completo!";
-    
-    return { percentage, message };
-  };
+        const percentage = Math.round((completedFields / totalFields) * 100);
+        const message = percentage < 100 ? `Progreso: ${completedFields} de ${totalFields} campos completados.` : "¡Perfil completo!";
+        
+        return { percentage, message };
+    };
 
   const profileCompletion = calculateProfileCompletion();
 
@@ -551,7 +569,3 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     </div>
   );
 }
-
-    
-
-    
