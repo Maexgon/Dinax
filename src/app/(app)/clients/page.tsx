@@ -72,36 +72,40 @@ export default function ClientsPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {isLoading && !clients && Array.from({ length: 4 }).map((_, i) => <ClientCardSkeleton key={i} />)}
         
-        {!isLoading && clients?.map((client) => (
-          <Card key={client.id} className="flex flex-col">
-            <CardHeader className="items-center">
-              <Image
-                src={client.avatarUrl || `https://i.pravatar.cc/80?u=${client.id}`}
-                alt={`Avatar of ${client.name}`}
-                data-ai-hint={client.avatarHint || 'person face'}
-                width={80}
-                height={80}
-                className="rounded-full border-2 border-primary"
-              />
-            </CardHeader>
-            <CardContent className="flex-grow text-center">
-              <CardTitle className="font-headline">{client.name}</CardTitle>
-              <CardDescription>{client.email}</CardDescription>
-              <div className="mt-4">
-                <p className="text-sm font-medium text-muted-foreground mb-1">
-                  {t.clients.planProgress}
-                </p>
-                <Progress value={client.progress || 0} className="h-2" />
-                <p className="text-xs text-accent mt-1">{client.progress || 0}{t.clients.complete}</p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link href={`/clients/${client.id}`}>{t.clients.viewProfile}</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
+        {!isLoading && clients?.map((client) => {
+          const planTypeLabel = t.clientDetail.planTypes.find(p => p.value === client.planType)?.label;
+          return (
+            <Card key={client.id} className="flex flex-col">
+              <CardHeader className="items-center">
+                <Image
+                  src={client.avatarUrl || `https://i.pravatar.cc/80?u=${client.id}`}
+                  alt={`Avatar of ${client.name}`}
+                  data-ai-hint={client.avatarHint || 'person face'}
+                  width={80}
+                  height={80}
+                  className="rounded-full border-2 border-primary"
+                />
+              </CardHeader>
+              <CardContent className="flex-grow text-center">
+                <CardTitle className="font-headline">{client.name}</CardTitle>
+                {planTypeLabel && <p className="text-sm text-primary font-medium mt-1">{planTypeLabel}</p>}
+                <CardDescription className="mt-1">{client.email}</CardDescription>
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    {t.clients.planProgress}
+                  </p>
+                  <Progress value={client.progress || 0} className="h-2" />
+                  <p className="text-xs text-accent mt-1">{client.progress || 0}{t.clients.complete}</p>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button asChild className="w-full">
+                  <Link href={`/clients/${client.id}`}>{t.clients.viewProfile}</Link>
+                </Button>
+              </CardFooter>
+            </Card>
+          )
+        })}
       </div>
     </div>
   );
