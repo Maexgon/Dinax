@@ -338,7 +338,7 @@ export const translations = {
     plans: {
         title: "Planes de Entrenamiento",
         description: "Crea y gestiona planes de entrenamiento personalizados para tus clientes.",
-        createNewPlan: "Crear Nuevo Plan",
+        createNewPlan: "Crear Plan",
         addNewExercise: "Añadir Nuevo Ejercicio",
         newExerciseDescription: "Completa la ficha técnica para añadir un nuevo movimiento a la biblioteca.",
         saveExercise: "Guardar Ejercicio",
@@ -387,18 +387,21 @@ export const translations = {
         activeRecovery: "Recuperación Activa",
         recoveryDescription: "Se recomienda estiramiento ligero o 30 minutos de caminata.",
         dragExercises: "Arrastra ejercicios aquí",
-        weekScheduleTitle: "Planificación Semana 1",
+        weekScheduleTitle: "Planificación Semanal",
         weekScheduleDescription: "4 Entrenamientos • 3 Días de Descanso • Volumen estimado: Alto",
         estDuration: "Duración Est.",
         intensity: "Intensidad",
         intensityHigh: "Alta",
         weeklyTargets: "Objetivos Semanales",
+        markAsRestDay: "Marcar como día de descanso",
         day: {
             monday: "Lunes",
             tuesday: "Martes",
             wednesday: "Miércoles",
             thursday: "Jueves",
             friday: "Viernes",
+            saturday: "Sábado",
+            sunday: "Domingo"
         },
         equipmentList: [
             { value: 'none', label: 'Sin equipamiento' },
@@ -802,7 +805,7 @@ export const translations = {
             hipHingePattern: "Hip hinge pattern (0-5)",
             relativeStrengthLower: "Relative strength lower (kg/kg)",
             relativeStrengthUpper: "Relative strength upper (kg/kg)",
-            unilateralBalance: "Unilateral balance (s)",
+unilateralBalance: "Unilateral balance (s)",
             asymmetries: "R-L asymmetries (%)",
             movementPain: "Pain during movement (0-10)",
         }
@@ -817,7 +820,7 @@ export const translations = {
     plans: {
         title: "Training Plans",
         description: "Create and manage customized workout plans for your clients.",
-        createNewPlan: "Create New Plan",
+        createNewPlan: "Create Plan",
         addNewExercise: "Add New Exercise",
         newExerciseDescription: "Fill out the data sheet to add a new movement to the library.",
         saveExercise: "Save Exercise",
@@ -866,18 +869,21 @@ export const translations = {
         activeRecovery: "Active Recovery",
         recoveryDescription: "Light stretching or a 30-minute walk is recommended.",
         dragExercises: "Drag exercises here",
-        weekScheduleTitle: "Week 1 Schedule",
+        weekScheduleTitle: "Weekly Schedule",
         weekScheduleDescription: "4 Workouts • 3 Rest Days • Estimated volume: High",
         estDuration: "Est. Duration",
         intensity: "Intensity",
         intensityHigh: "High",
         weeklyTargets: "Weekly Targets",
+        markAsRestDay: "Mark as rest day",
         day: {
             monday: "Monday",
             tuesday: "Tuesday",
             wednesday: "Wednesday",
             thursday: "Thursday",
             friday: "Friday",
+            saturday: "Saturday",
+            sunday: "Sunday"
         },
         equipmentList: [
             { value: 'none', label: 'No equipment' },

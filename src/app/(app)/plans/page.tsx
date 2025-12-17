@@ -1,16 +1,15 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useId } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Loader2 } from 'lucide-react';
+import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Trash2, Moon, ChevronLeft, ChevronRight, Bed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
-import { mockTrainingPlans } from '@/lib/data';
-import type { Client, TrainingPlan, Exercise, ExerciseWithId } from '@/lib/types';
+import type { Client, TrainingPlan, Exercise, ExerciseWithId, Workout } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
@@ -22,67 +21,76 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from '@/lib/utils';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 
-const ExerciseCard = ({ exercise }: { exercise: Exercise }) => {
+type PlannedExercise = ExerciseWithId & { planId: string; };
+
+const PlannedExerciseCard = ({ exercise, onRemove }: { exercise: PlannedExercise, onRemove: (planId: string) => void }) => {
     const { t } = useLanguage();
     return (
-        <Card className="shadow-md">
+        <Card className="shadow-md bg-background relative group">
             <CardContent className="p-3">
                 <div className="flex items-center gap-3">
                     <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
-                     <Image src={exercise.imageUrl || exercise.image || 'https://picsum.photos/seed/placeholder/100/100'} alt={exercise.name} width={60} height={60} className="rounded-md object-cover" />
+                     <Image src={exercise.imageUrl || 'https://picsum.photos/seed/placeholder/100/100'} alt={exercise.name} width={60} height={60} className="rounded-md object-cover" />
                     <div className="flex-1">
                         <p className="font-semibold">{exercise.name}</p>
-                        {exercise.warmup ? (
-                            <p className="text-xs text-primary">{exercise.warmup}</p>
-                        ) : (
-                            <div className='flex gap-1 mt-1'>
-                                {exercise.muscleGroups?.slice(0, 2).map(m => <Badge key={m} variant="secondary" className='text-xs'>{m}</Badge>)}
-                            </div>
-                        )}
+                        <div className='flex gap-1 mt-1'>
+                            {exercise.muscleGroups?.slice(0, 2).map(m => <Badge key={m} variant="secondary" className='text-xs'>{m}</Badge>)}
+                        </div>
                     </div>
-                    <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => onRemove(exercise.planId)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
                 </div>
-                {exercise.sets && (
                 <div className="grid grid-cols-4 gap-2 text-center mt-3">
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.sets}</p>
-                        <div className="p-2 bg-muted rounded-md mt-1 font-bold">{exercise.sets}</div>
+                        <Input className="p-2 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-" />
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.reps}</p>
-                        <div className="p-2 bg-muted rounded-md mt-1 font-bold">{exercise.reps}</div>
+                        <Input className="p-2 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-"/>
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.rpe}</p>
-                        <div className="p-2 bg-muted rounded-md mt-1 font-bold">{exercise.rpe}</div>
+                        <Input className="p-2 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-"/>
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.rest}</p>
-                        <div className="p-2 bg-muted rounded-md mt-1 font-bold">{exercise.rest}</div>
+                        <Input className="p-2 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-"/>
                     </div>
                 </div>
-                )}
             </CardContent>
         </Card>
     )
 }
 
-const DaySchedule = ({ day, focus, exercises, t }: { day: string, focus: string, exercises?: Exercise[], t: any }) => {
+const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onAddExercise, onRemoveExercise, onSetRestDay, isRestDay, t }: { day: string, focus: string, exercises: PlannedExercise[], onDaySelect: () => void, isActive: boolean, onAddExercise: (ex: ExerciseWithId) => void, onRemoveExercise: (planId: string) => void, onSetRestDay: () => void, isRestDay: boolean, t: any }) => {
     
-    if (!exercises || exercises.length === 0) {
+    if (isRestDay) {
         return (
-             <Card className="bg-muted/50">
+             <Card className="bg-muted/50 border-2 border-dashed">
                 <CardHeader>
                     <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold">{day} <span className="text-sm font-normal text-muted-foreground">{focus}</span></h3>
-                        <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                        <h3 className="text-lg font-semibold">{day} <span className="text-sm font-normal text-muted-foreground">{t.plans.focus.rest}</span></h3>
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-5 w-5 text-muted-foreground" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={onSetRestDay} className="text-destructive focus:text-destructive">
+                                    Quitar descanso
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </CardHeader>
                 <CardContent className="text-center py-10">
                      <div className="flex items-center justify-center h-16 w-16 rounded-full bg-background mx-auto">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 text-primary"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                        <Bed className="h-8 w-8 text-primary"/>
                     </div>
                     <h4 className="font-semibold mt-4">{t.plans.activeRecovery}</h4>
                     <p className="text-sm text-muted-foreground mt-1">{t.plans.recoveryDescription}</p>
@@ -92,20 +100,31 @@ const DaySchedule = ({ day, focus, exercises, t }: { day: string, focus: string,
     }
     
     return (
-        <Card>
+        <Card onClick={onDaySelect} className={cn("cursor-pointer transition-all", isActive ? 'border-primary shadow-lg' : 'hover:border-primary/50')}>
             <CardHeader>
                 <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold">{day} <span className="text-sm font-normal text-muted-foreground">{focus}</span></h3>
-                    <MoreVertical className="h-5 w-5 text-muted-foreground" />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                             <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-5 w-5 text-muted-foreground" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={onSetRestDay}>
+                                {t.plans.markAsRestDay}
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-                {exercises.map((ex, index) => (
-                    <ExerciseCard key={index} exercise={ex} />
+            <CardContent className="space-y-3 min-h-[100px]">
+                {exercises.map((ex) => (
+                    <PlannedExerciseCard key={ex.planId} exercise={ex} onRemove={onRemoveExercise} />
                 ))}
-                <Button variant="outline" className="w-full border-dashed">
-                    <Plus className="mr-2 h-4 w-4" /> {t.plans.dragExercises}
-                </Button>
+                {isActive && (
+                    <div className="p-4 border-2 border-dashed rounded-lg text-center text-muted-foreground">
+                        <p>{t.plans.dragExercises}</p>
+                    </div>
+                )}
             </CardContent>
         </Card>
     )
@@ -114,13 +133,16 @@ const DaySchedule = ({ day, focus, exercises, t }: { day: string, focus: string,
 export default function PlansPage() {
     const { t } = useLanguage();
     const { firestore, user } = useFirebase();
-    const plan = mockTrainingPlans[0];
     
     const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
     const [filter, setFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
     const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
+    const [selectedDay, setSelectedDay] = useState('Monday');
+    const [weeklyPlan, setWeeklyPlan] = useState<Record<string, PlannedExercise[]>>({
+      'Monday': [], 'Tuesday': [], 'Wednesday': [], 'Thursday': [], 'Friday': []
+    });
 
     const tenantId = user?.uid;
 
@@ -154,15 +176,43 @@ export default function PlansPage() {
     const filterButtons = [{value: 'all', label: t.plans.all}, ...t.plans.exerciseTypeList];
 
     const weekSchedule = [
-        { day: t.plans.day.monday, focus: t.plans.focus.legs, exercises: plan.microcycles[0].workouts.find(w => w.day === 'Monday')?.exercises },
-        { day: t.plans.day.tuesday, focus: t.plans.focus.rest, exercises: [] },
-        { day: t.plans.day.wednesday, focus: t.plans.focus.push, exercises: plan.microcycles[0].workouts.find(w => w.day === 'Wednesday')?.exercises },
-        { day: t.plans.day.thursday, focus: t.plans.focus.rest, exercises: [] },
-        { day: t.plans.day.friday, focus: t.plans.focus.pull, exercises: plan.microcycles[0].workouts.find(w => w.day === 'Friday')?.exercises },
+        { day: t.plans.day.monday, focus: t.plans.focus.legs, id: 'Monday' },
+        { day: t.plans.day.tuesday, focus: 'Push', id: 'Tuesday' },
+        { day: t.plans.day.wednesday, focus: t.plans.focus.pull, id: 'Wednesday' },
+        { day: t.plans.day.thursday, focus: 'Upper Body', id: 'Thursday' },
+        { day: t.plans.day.friday, focus: 'Full Body', id: 'Friday' },
     ]
     
     const years = ['2025', '2026', '2027'];
     const months = t.plans.months;
+    const uniqueId = useId();
+
+    const handleAddExercise = (exercise: ExerciseWithId) => {
+        if (!selectedDay) return;
+        setWeeklyPlan(prev => ({
+            ...prev,
+            [selectedDay]: [...prev[selectedDay], { ...exercise, planId: `${exercise.id}-${Date.now()}` }]
+        }));
+    }
+
+    const handleRemoveExercise = (day: string, planId: string) => {
+        setWeeklyPlan(prev => ({
+            ...prev,
+            [day]: prev[day].filter(ex => ex.planId !== planId)
+        }));
+    }
+
+    const handleSetRestDay = (day: string) => {
+        setWeeklyPlan(prev => ({
+            ...prev,
+            [day]: prev[day][0]?.name === 'Rest Day' ? [] : [{id: 'rest', name: 'Rest Day', planId: 'rest-day'}]
+        }))
+    }
+    
+    const isRestDay = (day: string) => {
+        return weeklyPlan[day]?.[0]?.name === 'Rest Day';
+    }
+
 
   return (
     <div className="flex flex-col h-full">
@@ -270,73 +320,78 @@ export default function PlansPage() {
                   ].filter(Boolean).join(' • ');
 
                   return (
-                    <Link href={`/plans/exercises/${ex.id}/edit`} key={ex.id}>
-                      <Card className="hover:border-primary transition-colors cursor-pointer">
-                          <CardContent className="p-2 flex items-center gap-3">
-                              <Image src={ex.imageUrl || 'https://picsum.photos/seed/placeholder/40/40'} alt={ex.name} width={40} height={40} className="rounded-md aspect-square object-cover" />
-                              <div className="flex-1">
-                                  <p className="font-semibold text-sm">{ex.name}</p>
-                                  <p className="text-xs text-muted-foreground capitalize">
-                                      {details || 'Sin detalles'}
-                                  </p>
-                              </div>
-                          </CardContent>
-                      </Card>
-                    </Link>
+                    <Card key={ex.id} className="hover:border-primary/50 transition-colors">
+                        <CardContent className="p-2 flex items-center gap-3">
+                            <Image src={ex.imageUrl || 'https://picsum.photos/seed/placeholder/40/40'} alt={ex.name} width={40} height={40} className="rounded-md aspect-square object-cover" />
+                            <div className="flex-1">
+                                <p className="font-semibold text-sm">{ex.name}</p>
+                                <p className="text-xs text-muted-foreground capitalize">
+                                    {details || 'Sin detalles'}
+                                </p>
+                            </div>
+                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleAddExercise(ex)}>
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </CardContent>
+                    </Card>
                   );
                 })}
                  {!areExercisesLoading && filteredExercises?.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-4">{t.plans.noExercises}</p>
                  )}
-                 {!areExercisesLoading && (
-                     <Button className="w-full bg-primary/20 text-primary hover:bg-primary/30 mt-auto" asChild>
-                        <Link href="/plans/new-exercise">
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            {t.plans.addNewExercise}
-                        </Link>
-                      </Button>
-                 )}
             </div>
+            {!areExercisesLoading && (
+                 <Button className="w-full bg-primary/20 text-primary hover:bg-primary/30 mt-auto" asChild>
+                    <Link href="/plans/new-exercise">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        {t.plans.addNewExercise}
+                    </Link>
+                  </Button>
+             )}
         </div>
         
         {/* Weekly Schedule */}
         <div className="lg:col-span-2 space-y-6 overflow-y-auto">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>{t.plans.weekScheduleTitle}</CardTitle>
-                        <CardDescription>{t.plans.weekScheduleDescription}</CardDescription>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" className="h-8 w-8"><ChevronLeft className="h-4 w-4" /></Button>
+                         <div>
+                            <CardTitle>{t.plans.weekScheduleTitle}</CardTitle>
+                            <CardDescription>{t.plans.weekScheduleDescription}</CardDescription>
+                        </div>
+                        <Button variant="outline" size="icon" className="h-8 w-8"><ChevronRight className="h-4 w-4" /></Button>
                     </div>
                     <div className="flex gap-4 text-center">
                         <div>
                             <p className="text-xs text-muted-foreground">{t.plans.estDuration}</p>
-                            <p className="font-bold">5h 30m</p>
+                            <p className="font-bold">0h 0m</p>
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">{t.plans.intensity}</p>
-                            <Badge variant="destructive">{t.plans.intensityHigh}</Badge>
+                            <Badge variant="outline">N/A</Badge>
                         </div>
                     </div>
                 </CardHeader>
             </Card>
 
             <div className="space-y-6">
-                {weekSchedule.map((dayData, index) => (
-                    <DaySchedule key={index} day={dayData.day} focus={dayData.focus} exercises={dayData.exercises} t={t} />
+                {weekSchedule.map((dayData) => (
+                    <DaySchedule
+                        key={dayData.id}
+                        day={dayData.day}
+                        focus={dayData.focus}
+                        exercises={weeklyPlan[dayData.id] || []}
+                        onDaySelect={() => setSelectedDay(dayData.id)}
+                        isActive={selectedDay === dayData.id}
+                        onAddExercise={handleAddExercise}
+                        onRemoveExercise={(planId) => handleRemoveExercise(dayData.id, planId)}
+                        onSetRestDay={() => handleSetRestDay(dayData.id)}
+                        isRestDay={isRestDay(dayData.id)}
+                        t={t}
+                    />
                 ))}
             </div>
-
-            <Card className="mt-6 sticky bottom-4 bg-background/80 backdrop-blur-sm">
-                <CardContent className="p-4 flex items-center justify-between">
-                    <div >
-                        <p className="font-semibold">{t.plans.weeklyTargets}</p>
-                        <p className="text-sm text-muted-foreground">75% {t.dashboard.completed}</p>
-                    </div>
-                    <div className="w-24 h-2 bg-muted rounded-full">
-                        <div className="w-3/4 h-2 bg-primary rounded-full"></div>
-                    </div>
-                </CardContent>
-            </Card>
         </div>
       </div>
     </div>
