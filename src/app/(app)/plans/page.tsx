@@ -107,6 +107,9 @@ export default function PlansPage() {
     const { firestore, user } = useFirebase();
     const plan = mockTrainingPlans[0];
     const client = mockClients[1];
+    
+    const [filter, setFilter] = useState('all');
+    const [searchQuery, setSearchQuery] = useState('');
 
     const tenantId = user?.uid;
     const exercisesCollectionRef = useMemoFirebase(
@@ -115,6 +118,14 @@ export default function PlansPage() {
     );
 
     const { data: exercises, isLoading: areExercisesLoading } = useCollection<ExerciseWithId>(exercisesCollectionRef);
+    
+    const filteredExercises = exercises?.filter(ex => {
+        const matchesType = filter === 'all' || ex.type === filter;
+        const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesType && matchesSearch;
+    });
+    
+    const filterButtons = [{value: 'all', label: t.plans.all}, ...t.plans.exerciseTypeList];
 
     const weekSchedule = [
         { day: t.plans.day.monday, focus: t.plans.focus.legs, exercises: plan.microcycles[0].workouts.find(w => w.day === 'Monday')?.exercises },
@@ -154,13 +165,14 @@ export default function PlansPage() {
         <div className="lg:col-span-1 bg-card p-4 rounded-lg flex flex-col">
             <div className="relative mb-4">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder={t.plans.searchExercises} className="pl-8" />
+                <Input placeholder={t.plans.searchExercises} className="pl-8" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
-            <div className="flex gap-2 mb-4">
-                <Button size="sm" variant="secondary">{t.plans.all}</Button>
-                <Button size="sm" variant="ghost">{t.plans.strength}</Button>
-                <Button size="sm" variant="ghost">{t.plans.cardio}</Button>
-                <Button size="sm" variant="ghost">{t.plans.plyo}</Button>
+            <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                 {filterButtons.map(btn => (
+                    <Button key={btn.value} size="sm" variant={filter === btn.value ? "secondary" : "ghost"} onClick={() => setFilter(btn.value)} className="shrink-0">
+                        {btn.label}
+                    </Button>
+                ))}
             </div>
             <h3 className="text-sm font-semibold mb-2">{t.plans.exerciseLibrary}</h3>
             <div className="space-y-2 overflow-y-auto mb-4 flex-1">
@@ -169,29 +181,34 @@ export default function PlansPage() {
                         {Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
                     </div>
                 )}
-                {!areExercisesLoading && exercises?.map((ex) => (
+                {!areExercisesLoading && filteredExercises?.map((ex) => (
                   <Link href={`/plans/exercises/${ex.id}/edit`} key={ex.id}>
                     <Card className="hover:border-primary transition-colors cursor-pointer">
                         <CardContent className="p-2 flex items-center gap-3">
                             <Image src={ex.imageUrl || 'https://picsum.photos/seed/placeholder/40/40'} alt={ex.name} width={40} height={40} className="rounded-md aspect-square object-cover" />
                             <div className="flex-1">
                                 <p className="font-semibold text-sm">{ex.name}</p>
-                                <p className="text-xs text-muted-foreground">{ex.equipment}</p>
+                                <p className="text-xs text-muted-foreground">
+                                    {ex.equipment}
+                                    {ex.type && <span className="before:content-['•'] before:mx-1">{ex.type}</span>}
+                                </p>
                             </div>
                         </CardContent>
                     </Card>
                    </Link>
                 ))}
-                 {!areExercisesLoading && exercises?.length === 0 && (
+                 {!areExercisesLoading && filteredExercises?.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-4">{t.plans.noExercises}</p>
                  )}
+                 {!areExercisesLoading && (
+                     <Button className="w-full bg-primary/20 text-primary hover:bg-primary/30 mt-2" asChild>
+                        <Link href="/plans/new-exercise">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            {t.plans.addNewExercise}
+                        </Link>
+                      </Button>
+                 )}
             </div>
-             <Button className="w-full bg-primary/20 text-primary hover:bg-primary/30" asChild>
-                <Link href="/plans/new-exercise">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    {t.plans.addNewExercise}
-                </Link>
-              </Button>
         </div>
         
         {/* Weekly Schedule */}
