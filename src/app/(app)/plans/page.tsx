@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Trash2, Moon, ChevronLeft, ChevronRight, Bed, Loader2 } from 'lucide-react';
+import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Trash2, Moon, ChevronLeft, ChevronRight, Bed, Loader2, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -313,9 +313,8 @@ export default function PlansPage() {
 
     const handleSetRestDay = (day: string) => {
         setPlanState(prev => {
-            const newPlan = JSON.parse(JSON.stringify(prev)); // Deep copy to ensure re-render
-            
-            // Ensure week and day objects exist before modification
+            const newPlan = JSON.parse(JSON.stringify(prev)); 
+    
             if (!newPlan[currentWeekIndex]) {
                 newPlan[currentWeekIndex] = {};
             }
@@ -327,7 +326,6 @@ export default function PlansPage() {
             const currentIsRestDay = newPlan[currentWeekIndex][day].isRestDay;
             newPlan[currentWeekIndex][day].isRestDay = !currentIsRestDay;
     
-            // If it's now a rest day, clear exercises.
             if (newPlan[currentWeekIndex][day].isRestDay) {
                 newPlan[currentWeekIndex][day].exercises = [];
             }
@@ -371,15 +369,43 @@ export default function PlansPage() {
             setIsSubmitting(false);
         }
     }
-
-    const currentDayDataForCalc = planState[currentWeekIndex]?.[selectedDay];
     
+    const handleReplicatePreviousWeek = () => {
+        if (currentWeekIndex === 0) {
+            toast({ variant: 'destructive', title: "Error", description: "No hay semana anterior para replicar." });
+            return;
+        }
+
+        setPlanState(prev => {
+            const newPlan = { ...prev };
+            const previousWeekPlan = prev[currentWeekIndex - 1];
+
+            if (!previousWeekPlan) {
+                 toast({ variant: 'destructive', title: "Semana Vacía", description: "La semana anterior está vacía." });
+                return prev;
+            }
+
+            // Deep copy and assign new planIds to exercises
+            const replicatedWeekPlan = JSON.parse(JSON.stringify(previousWeekPlan));
+            Object.keys(replicatedWeekPlan).forEach(dayId => {
+                replicatedWeekPlan[dayId].exercises = replicatedWeekPlan[dayId].exercises.map((ex: PlannedExercise) => ({
+                    ...ex,
+                    planId: `${ex.id}-${Date.now()}-${Math.random()}`
+                }));
+            });
+
+            newPlan[currentWeekIndex] = replicatedWeekPlan;
+            
+            toast({ title: "Semana Replicada", description: "Se ha copiado el plan de la semana anterior." });
+            return newPlan;
+        });
+    };
+
     const { totalDuration, averageRpe } = useMemo(() => {
         let totalDuration = 0;
         let totalRpe = 0;
         let rpeCount = 0;
 
-        // Iterate over all days in the current week
         const weekData = planState[currentWeekIndex];
         if (weekData) {
             Object.values(weekData).forEach(dayData => {
@@ -399,15 +425,15 @@ export default function PlansPage() {
             });
         }
 
-        const averageRpe = rpeCount > 0 ? totalRpe / rpeCount : 0;
-        return { totalDuration, averageRpe };
+        const averageRpe = rpeCount > 0 ? (totalRpe / rpeCount) : 0;
+        return { totalDuration, averageRpe: Number(averageRpe.toFixed(1)) };
     }, [planState, currentWeekIndex]);
     
     const getIntensityLabel = (rpe: number) => {
         if (rpe >= 9.5) return t.plans.intensityLabels.max;
         if (rpe >= 8) return t.plans.intensityLabels.high;
         if (rpe >= 7) return t.plans.intensityLabels.moderate;
-        if (rpe <= 6 && rpe > 0) return t.plans.intensityLabels.light;
+        if (rpe > 0) return t.plans.intensityLabels.light;
         return 'N/A';
     }
 
@@ -568,12 +594,16 @@ export default function PlansPage() {
                             </div>
                             <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentWeekIndex(p => Math.min(totalWeeksInMonth - 1, p + 1))} disabled={currentWeekIndex >= totalWeeksInMonth - 1}><ChevronRight className="h-4 w-4" /></Button>
                         </div>
-                        <div className="flex gap-4 text-center">
-                            <div>
+                        <div className="flex items-center gap-4">
+                            <Button variant="outline" size="sm" onClick={handleReplicatePreviousWeek} disabled={currentWeekIndex === 0}>
+                                <Copy className="mr-2 h-4 w-4" />
+                                {t.plans.replicateWeek}
+                            </Button>
+                            <div className="text-center">
                                 <p className="text-xs text-muted-foreground">{t.plans.estDuration}</p>
                                 <p className="font-bold">{totalDuration}m</p>
                             </div>
-                            <div>
+                            <div className="text-center">
                                 <p className="text-xs text-muted-foreground">{t.plans.intensity}</p>
                                 <Badge variant={averageRpe > 0 ? "default" : "outline"} className="capitalize">{getIntensityLabel(averageRpe)}</Badge>
                             </div>

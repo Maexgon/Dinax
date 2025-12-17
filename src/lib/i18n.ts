@@ -382,6 +382,7 @@ export const translations = {
         weekScheduleDescription: "4 Entrenamientos • 3 Días de Descanso • Volumen estimado: Alto",
         estDuration: "Duración Est.",
         intensity: "Intensidad",
+        replicateWeek: "Replicar Semana",
         intensityLabels: {
             max: "Máxima",
             high: "Alta",
@@ -859,6 +860,7 @@ unilateralBalance: "Unilateral balance (s)",
         weekScheduleDescription: "4 Workouts • 3 Rest Days • Estimated volume: High",
         estDuration: "Est. Duration",
         intensity: "Intensity",
+        replicateWeek: "Replicate Week",
         intensityLabels: {
             max: "Maximal",
             high: "High",
