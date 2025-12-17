@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
@@ -11,8 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
 import type { Client, ExerciseWithId, PlannedExercise, Mesocycle } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useFirebase, useCollection, useMemoFirebase, setDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
-import { collection, query, orderBy, doc, serverTimestamp, getDocs, where } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, doc, serverTimestamp, getDocs, where, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
@@ -24,8 +23,7 @@ import {
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { getWeeksInMonth, getWeek, getDay, format, startOfWeek } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { getWeeksInMonth, startOfWeek } from 'date-fns';
 
 type WeeklyPlan = {
     [day: string]: {
@@ -86,8 +84,6 @@ const PlannedExerciseCard = ({ exercise, onRemove, onUpdate, isRestDay }: { exer
         </Card>
     )
 }
-
-const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
 const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onRemoveExercise, onSetRestDay, isRestDay, t, onUpdateExercise, dayIndex, weekNumber }: { day: string, focus: string, exercises: PlannedExercise[], onDaySelect: () => void, isActive: boolean, onRemoveExercise: (planId: string) => void, onSetRestDay: () => void, isRestDay: boolean, t: any, onUpdateExercise: (day: string, planId: string, field: keyof PlannedExercise, value: string) => void, dayIndex: number, weekNumber: number }) => {
     
@@ -211,7 +207,7 @@ export default function PlansPage() {
         { day: t.plans.day.sunday, focus: t.plans.focus.rest, id: 'Domingo' },
     ], [t]);
 
-    const years = Array.from({ length: 3 }, (_, i) => new Date().getFullYear() + i);
+    const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i - 2);
     const months = t.plans.months;
     const totalWeeksInMonth = getWeeksInMonth(new Date(selectedYear, selectedMonth));
 
@@ -303,15 +299,13 @@ export default function PlansPage() {
 
     const handleUpdateExercise = (day: string, planId: string, field: keyof PlannedExercise, value: string) => {
         setPlanState(prev => {
-            const newPlan = { ...prev };
+            const newPlan = JSON.parse(JSON.stringify(prev)); // Deep copy
             if (!newPlan[currentWeekIndex] || !newPlan[currentWeekIndex][day]) return prev;
-
+    
             const dayExercises = newPlan[currentWeekIndex][day].exercises;
-            const exerciseIndex = dayExercises.findIndex(ex => ex.planId === planId);
+            const exerciseIndex = dayExercises.findIndex((ex: PlannedExercise) => ex.planId === planId);
             if (exerciseIndex > -1) {
-                const updatedExercise = { ...dayExercises[exerciseIndex], [field]: value };
-                dayExercises[exerciseIndex] = updatedExercise;
-                newPlan[currentWeekIndex][day] = { ...newPlan[currentWeekIndex][day], exercises: [...dayExercises] };
+                dayExercises[exerciseIndex][field] = value;
             }
             return newPlan;
         });
@@ -319,13 +313,25 @@ export default function PlansPage() {
 
     const handleSetRestDay = (day: string) => {
         setPlanState(prev => {
-            const newPlan = { ...prev };
-            if (!newPlan[currentWeekIndex] || !newPlan[currentWeekIndex][day]) { // Initialize if not exist
-                 newPlan[currentWeekIndex] = newPlan[currentWeekIndex] || {};
-                 newPlan[currentWeekIndex][day] = { focus: '', isRestDay: false, exercises: [] };
+            const newPlan = JSON.parse(JSON.stringify(prev)); // Deep copy to ensure re-render
+            
+            // Ensure week and day objects exist before modification
+            if (!newPlan[currentWeekIndex]) {
+                newPlan[currentWeekIndex] = {};
             }
+            if (!newPlan[currentWeekIndex][day]) {
+                 const baseDay = weekSchedule.find(d => d.id === day) || { focus: 'Descanso', exercises: []};
+                 newPlan[currentWeekIndex][day] = { focus: baseDay.focus, isRestDay: false, exercises: [] };
+            }
+    
             const currentIsRestDay = newPlan[currentWeekIndex][day].isRestDay;
-            newPlan[currentWeekIndex][day] = { ...newPlan[currentWeekIndex][day], isRestDay: !currentIsRestDay, exercises: currentIsRestDay ? [] : [] };
+            newPlan[currentWeekIndex][day].isRestDay = !currentIsRestDay;
+    
+            // If it's now a rest day, clear exercises.
+            if (newPlan[currentWeekIndex][day].isRestDay) {
+                newPlan[currentWeekIndex][day].exercises = [];
+            }
+    
             return newPlan;
         });
     }
@@ -366,39 +372,58 @@ export default function PlansPage() {
         }
     }
 
-    const dayData = planState[currentWeekIndex]?.[selectedDay];
-
+    const currentDayDataForCalc = planState[currentWeekIndex]?.[selectedDay];
+    
     const { totalDuration, averageRpe } = useMemo(() => {
-        if (!dayData || dayData.isRestDay) return { totalDuration: 0, averageRpe: 0 };
         let totalDuration = 0;
         let totalRpe = 0;
         let rpeCount = 0;
-        dayData.exercises.forEach(ex => {
-            if (ex.duration) totalDuration += parseInt(ex.duration, 10) || 0;
-            if (ex.rpe) {
-                const rpeVal = parseInt(ex.rpe, 10);
-                if (!isNaN(rpeVal)) {
-                    totalRpe += rpeVal;
-                    rpeCount++;
+
+        // Iterate over all days in the current week
+        const weekData = planState[currentWeekIndex];
+        if (weekData) {
+            Object.values(weekData).forEach(dayData => {
+                if (!dayData.isRestDay) {
+                    dayData.exercises.forEach(ex => {
+                        const duration = parseInt(ex.duration, 10);
+                        if (!isNaN(duration)) {
+                            totalDuration += duration;
+                        }
+                        const rpe = parseFloat(ex.rpe);
+                         if (!isNaN(rpe)) {
+                            totalRpe += rpe;
+                            rpeCount++;
+                        }
+                    });
                 }
-            }
-        });
+            });
+        }
+
         const averageRpe = rpeCount > 0 ? totalRpe / rpeCount : 0;
         return { totalDuration, averageRpe };
-    }, [dayData]);
+    }, [planState, currentWeekIndex]);
     
     const getIntensityLabel = (rpe: number) => {
         if (rpe >= 9.5) return t.plans.intensityLabels.max;
         if (rpe >= 8) return t.plans.intensityLabels.high;
         if (rpe >= 7) return t.plans.intensityLabels.moderate;
-        return t.plans.intensityLabels.light;
+        if (rpe <= 6 && rpe > 0) return t.plans.intensityLabels.light;
+        return 'N/A';
     }
 
 
   return (
     <div className="flex flex-col h-full">
       <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        {selectedClient ? (
+        {areClientsLoading ? (
+            <div className="flex items-center gap-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-64" />
+                </div>
+            </div>
+        ) : selectedClient ? (
             <div className="flex items-center gap-4">
                 <Avatar className="h-12 w-12 border-2 border-primary">
                     <AvatarImage src={selectedClient.avatarUrl} alt={selectedClient.name} data-ai-hint={selectedClient.avatarHint}/>
@@ -410,8 +435,7 @@ export default function PlansPage() {
                             <SelectValue placeholder="Seleccionar cliente" />
                         </SelectTrigger>
                         <SelectContent>
-                            {areClientsLoading && <div className="p-4 text-center text-sm">Cargando...</div>}
-                            {!areClientsLoading && clients?.map(client => (
+                            {clients?.map(client => (
                                 <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
                             ))}
                         </SelectContent>
@@ -419,14 +443,6 @@ export default function PlansPage() {
                     <p className="text-muted-foreground">
                     {t.plans.planObjective}
                     </p>
-                </div>
-            </div>
-        ) : areClientsLoading ? (
-            <div className="flex items-center gap-4">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <div className="space-y-2">
-                    <Skeleton className="h-6 w-48" />
-                    <Skeleton className="h-4 w-64" />
                 </div>
             </div>
         ) : (
@@ -439,7 +455,7 @@ export default function PlansPage() {
             <Button variant="outline" disabled={isSubmitting}>
                 <Forward className="mr-2 h-4 w-4" /> {t.plans.sendToClient}
             </Button>
-            <Button onClick={handleSavePlan} disabled={isSubmitting}>
+            <Button onClick={handleSavePlan} disabled={isSubmitting || Object.keys(planState).length === 0}>
                 {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
                 {t.plans.savePlan}
             </Button>
@@ -510,7 +526,7 @@ export default function PlansPage() {
                                     {details || 'Sin detalles'}
                                 </p>
                             </div>
-                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleAddExercise(ex)}>
+                            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleAddExercise(ex)} disabled={Object.keys(planState).length === 0}>
                                 <Plus className="h-4 w-4" />
                             </Button>
                         </CardContent>
@@ -532,7 +548,9 @@ export default function PlansPage() {
         </div>
         
         <div className="lg:col-span-2 space-y-6 overflow-y-auto">
-             {Object.keys(planState).length === 0 ? (
+             {isPlanLoading ? (
+                 <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+             ) : Object.keys(planState).length === 0 ? (
                 <Card className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center">
                         <p className="text-muted-foreground">Selecciona un cliente y crea un nuevo plan.</p>
@@ -557,25 +575,25 @@ export default function PlansPage() {
                             </div>
                             <div>
                                 <p className="text-xs text-muted-foreground">{t.plans.intensity}</p>
-                                <Badge variant={averageRpe > 0 ? "default" : "outline"} className="capitalize">{averageRpe > 0 ? getIntensityLabel(averageRpe) : 'N/A'}</Badge>
+                                <Badge variant={averageRpe > 0 ? "default" : "outline"} className="capitalize">{getIntensityLabel(averageRpe)}</Badge>
                             </div>
                         </div>
                     </CardHeader>
                 </Card>
                 <div className="space-y-6">
-                    {weekSchedule.map((dayData, index) => {
-                        const dayPlan = planState[currentWeekIndex]?.[dayData.id];
+                    {weekSchedule.map((dayDataItem, index) => {
+                        const dayPlan = planState[currentWeekIndex]?.[dayDataItem.id];
                         return (
                             <DaySchedule
-                                key={dayData.id}
-                                day={dayData.day}
-                                focus={dayPlan?.focus || dayData.focus}
+                                key={dayDataItem.id}
+                                day={dayDataItem.day}
+                                focus={dayPlan?.focus || dayDataItem.focus}
                                 exercises={dayPlan?.exercises || []}
-                                onDaySelect={() => setSelectedDay(dayData.id)}
-                                isActive={selectedDay === dayData.id}
-                                onRemoveExercise={(planId) => handleRemoveExercise(dayData.id, planId)}
+                                onDaySelect={() => setSelectedDay(dayDataItem.id)}
+                                isActive={selectedDay === dayDataItem.id}
+                                onRemoveExercise={(planId) => handleRemoveExercise(dayDataItem.id, planId)}
                                 onUpdateExercise={handleUpdateExercise}
-                                onSetRestDay={() => handleSetRestDay(dayData.id)}
+                                onSetRestDay={() => handleSetRestDay(dayDataItem.id)}
                                 isRestDay={dayPlan?.isRestDay || false}
                                 t={t}
                                 dayIndex={index}
@@ -591,4 +609,3 @@ export default function PlansPage() {
     </div>
   );
 }
-
