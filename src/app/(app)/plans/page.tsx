@@ -163,31 +163,30 @@ export default function PlansPage() {
                 <Button size="sm" variant="ghost">{t.plans.plyo}</Button>
             </div>
             <h3 className="text-sm font-semibold mb-2">{t.plans.exerciseLibrary}</h3>
-            <div className="space-y-2 overflow-y-auto mb-4">
+            <div className="space-y-2 overflow-y-auto mb-4 flex-1">
                 {areExercisesLoading && (
                     <div className='space-y-2'>
                         {Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
                     </div>
                 )}
                 {!areExercisesLoading && exercises?.map((ex) => (
-                    <Card key={ex.id}>
+                  <Link href={`/plans/exercises/${ex.id}/edit`} key={ex.id}>
+                    <Card className="hover:border-primary transition-colors cursor-pointer">
                         <CardContent className="p-2 flex items-center gap-3">
                             <Image src={ex.imageUrl || 'https://picsum.photos/seed/placeholder/40/40'} alt={ex.name} width={40} height={40} className="rounded-md aspect-square object-cover" />
                             <div className="flex-1">
                                 <p className="font-semibold text-sm">{ex.name}</p>
                                 <p className="text-xs text-muted-foreground">{ex.equipment}</p>
                             </div>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Plus className="h-4 w-4" />
-                            </Button>
                         </CardContent>
                     </Card>
+                   </Link>
                 ))}
                  {!areExercisesLoading && exercises?.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-4">{t.plans.noExercises}</p>
                  )}
             </div>
-             <Button className="w-full mt-auto" variant="secondary" asChild>
+             <Button className="w-full bg-primary/20 text-primary hover:bg-primary/30" asChild>
                 <Link href="/plans/new-exercise">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {t.plans.addNewExercise}

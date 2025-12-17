@@ -81,7 +81,10 @@ export type Exercise = {
     image?: string;
     imageUrl?: string;
     equipment?: string;
+    difficulty?: string;
+    instructions?: string;
     muscleGroups?: string[];
+    videoUrl?: string;
     warmup?: string;
     sets?: number | string;
     reps?: number | string;
