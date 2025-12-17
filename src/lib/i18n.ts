@@ -203,6 +203,8 @@ export const translations = {
         saveChanges: "Guardar Cambios",
         message: "Mensaje",
         objective: "Objetivo",
+        planTypeLabel: "Tipo de Plan",
+        selectPlanType: "Seleccionar tipo de plan",
         profileCompleted: "Perfil Completado",
         missingMedicalHistory: "Falta: Historial médico detallado",
         trackingNotes: "Notas de Seguimiento",
@@ -269,6 +271,18 @@ export const translations = {
             intermediate: "Intermedio",
             avanzado: "Avanzado"
         },
+        planTypes: [
+          { value: "hypertrophy", label: "Plan de hipertrofia" },
+          { value: "max_strength", label: "Plan de fuerza máxima" },
+          { value: "endurance", label: "Plan de resistencia muscular" },
+          { value: "power", label: "Plan de potencia" },
+          { value: "cardio_conditioning", label: "Plan de acondicionamiento cardiovascular" },
+          { value: "fat_loss", label: "Plan de quema de grasa" },
+          { value: "functional", label: "Plan funcional" },
+          { value: "mobility_flexibility", label: "Plan de movilidad y flexibilidad" },
+          { value: "stability_core", label: "Plan de estabilidad y core" },
+          { value: "rehab", label: "Plan de rehabilitación / readaptación" }
+        ],
         medical: {
             title: "Datos Médicos",
             medicalClearance: "Apto médico",
@@ -664,6 +678,8 @@ export const translations = {
         saveChanges: "Save Changes",
         message: "Message",
         objective: "Objective",
+        planTypeLabel: "Plan Type",
+        selectPlanType: "Select plan type",
         profileCompleted: "Profile Completed",
         missingMedicalHistory: "Missing: Detailed medical history",
         trackingNotes: "Tracking Notes",
@@ -730,6 +746,18 @@ export const translations = {
             intermediate: "Intermediate",
             advanced: "Advanced"
         },
+        planTypes: [
+            { value: "hypertrophy", label: "Hypertrophy Plan" },
+            { value: "max_strength", label: "Max Strength Plan" },
+            { value: "endurance", label: "Muscular Endurance Plan" },
+            { value: "power", label: "Power Plan" },
+            { value: "cardio_conditioning", label: "Cardiovascular Conditioning Plan" },
+            { value: "fat_loss", label: "Fat Loss Plan" },
+            { value: "functional", label: "Functional Plan" },
+            { value: "mobility_flexibility", label: "Mobility and Flexibility Plan" },
+            { value: "stability_core", label: "Stability and Core Plan" },
+            { value: "rehab", label: "Rehabilitation / Readaptation Plan" }
+        ],
         medical: {
             title: "Medical Data",
             medicalClearance: "Medical clearance",

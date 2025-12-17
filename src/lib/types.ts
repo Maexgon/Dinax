@@ -10,6 +10,7 @@ export type Client = {
   avatarHint?: string;
   joinDate?: string;
   currentPlan?: string;
+  planType?: string;
   progress?: number;
   trainingDays?: string[];
   objective?: string;

@@ -33,6 +33,7 @@
         "avatarHint": { "type": "string" },
         "joinDate": { "type": "string", "format": "date" },
         "currentPlan": { "type": "string" },
+        "planType": { "type": "string", "description": "The type of training plan assigned to the user." },
         "progress": { "type": "number" },
         "trainingDays": { "type": "array", "items": { "type": "string" } },
         "objective": { "type": "string" },

@@ -43,6 +43,7 @@ const clientSchema = z.object({
   occupation: z.string().optional(),
   address: z.string().optional(),
   objective: z.string().optional(),
+  planType: z.string().optional(),
   tags: z.array(z.string()).optional(),
 });
 
@@ -192,7 +193,8 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
         birthDate: client.birthDate || '',
         occupation: client.occupation || '',
         address: client.address || '',
-        objective: client.objective || 'Hypertrophy',
+        objective: client.objective || '',
+        planType: client.planType || '',
         tags: client.tags || [],
       });
     }
@@ -296,7 +298,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
         let completedFields = 0;
 
         // Personal Info
-        const personalInfoFields = ['birthDate', 'occupation', 'objective', 'phoneNumber', 'address'];
+        const personalInfoFields = ['birthDate', 'occupation', 'objective', 'planType', 'phoneNumber', 'address'];
         totalFields += personalInfoFields.length;
         personalInfoFields.forEach(field => {
             if (client[field as keyof Client]) completedFields++;
@@ -338,6 +340,8 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     };
 
   const profileCompletion = calculateProfileCompletion();
+
+  const planTypeOptions = t.clientDetail.planTypes;
 
   return (
     <div className="space-y-6">
@@ -414,6 +418,27 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                 <div>
                                     <h3 className="text-lg font-semibold flex items-center gap-2 mb-4"><Flag className="text-primary"/> {t.clientDetail.goalsAndNotes}</h3>
                                     <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="planType">{t.clientDetail.planTypeLabel}</Label>
+                                            <Controller
+                                                name="planType"
+                                                control={clientForm.control}
+                                                render={({ field }) => (
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <SelectTrigger id="planType">
+                                                    <SelectValue placeholder={t.clientDetail.selectPlanType} />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                    {planTypeOptions.map((option) => (
+                                                        <SelectItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                )}
+                                            />
+                                        </div>
                                         <div className="space-y-2"><Label htmlFor="objective">{t.clientDetail.objective}</Label><Textarea id="objective" {...clientForm.register('objective')} placeholder="Ej: Ganar masa muscular, perder peso..."/></div>
                                         <div className="space-y-2">
                                             <Label>{t.clientDetail.tags}</Label>
