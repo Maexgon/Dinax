@@ -27,18 +27,14 @@ const GenerateExerciseImageOutputSchema = z.object({
 export type GenerateExerciseImageOutput = z.infer<typeof GenerateExerciseImageOutputSchema>;
 
 // Define the prompt for the image generation model
-const generateImagePrompt = ai.definePrompt({
-    name: 'generateExerciseImagePrompt',
-    input: { schema: GenerateExerciseImageInputSchema },
-    prompt: `
+const imagePrompt = `
 Generate a fun, minimalist, vector-style schematic image of the following fitness exercise.
 The image should be simple, clear, and focus on the movement, like a diagram.
 Use a white background. The main colors should be black for outlines and a single accent color like orange or blue for emphasis on the muscles involved.
 
 Exercise Name: {{{name}}}
 Instructions: {{{instructions}}}
-`,
-});
+`;
 
 
 // Define the flow
@@ -49,16 +45,27 @@ const generateExerciseImageFlow = ai.defineFlow(
     outputSchema: GenerateExerciseImageOutputSchema,
   },
   async (input) => {
-    const { media } = await ai.generate({
-        model: 'googleai/imagen-4.0-fast-generate-001',
-        prompt: await generateImagePrompt.render({input}),
-    });
+    console.log('Generating image with input:', input);
+    try {
+        const { media } = await ai.generate({
+            model: 'googleai/imagen-4.0-fast-generate-001',
+            prompt: imagePrompt,
+            input: input,
+        });
 
-    if (!media.url) {
-        throw new Error('Image generation failed to return a URL.');
+        if (!media || !media.url) {
+            console.error('Image generation failed: No media URL returned.');
+            throw new Error('Image generation failed to return a URL.');
+        }
+        
+        console.log('Image generated successfully.');
+        return { imageUrl: media.url };
+
+    } catch (error) {
+        console.error('An error occurred during image generation:', error);
+        // Re-throw the error to be caught by the server action
+        throw error;
     }
-
-    return { imageUrl: media.url };
   }
 );
 

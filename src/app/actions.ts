@@ -31,8 +31,8 @@ export async function getAIExerciseImage(input: GenerateExerciseImageInput) {
   try {
     const result = await generateExerciseImage(input);
     return { success: true, data: result };
-  } catch (error) {
-    console.error('Error in getAIExerciseImage:', error);
-    return { success: false, error: 'Failed to generate AI image. Please try again.' };
+  } catch (error: any) {
+    console.error('Error in getAIExerciseImage server action:', error);
+    return { success: false, error: `Failed to generate AI image: ${error.message}` };
   }
 }
