@@ -326,6 +326,7 @@ export const translations = {
         title: "Planes de Entrenamiento",
         description: "Crea y gestiona planes de entrenamiento personalizados para tus clientes.",
         createNewPlan: "Crear Nuevo Plan",
+        addNewExercise: "Añadir Nuevo Ejercicio",
         mesocycles: "Mesociclos",
         microcycles: "Microciclos",
         focus: {
@@ -733,6 +734,7 @@ export const translations = {
         title: "Training Plans",
         description: "Create and manage customized workout plans for your clients.",
         createNewPlan: "Create New Plan",
+        addNewExercise: "Add New Exercise",
         mesocycles: "Mesocycles",
         microcycles: "Microciclos",
         focus: {

@@ -2,7 +2,7 @@
 'use client';
 import { useState } from 'react';
 import Image from 'next/image';
-import { Search, Plus, MoreVertical, GripVertical, Forward, Save } from 'lucide-react';
+import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -167,6 +167,12 @@ export default function PlansPage() {
                         </CardContent>
                     </Card>
                 ))}
+            </div>
+            <div className="mt-auto pt-4">
+              <Button className="w-full">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                {t.plans.addNewExercise}
+              </Button>
             </div>
         </div>
         
