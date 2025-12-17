@@ -168,12 +168,10 @@ export default function PlansPage() {
                     </Card>
                 ))}
             </div>
-            <div className="mt-auto pt-4">
-              <Button className="w-full">
+             <Button className="w-full mt-4" variant="secondary">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 {t.plans.addNewExercise}
               </Button>
-            </div>
         </div>
         
         {/* Weekly Schedule */}
