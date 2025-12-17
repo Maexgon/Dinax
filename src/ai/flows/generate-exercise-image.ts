@@ -48,7 +48,7 @@ const generateExerciseImageFlow = ai.defineFlow(
     console.log('Generating image with input:', input);
     try {
         const { media } = await ai.generate({
-            model: 'googleai/imagen-4.0-fast-generate-001',
+            model: 'googleai/gemini-pro-vision',
             prompt: imagePrompt,
             input: input,
         });
