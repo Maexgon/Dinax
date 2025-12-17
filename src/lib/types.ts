@@ -78,13 +78,18 @@ export type Biomechanics = {
 export type Exercise = {
     name: string;
     category?: string;
-    image: string;
+    image?: string;
+    imageUrl?: string;
+    equipment?: string;
+    muscleGroups?: string[];
     warmup?: string;
     sets?: number | string;
     reps?: number | string;
     rpe?: number | string;
     rest?: string;
 };
+
+export type ExerciseWithId = Exercise & { id: string; };
 
 export type Workout = {
     day: string;

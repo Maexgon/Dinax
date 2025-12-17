@@ -367,6 +367,8 @@ export const translations = {
         cardio: "Cardio",
         plyo: "Plyo",
         mostPopular: "MÁS POPULARES",
+        exerciseLibrary: "Biblioteca de Ejercicios",
+        noExercises: "Aún no has creado ningún ejercicio.",
         activeRecovery: "Recuperación Activa",
         recoveryDescription: "Se recomienda estiramiento ligero o 30 minutos de caminata.",
         dragExercises: "Arrastra ejercicios aquí",
@@ -399,6 +401,10 @@ export const translations = {
         muscleGroupsList: [
             'Pecho', 'Espalda', 'Piernas', 'Hombros', 'Bíceps', 'Tríceps', 'Abdominales', 'Glúteos', 'Isquiotibiales', 'Cuádriceps'
         ],
+        sets: "SETS",
+        reps: "REPS",
+        rpe: "RPE",
+        rest: "REST",
     },
     payments: {
         title: "Gestión de Pagos",
@@ -814,6 +820,8 @@ export const translations = {
         cardio: "Cardio",
         plyo: "Plyo",
         mostPopular: "MOST POPULAR",
+        exerciseLibrary: "Exercise Library",
+        noExercises: "You haven't created any exercises yet.",
         activeRecovery: "Active Recovery",
         recoveryDescription: "Light stretching or a 30-minute walk is recommended.",
         dragExercises: "Drag exercises here",
@@ -846,6 +854,10 @@ export const translations = {
         muscleGroupsList: [
             'Chest', 'Back', 'Legs', 'Shoulders', 'Biceps', 'Triceps', 'Abs', 'Glutes', 'Hamstrings', 'Quads'
         ],
+        sets: "SETS",
+        reps: "REPS",
+        rpe: "RPE",
+        rest: "REST",
     },
     payments: {
         title: "Payment Management",

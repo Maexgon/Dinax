@@ -9,6 +9,9 @@ import { useLanguage } from '@/context/language-context';
 import { getAIExerciseImage } from '@/app/actions';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { useFirebase, addDocumentNonBlocking } from '@/firebase';
+import { collection, doc } from 'firebase/firestore';
+
 
 import {
   Save,
@@ -46,6 +49,7 @@ export default function NewExercisePage() {
   const { t } = useLanguage();
   const router = useRouter();
   const { toast } = useToast();
+  const { firestore, user } = useFirebase();
 
   const {
     register,
@@ -54,7 +58,7 @@ export default function NewExercisePage() {
     watch,
     setValue,
     getValues,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<ExerciseFormData>({
     resolver: zodResolver(exerciseSchema),
     defaultValues: {
@@ -125,10 +129,29 @@ export default function NewExercisePage() {
   };
 
 
-  const onSubmit = (data: ExerciseFormData) => {
-    console.log(data);
-    // Here you would typically save the data to your database
-    router.push('/plans');
+  const onSubmit = async (data: ExerciseFormData) => {
+    if (!firestore || !user?.uid) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo conectar a la base de datos. Asegúrate de haber iniciado sesión.' });
+        return;
+    }
+
+    try {
+        const tenantId = user.uid;
+        const newExerciseRef = doc(collection(firestore, `tenants/${tenantId}/exercises`));
+        
+        const newExerciseData = {
+            ...data,
+            id: newExerciseRef.id,
+        };
+
+        await addDocumentNonBlocking(newExerciseRef, newExerciseData);
+
+        toast({ variant: 'success', title: 'Ejercicio Creado', description: `El ejercicio ${data.name} ha sido añadido a tu biblioteca.` });
+        router.push('/plans');
+
+    } catch (error: any) {
+        toast({ variant: 'destructive', title: 'Error al crear ejercicio', description: error.message || 'Ocurrió un error inesperado.' });
+    }
   };
 
   return (
@@ -147,8 +170,8 @@ export default function NewExercisePage() {
           <Button type="button" variant="outline" onClick={() => router.back()}>
             {t.clientDetail.cancel}
           </Button>
-          <Button type="submit">
-            <Save className="mr-2 h-4 w-4" />
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t.plans.saveExercise}
           </Button>
         </div>

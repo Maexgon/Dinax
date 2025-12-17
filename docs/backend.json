@@ -141,6 +141,23 @@
         "content": { "type": "string" }
       },
       "required": ["id", "createdAt", "coachName", "content"]
+    },
+    "Exercise": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Exercise",
+      "type": "object",
+      "description": "Represents a single fitness exercise in the library.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "equipment": { "type": "string" },
+        "difficulty": { "type": "string" },
+        "instructions": { "type": "string" },
+        "muscleGroups": { "type": "array", "items": { "type": "string" } },
+        "videoUrl": { "type": "string", "format": "uri" },
+        "imageUrl": { "type": "string", "format": "uri" }
+      },
+      "required": ["id", "name", "equipment"]
     }
   },
   "auth": {
@@ -167,6 +184,10 @@
       {
         "path": "/tenants/{tenantId}/user_profile/{userId}/notes/{noteId}",
         "definition": { "schema": { "$ref": "#/entities/Note" }, "description": "Stores coach's notes for a user." }
+      },
+      {
+        "path": "/tenants/{tenantId}/exercises/{exerciseId}",
+        "definition": { "schema": { "$ref": "#/entities/Exercise" }, "description": "Stores the exercise library for a tenant." }
       }
     ]
   }

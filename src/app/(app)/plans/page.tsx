@@ -2,57 +2,59 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle } from 'lucide-react';
+import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
-import { mockTrainingPlans } from '@/lib/data';
-import type { Client, TrainingPlan, Exercise } from '@/lib/types';
-import { mockClients } from '@/lib/data';
+import { mockTrainingPlans, mockClients } from '@/lib/data';
+import type { Client, TrainingPlan, Exercise, ExerciseWithId } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
-
-const popularExercises: Exercise[] = [
-    { name: 'Barbell Squat', category: 'Legs • Compound', image: 'https://picsum.photos/seed/squat/100/100' },
-    { name: 'Bench Press', category: 'Chest • Compound', image: 'https://picsum.photos/seed/bench/100/100' },
-    { name: 'Deadlift', category: 'Back • Compound', image: 'https://picsum.photos/seed/deadlift/100/100' },
-    { name: 'Overhead Press', category: 'Shoulders • Compound', image: 'https://picsum.photos/seed/ohp/100/100' },
-    { name: 'Walking Lunges', category: 'Legs • Unilateral', image: 'https://picsum.photos/seed/lunges/100/100' },
-];
+import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ExerciseCard = ({ exercise }: { exercise: Exercise }) => {
+    const { t } = useLanguage();
     return (
         <Card className="shadow-md">
             <CardContent className="p-3">
                 <div className="flex items-center gap-3">
                     <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
-                     <Image src={exercise.image || 'https://picsum.photos/seed/placeholder/100/100'} alt={exercise.name} width={60} height={60} className="rounded-md" />
+                     <Image src={exercise.imageUrl || exercise.image || 'https://picsum.photos/seed/placeholder/100/100'} alt={exercise.name} width={60} height={60} className="rounded-md object-cover" />
                     <div className="flex-1">
                         <p className="font-semibold">{exercise.name}</p>
-                        {exercise.warmup && <p className="text-xs text-primary">{exercise.warmup}</p>}
+                        {exercise.warmup ? (
+                            <p className="text-xs text-primary">{exercise.warmup}</p>
+                        ) : (
+                            <div className='flex gap-1 mt-1'>
+                                {exercise.muscleGroups?.slice(0, 2).map(m => <Badge key={m} variant="secondary" className='text-xs'>{m}</Badge>)}
+                            </div>
+                        )}
                     </div>
                     <MoreVertical className="h-5 w-5 text-muted-foreground" />
                 </div>
+                {exercise.sets && (
                 <div className="grid grid-cols-4 gap-2 text-center mt-3">
                     <div>
-                        <p className="text-xs text-muted-foreground">SETS</p>
+                        <p className="text-xs text-muted-foreground">{t.plans.sets}</p>
                         <div className="p-2 bg-muted rounded-md mt-1 font-bold">{exercise.sets}</div>
                     </div>
                     <div>
-                        <p className="text-xs text-muted-foreground">REPS</p>
+                        <p className="text-xs text-muted-foreground">{t.plans.reps}</p>
                         <div className="p-2 bg-muted rounded-md mt-1 font-bold">{exercise.reps}</div>
                     </div>
                     <div>
-                        <p className="text-xs text-muted-foreground">RPE</p>
+                        <p className="text-xs text-muted-foreground">{t.plans.rpe}</p>
                         <div className="p-2 bg-muted rounded-md mt-1 font-bold">{exercise.rpe}</div>
                     </div>
                     <div>
-                        <p className="text-xs text-muted-foreground">REST</p>
+                        <p className="text-xs text-muted-foreground">{t.plans.rest}</p>
                         <div className="p-2 bg-muted rounded-md mt-1 font-bold">{exercise.rest}</div>
                     </div>
                 </div>
+                )}
             </CardContent>
         </Card>
     )
@@ -102,8 +104,17 @@ const DaySchedule = ({ day, focus, exercises, t }: { day: string, focus: string,
 
 export default function PlansPage() {
     const { t } = useLanguage();
+    const { firestore, user } = useFirebase();
     const plan = mockTrainingPlans[0];
     const client = mockClients[1];
+
+    const tenantId = user?.uid;
+    const exercisesCollectionRef = useMemoFirebase(
+      () => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/exercises`), orderBy("name", "asc")) : null),
+      [firestore, tenantId]
+    );
+
+    const { data: exercises, isLoading: areExercisesLoading } = useCollection<ExerciseWithId>(exercisesCollectionRef);
 
     const weekSchedule = [
         { day: t.plans.day.monday, focus: t.plans.focus.legs, exercises: plan.microcycles[0].workouts.find(w => w.day === 'Monday')?.exercises },
@@ -151,15 +162,20 @@ export default function PlansPage() {
                 <Button size="sm" variant="ghost">{t.plans.cardio}</Button>
                 <Button size="sm" variant="ghost">{t.plans.plyo}</Button>
             </div>
-            <h3 className="text-sm font-semibold mb-2">{t.plans.mostPopular}</h3>
+            <h3 className="text-sm font-semibold mb-2">{t.plans.exerciseLibrary}</h3>
             <div className="space-y-2 overflow-y-auto mb-4">
-                {popularExercises.map((ex, index) => (
-                    <Card key={index}>
+                {areExercisesLoading && (
+                    <div className='space-y-2'>
+                        {Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
+                    </div>
+                )}
+                {!areExercisesLoading && exercises?.map((ex) => (
+                    <Card key={ex.id}>
                         <CardContent className="p-2 flex items-center gap-3">
-                            <Image src={ex.image} alt={ex.name} width={40} height={40} className="rounded-md" />
+                            <Image src={ex.imageUrl || 'https://picsum.photos/seed/placeholder/40/40'} alt={ex.name} width={40} height={40} className="rounded-md aspect-square object-cover" />
                             <div className="flex-1">
                                 <p className="font-semibold text-sm">{ex.name}</p>
-                                <p className="text-xs text-muted-foreground">{ex.category}</p>
+                                <p className="text-xs text-muted-foreground">{ex.equipment}</p>
                             </div>
                             <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <Plus className="h-4 w-4" />
@@ -167,6 +183,9 @@ export default function PlansPage() {
                         </CardContent>
                     </Card>
                 ))}
+                 {!areExercisesLoading && exercises?.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-4">{t.plans.noExercises}</p>
+                 )}
             </div>
              <Button className="w-full mt-auto" variant="secondary" asChild>
                 <Link href="/plans/new-exercise">
