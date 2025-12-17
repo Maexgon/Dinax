@@ -118,6 +118,8 @@ export default function PlansPage() {
     const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
     const [filter, setFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
+    const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
 
     const tenantId = user?.uid;
 
@@ -157,6 +159,9 @@ export default function PlansPage() {
         { day: t.plans.day.thursday, focus: t.plans.focus.rest, exercises: [] },
         { day: t.plans.day.friday, focus: t.plans.focus.pull, exercises: plan.microcycles[0].workouts.find(w => w.day === 'Friday')?.exercises },
     ]
+    
+    const years = ['2025', '2026', '2027'];
+    const months = t.plans.months;
 
   return (
     <div className="flex flex-col h-full">
@@ -173,7 +178,8 @@ export default function PlansPage() {
                             <SelectValue placeholder="Seleccionar cliente" />
                         </SelectTrigger>
                         <SelectContent>
-                            {clients?.map(client => (
+                            {areClientsLoading && <div className="p-4 text-center text-sm">Cargando...</div>}
+                            {!areClientsLoading && clients?.map(client => (
                                 <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
                             ))}
                         </SelectContent>
@@ -214,6 +220,28 @@ export default function PlansPage() {
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input placeholder={t.plans.searchExercises} className="pl-8" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
+             <div className="grid grid-cols-2 gap-4 mb-4">
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Año" />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map(year => (
+                    <SelectItem key={year} value={year}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Mes" />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((month, index) => (
+                    <SelectItem key={index} value={index.toString()}>{month}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
                  {filterButtons.map(btn => (
                     <Button key={btn.value} size="sm" variant={filter === btn.value ? "secondary" : "ghost"} onClick={() => setFilter(btn.value)} className="shrink-0">
@@ -225,13 +253,13 @@ export default function PlansPage() {
             <div className="space-y-2 overflow-y-auto mb-4 flex-1">
                 {areExercisesLoading && (
                     <div className='space-y-2'>
-                        {Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
+                        {Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-[52px] w-full" />)}
                     </div>
                 )}
                 {!areExercisesLoading && filteredExercises?.map((ex) => {
                   const equipmentLabel = t.plans.equipmentList.find(e => e.value === ex.equipment)?.label;
                   const typeLabel = t.plans.exerciseTypeList.find(e => e.value === ex.type)?.label;
-
+                  
                   const details = [
                     equipmentLabel && equipmentLabel.toLowerCase() !== 'sin equipamiento' ? equipmentLabel : null,
                     typeLabel
@@ -245,7 +273,7 @@ export default function PlansPage() {
                               <div className="flex-1">
                                   <p className="font-semibold text-sm">{ex.name}</p>
                                   <p className="text-xs text-muted-foreground capitalize">
-                                      {details}
+                                      {details || 'Sin detalles'}
                                   </p>
                               </div>
                           </CardContent>
@@ -257,7 +285,7 @@ export default function PlansPage() {
                     <p className="text-sm text-muted-foreground text-center py-4">{t.plans.noExercises}</p>
                  )}
                  {!areExercisesLoading && (
-                     <Button className="w-full bg-primary/20 text-primary hover:bg-primary/30 mt-2" asChild>
+                     <Button className="w-full bg-primary/20 text-primary hover:bg-primary/30 mt-auto" asChild>
                         <Link href="/plans/new-exercise">
                             <PlusCircle className="mr-2 h-4 w-4" />
                             {t.plans.addNewExercise}

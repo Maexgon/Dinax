@@ -427,6 +427,10 @@ export const translations = {
         reps: "REPS",
         rpe: "RPE",
         rest: "REST",
+        months: [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ],
     },
     payments: {
         title: "Gestión de Pagos",
@@ -902,6 +906,10 @@ export const translations = {
         reps: "REPS",
         rpe: "RPE",
         rest: "REST",
+        months: [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ],
     },
     payments: {
         title: "Payment Management",
@@ -954,5 +962,3 @@ export const translations = {
 export type Language = keyof typeof translations;
 
 export const getTranslations = (lang: Language) => translations[lang];
-
-    
