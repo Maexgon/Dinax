@@ -1,7 +1,7 @@
-
 'use client';
 import { useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -152,7 +152,7 @@ export default function PlansPage() {
                 <Button size="sm" variant="ghost">{t.plans.plyo}</Button>
             </div>
             <h3 className="text-sm font-semibold mb-2">{t.plans.mostPopular}</h3>
-            <div className="space-y-2 overflow-y-auto">
+            <div className="space-y-2 overflow-y-auto mb-4">
                 {popularExercises.map((ex, index) => (
                     <Card key={index}>
                         <CardContent className="p-2 flex items-center gap-3">
@@ -168,9 +168,11 @@ export default function PlansPage() {
                     </Card>
                 ))}
             </div>
-             <Button className="w-full mt-4" variant="secondary">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                {t.plans.addNewExercise}
+             <Button className="w-full mt-auto" variant="secondary" asChild>
+                <Link href="/plans/new-exercise">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    {t.plans.addNewExercise}
+                </Link>
               </Button>
         </div>
         
