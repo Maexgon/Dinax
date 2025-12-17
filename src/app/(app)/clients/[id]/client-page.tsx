@@ -273,6 +273,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
   const calculateAge = (birthDateString: string | undefined) => {
     if (!birthDateString) return null;
     const birthDate = new Date(birthDateString);
+    if (isNaN(birthDate.getTime())) return null;
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
@@ -290,6 +291,35 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
       const d = (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : new Date(date as string);
       return format(d, 'dd MMM yyyy');
   }
+
+  const calculateProfileCompletion = () => {
+    let completed = 0;
+    const total = 5; // Total de campos a verificar
+    let missingFields: string[] = [];
+
+    // 1. Datos personales
+    if (client.birthDate && client.occupation && client.objective) completed++;
+    else missingFields.push("datos personales");
+    
+    // 2. Historial médico
+    if (latestMedicalHistory) completed++;
+    else missingFields.push("historial médico");
+
+    // 3. Biomecánica
+    if (latestBiomechanics) completed++;
+    else missingFields.push("evaluación biomecánica");
+
+    // Podemos agregar más checks
+    if(client.phoneNumber) completed++;
+    if(client.address) completed++;
+
+    const percentage = Math.round((completed / total) * 100);
+    const message = missingFields.length > 0 ? `Falta: ${missingFields.join(', ')}` : "¡Perfil completo!";
+    
+    return { percentage, message };
+  };
+
+  const profileCompletion = calculateProfileCompletion();
 
   return (
     <div className="space-y-6">
@@ -329,8 +359,8 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
           </Card>
            <Card>
                 <CardContent className="p-6">
-                    <div className="flex justify-between items-center mb-2"><span className="text-sm font-medium">{t.clientDetail.profileCompleted}</span><span className="text-sm font-bold text-primary">85%</span></div>
-                    <Progress value={85} className="h-2" /><p className="text-xs text-muted-foreground mt-2">{t.clientDetail.missingMedicalHistory}</p>
+                    <div className="flex justify-between items-center mb-2"><span className="text-sm font-medium">{t.clientDetail.profileCompleted}</span><span className="text-sm font-bold text-primary">{profileCompletion.percentage}%</span></div>
+                    <Progress value={profileCompletion.percentage} className="h-2" /><p className="text-xs text-muted-foreground mt-2">{profileCompletion.message}</p>
                 </CardContent>
            </Card>
         </div>
@@ -521,5 +551,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     </div>
   );
 }
+
+    
 
     
