@@ -13,9 +13,14 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // Secure helper function to check if the user is an owner of the specified tenant.
+    function isTenantOwner(tenantId) {
+       return isSignedIn() && get(/databases/$(database)/documents/tenants/$(tenantId)).data.members[request.auth.uid] == 'owner';
+    }
+
     match /tenants/{tenantId} {
-      // A user can read their own tenant document if they are the owner.
-      allow get: if isSelf(tenantId);
+      // Allow a user to read their own tenant document if they are the owner.
+      allow get: if isTenantOwner(tenantId);
       
       // Disallow listing all tenants for security.
       allow list: if false;
@@ -25,17 +30,21 @@ service cloud.firestore {
       allow create: if isSelf(tenantId) && request.resource.data.members[request.auth.uid] == 'owner';
 
       // Allow a tenant owner to update their own tenant document.
-      allow update, delete: if isSelf(tenantId);
+      allow update, delete: if isTenantOwner(tenantId);
 
-      // Allow a tenant owner (coach) to create, read, update, and delete profiles for their clients
-      // and all related subcollections within their own tenant structure.
+      // Allow tenant owners to manage user profiles within their tenant.
       match /user_profile/{userId} {
-        allow read, write: if isSignedIn() && request.auth.uid == tenantId;
+        allow read, write: if isTenantOwner(tenantId);
 
         // This rule allows the tenant owner to manage all subcollections for their clients.
         match /{subcollection}/{docId=**} {
-          allow read, write: if isSignedIn() && request.auth.uid == tenantId;
+          allow read, write: if isTenantOwner(tenantId);
         }
+      }
+      
+      // Allow tenant owners to manage exercises within their tenant.
+      match /exercises/{exerciseId} {
+        allow read, write: if isTenantOwner(tenantId);
       }
     }
     

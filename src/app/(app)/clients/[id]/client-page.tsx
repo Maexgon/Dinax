@@ -86,7 +86,7 @@ const medicalHistorySchema = z.object({
 type MedicalHistoryFormData = z.infer<typeof medicalHistorySchema>;
 
 
-const TagInput = ({ fields, append, remove, label, buttonText, register, name }: { fields: any[], append: (obj: any) => void, remove: (index: number) => void, label: string, buttonText: string, register: UseFormRegister<MedicalHistoryFormData>, name: 'currentConditions' | 'currentMedications' | 'preexistingInjuries' | 'previousSurgeries' | 'medicalRestrictions' }) => {
+const TagInput = ({ fields, append, remove, label, buttonText, register, name }: { fields: any[], append: (obj: any) => void, remove: (index: number) => void, label: string, buttonText: string, register: UseFormRegister<any>, name: 'currentConditions' | 'currentMedications' | 'preexistingInjuries' | 'previousSurgeries' | 'medicalRestrictions' }) => {
     return (
         <div className="space-y-2">
             <Label>{label}</Label>
