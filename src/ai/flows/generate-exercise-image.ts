@@ -11,7 +11,7 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 
 // Define the input schema
 const GenerateExerciseImageInputSchema = z.object({
@@ -48,9 +48,16 @@ const generateExerciseImageFlow = ai.defineFlow(
     console.log('Generating image with input:', input);
     try {
         const { media } = await ai.generate({
-            model: 'googleai/gemini-pro-vision',
-            prompt: imagePrompt,
-            input: input,
+            model: 'googleai/gemini-2.5-flash-image-preview',
+            prompt: `Generate a fun, minimalist, vector-style schematic image of the following fitness exercise.
+            The image should be simple, clear, and focus on the movement, like a diagram.
+            Use a white background. The main colors should be black for outlines and a single accent color like orange or blue for emphasis on the muscles involved.
+            
+            Exercise Name: ${input.name}
+            Instructions: ${input.instructions}`,
+            config: {
+                responseModalities: ['IMAGE'],
+            },
         });
 
         if (!media || !media.url) {
