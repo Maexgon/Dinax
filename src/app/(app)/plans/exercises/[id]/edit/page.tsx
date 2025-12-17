@@ -318,7 +318,7 @@ export default function EditExercisePage() {
                     name="type"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                      <Select value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger id="type">
                            <SelectValue placeholder={t.plans.selectOption} />
                         </SelectTrigger>
@@ -337,7 +337,7 @@ export default function EditExercisePage() {
                     name="equipment"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                      <Select value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger id="equipment">
                           <SelectValue placeholder={t.plans.selectOption} />
                         </SelectTrigger>
@@ -357,7 +357,7 @@ export default function EditExercisePage() {
                     name="difficulty"
                     control={control}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                      <Select value={field.value} onValueChange={field.onChange}>
                         <SelectTrigger id="difficulty">
                            <SelectValue placeholder={t.plans.selectLevel} />
                         </SelectTrigger>
