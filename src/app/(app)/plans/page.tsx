@@ -1,18 +1,18 @@
 
 'use client';
-import { useState, useEffect, useId } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Trash2, Moon, ChevronLeft, ChevronRight, Bed } from 'lucide-react';
+import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Trash2, Moon, ChevronLeft, ChevronRight, Bed, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
-import type { Client, TrainingPlan, Exercise, ExerciseWithId, Workout } from '@/lib/types';
+import type { Client, ExerciseWithId, PlannedExercise, Mesocycle } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, setDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, doc, serverTimestamp, getDocs, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
@@ -23,12 +23,27 @@ import {
 } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import { getWeeksInMonth, getWeek, getDay, format, startOfWeek } from 'date-fns';
+import { es } from 'date-fns/locale';
 
+type WeeklyPlan = {
+    [day: string]: {
+        focus: string;
+        isRestDay: boolean;
+        exercises: PlannedExercise[];
+    };
+};
 
-type PlannedExercise = ExerciseWithId & { planId: string; };
+type PlanState = {
+    [week: number]: WeeklyPlan;
+};
 
-const PlannedExerciseCard = ({ exercise, onRemove }: { exercise: PlannedExercise, onRemove: (planId: string) => void }) => {
+const PlannedExerciseCard = ({ exercise, onRemove, onUpdate, isRestDay }: { exercise: PlannedExercise, onRemove: (planId: string) => void, onUpdate: (planId: string, field: keyof PlannedExercise, value: string) => void, isRestDay: boolean }) => {
     const { t } = useLanguage();
+    
+    if(isRestDay) return null;
+
     return (
         <Card className="shadow-md bg-background relative group">
             <CardContent className="p-3">
@@ -45,22 +60,26 @@ const PlannedExerciseCard = ({ exercise, onRemove }: { exercise: PlannedExercise
                         <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                 </div>
-                <div className="grid grid-cols-4 gap-2 text-center mt-3">
+                <div className="grid grid-cols-5 gap-2 text-center mt-3">
+                    <div>
+                        <p className="text-xs text-muted-foreground">{t.plans.duration}</p>
+                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="m" value={exercise.duration} onChange={e => onUpdate(exercise.planId, 'duration', e.target.value)} />
+                    </div>
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.sets}</p>
-                        <Input className="p-2 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-" />
+                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-" value={exercise.sets} onChange={e => onUpdate(exercise.planId, 'sets', e.target.value)} />
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.reps}</p>
-                        <Input className="p-2 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-"/>
+                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-" value={exercise.reps} onChange={e => onUpdate(exercise.planId, 'reps', e.target.value)} />
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.rpe}</p>
-                        <Input className="p-2 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-"/>
+                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-" value={exercise.rpe} onChange={e => onUpdate(exercise.planId, 'rpe', e.target.value)}/>
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.rest}</p>
-                        <Input className="p-2 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-"/>
+                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="s" value={exercise.rest} onChange={e => onUpdate(exercise.planId, 'rest', e.target.value)} />
                     </div>
                 </div>
             </CardContent>
@@ -68,14 +87,18 @@ const PlannedExerciseCard = ({ exercise, onRemove }: { exercise: PlannedExercise
     )
 }
 
-const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onAddExercise, onRemoveExercise, onSetRestDay, isRestDay, t }: { day: string, focus: string, exercises: PlannedExercise[], onDaySelect: () => void, isActive: boolean, onAddExercise: (ex: ExerciseWithId) => void, onRemoveExercise: (planId: string) => void, onSetRestDay: () => void, isRestDay: boolean, t: any }) => {
+const weekDays = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onRemoveExercise, onSetRestDay, isRestDay, t, onUpdateExercise, dayIndex, weekNumber }: { day: string, focus: string, exercises: PlannedExercise[], onDaySelect: () => void, isActive: boolean, onRemoveExercise: (planId: string) => void, onSetRestDay: () => void, isRestDay: boolean, t: any, onUpdateExercise: (day: string, planId: string, field: keyof PlannedExercise, value: string) => void, dayIndex: number, weekNumber: number }) => {
     
+    const dayDate = startOfWeek(new Date(new Date().getFullYear(), 0, (weekNumber * 7) + 1 + dayIndex), { weekStartsOn: 1});
+
     if (isRestDay) {
         return (
              <Card className="bg-muted/50 border-2 border-dashed">
                 <CardHeader>
                     <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold">{day} <span className="text-sm font-normal text-muted-foreground">{t.plans.focus.rest}</span></h3>
+                         <h3 className="text-lg font-semibold">{day} <span className="text-sm font-normal text-muted-foreground">{t.plans.focus.rest}</span></h3>
                          <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-5 w-5 text-muted-foreground" /></Button>
@@ -118,11 +141,11 @@ const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onAddExerci
             </CardHeader>
             <CardContent className="space-y-3 min-h-[100px]">
                 {exercises.map((ex) => (
-                    <PlannedExerciseCard key={ex.planId} exercise={ex} onRemove={onRemoveExercise} />
+                    <PlannedExerciseCard key={ex.planId} exercise={ex} onRemove={onRemoveExercise} onUpdate={(planId, field, value) => onUpdateExercise(day, planId, field, value)} isRestDay={false} />
                 ))}
                 {isActive && (
-                    <div className="p-4 border-2 border-dashed rounded-lg text-center text-muted-foreground">
-                        <p>{t.plans.dragExercises}</p>
+                     <div className="p-4 border-2 border-dashed rounded-lg text-center text-muted-foreground">
+                        <p>{t.plans.selectFromLibrary}</p>
                     </div>
                 )}
             </CardContent>
@@ -133,16 +156,20 @@ const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onAddExerci
 export default function PlansPage() {
     const { t } = useLanguage();
     const { firestore, user } = useFirebase();
+    const { toast } = useToast();
     
     const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
     const [filter, setFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedYear, setSelectedYear] = useState<string>(new Date().getFullYear().toString());
-    const [selectedMonth, setSelectedMonth] = useState<string>(new Date().getMonth().toString());
-    const [selectedDay, setSelectedDay] = useState('Monday');
-    const [weeklyPlan, setWeeklyPlan] = useState<Record<string, PlannedExercise[]>>({
-      'Monday': [], 'Tuesday': [], 'Wednesday': [], 'Thursday': [], 'Friday': []
-    });
+    const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+    const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
+    const [currentWeekIndex, setCurrentWeekIndex] = useState<number>(0);
+    const [selectedDay, setSelectedDay] = useState<string>('Lunes');
+    const [planState, setPlanState] = useState<PlanState>({});
+    const [isPlanLoading, setIsPlanLoading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+
 
     const tenantId = user?.uid;
 
@@ -164,53 +191,207 @@ export default function PlansPage() {
       () => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/exercises`), orderBy("name", "asc")) : null),
       [firestore, tenantId]
     );
-
     const { data: exercises, isLoading: areExercisesLoading } = useCollection<ExerciseWithId>(exercisesCollectionRef);
-    
-    const filteredExercises = exercises?.filter(ex => {
+
+     const filteredExercises = useMemo(() => exercises?.filter(ex => {
         const matchesType = filter === 'all' || ex.type === filter;
         const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesType && matchesSearch;
-    });
+    }), [exercises, filter, searchQuery]);
     
     const filterButtons = [{value: 'all', label: t.plans.all}, ...t.plans.exerciseTypeList];
 
-    const weekSchedule = [
-        { day: t.plans.day.monday, focus: t.plans.focus.legs, id: 'Monday' },
-        { day: t.plans.day.tuesday, focus: 'Push', id: 'Tuesday' },
-        { day: t.plans.day.wednesday, focus: t.plans.focus.pull, id: 'Wednesday' },
-        { day: t.plans.day.thursday, focus: 'Upper Body', id: 'Thursday' },
-        { day: t.plans.day.friday, focus: 'Full Body', id: 'Friday' },
-    ]
-    
-    const years = ['2025', '2026', '2027'];
+    const weekSchedule = useMemo(() => [
+        { day: t.plans.day.monday, focus: t.plans.focus.legs, id: 'Lunes' },
+        { day: t.plans.day.tuesday, focus: 'Push', id: 'Martes' },
+        { day: t.plans.day.wednesday, focus: t.plans.focus.pull, id: 'Miércoles' },
+        { day: t.plans.day.thursday, focus: 'Upper Body', id: 'Jueves' },
+        { day: t.plans.day.friday, focus: 'Full Body', id: 'Viernes' },
+        { day: t.plans.day.saturday, focus: t.plans.focus.rest, id: 'Sábado' },
+        { day: t.plans.day.sunday, focus: t.plans.focus.rest, id: 'Domingo' },
+    ], [t]);
+
+    const years = Array.from({ length: 3 }, (_, i) => new Date().getFullYear() + i);
     const months = t.plans.months;
-    const uniqueId = useId();
+    const totalWeeksInMonth = getWeeksInMonth(new Date(selectedYear, selectedMonth));
+
+    const handleCreatePlan = () => {
+        const newPlan: PlanState = {};
+        for (let i = 0; i < totalWeeksInMonth; i++) {
+            newPlan[i] = weekSchedule.reduce((acc, day) => {
+                acc[day.id] = { focus: day.focus, isRestDay: false, exercises: [] };
+                return acc;
+            }, {} as WeeklyPlan);
+        }
+        setPlanState(newPlan);
+        setCurrentPlanId(null); // It's a new plan, so no ID yet
+        toast({ title: "Nuevo Plan Creado", description: `Plan para ${months[selectedMonth]} ${selectedYear} listo para editar.` });
+    };
+
+    useEffect(() => {
+        const fetchPlan = async () => {
+            if (!firestore || !tenantId || !selectedClientId) return;
+
+            setIsPlanLoading(true);
+            const planQuery = query(
+                collection(firestore, `tenants/${tenantId}/mesocycles`),
+                where("clientId", "==", selectedClientId),
+                where("year", "==", selectedYear),
+                where("month", "==", selectedMonth),
+                orderBy("createdAt", "desc"),
+                limit(1)
+            );
+            
+            try {
+                const querySnapshot = await getDocs(planQuery);
+                if (!querySnapshot.empty) {
+                    const planDoc = querySnapshot.docs[0];
+                    const planData = planDoc.data() as Mesocycle;
+                    setPlanState(planData.weeks);
+                    setCurrentPlanId(planDoc.id);
+                } else {
+                    setPlanState({});
+                    setCurrentPlanId(null);
+                }
+            } catch (error) {
+                console.error("Error fetching plan:", error);
+                toast({ variant: 'destructive', title: "Error", description: "No se pudo cargar el plan existente."});
+            } finally {
+                setIsPlanLoading(false);
+            }
+        };
+
+        fetchPlan();
+    }, [firestore, tenantId, selectedClientId, selectedYear, selectedMonth, toast]);
+
 
     const handleAddExercise = (exercise: ExerciseWithId) => {
         if (!selectedDay) return;
-        setWeeklyPlan(prev => ({
-            ...prev,
-            [selectedDay]: [...prev[selectedDay], { ...exercise, planId: `${exercise.id}-${Date.now()}` }]
-        }));
+        const currentDayPlan = planState[currentWeekIndex]?.[selectedDay];
+        if (currentDayPlan?.isRestDay) {
+            toast({ variant: 'destructive', title: "Día de Descanso", description: "No puedes añadir ejercicios a un día de descanso." });
+            return;
+        }
+
+        setPlanState(prev => {
+            const newPlan = { ...prev };
+            const weekPlan = newPlan[currentWeekIndex] ? { ...newPlan[currentWeekIndex] } : {};
+            const dayPlan = weekPlan[selectedDay] ? { ...weekPlan[selectedDay] } : { focus: '', isRestDay: false, exercises: [] };
+
+            const newExercise: PlannedExercise = {
+                ...exercise,
+                planId: `${exercise.id}-${Date.now()}`,
+                sets: '', reps: '', rpe: '', rest: '', duration: '',
+            };
+            
+            dayPlan.exercises = [...dayPlan.exercises, newExercise];
+            weekPlan[selectedDay] = dayPlan;
+            newPlan[currentWeekIndex] = weekPlan;
+            return newPlan;
+        });
     }
 
     const handleRemoveExercise = (day: string, planId: string) => {
-        setWeeklyPlan(prev => ({
-            ...prev,
-            [day]: prev[day].filter(ex => ex.planId !== planId)
-        }));
+        setPlanState(prev => {
+            const newPlan = { ...prev };
+            if (!newPlan[currentWeekIndex] || !newPlan[currentWeekIndex][day]) return prev;
+
+            newPlan[currentWeekIndex][day].exercises = newPlan[currentWeekIndex][day].exercises.filter(ex => ex.planId !== planId);
+            return newPlan;
+        });
     }
 
+    const handleUpdateExercise = (day: string, planId: string, field: keyof PlannedExercise, value: string) => {
+        setPlanState(prev => {
+            const newPlan = { ...prev };
+            if (!newPlan[currentWeekIndex] || !newPlan[currentWeekIndex][day]) return prev;
+
+            const dayExercises = newPlan[currentWeekIndex][day].exercises;
+            const exerciseIndex = dayExercises.findIndex(ex => ex.planId === planId);
+            if (exerciseIndex > -1) {
+                const updatedExercise = { ...dayExercises[exerciseIndex], [field]: value };
+                dayExercises[exerciseIndex] = updatedExercise;
+                newPlan[currentWeekIndex][day] = { ...newPlan[currentWeekIndex][day], exercises: [...dayExercises] };
+            }
+            return newPlan;
+        });
+    };
+
     const handleSetRestDay = (day: string) => {
-        setWeeklyPlan(prev => ({
-            ...prev,
-            [day]: prev[day][0]?.name === 'Rest Day' ? [] : [{id: 'rest', name: 'Rest Day', planId: 'rest-day'}]
-        }))
+        setPlanState(prev => {
+            const newPlan = { ...prev };
+            if (!newPlan[currentWeekIndex] || !newPlan[currentWeekIndex][day]) { // Initialize if not exist
+                 newPlan[currentWeekIndex] = newPlan[currentWeekIndex] || {};
+                 newPlan[currentWeekIndex][day] = { focus: '', isRestDay: false, exercises: [] };
+            }
+            const currentIsRestDay = newPlan[currentWeekIndex][day].isRestDay;
+            newPlan[currentWeekIndex][day] = { ...newPlan[currentWeekIndex][day], isRestDay: !currentIsRestDay, exercises: currentIsRestDay ? [] : [] };
+            return newPlan;
+        });
     }
+
+    const handleSavePlan = async () => {
+        if (!firestore || !tenantId || !selectedClientId) {
+            toast({ variant: 'destructive', title: "Error", description: "Faltan datos para guardar el plan." });
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            const planRef = currentPlanId 
+                ? doc(firestore, `tenants/${tenantId}/mesocycles`, currentPlanId)
+                : doc(collection(firestore, `tenants/${tenantId}/mesocycles`));
+            
+            const planData: Omit<Mesocycle, 'id' | 'createdAt'> & { createdAt?: any } = {
+                clientId: selectedClientId,
+                year: selectedYear,
+                month: selectedMonth,
+                weeks: planState,
+                updatedAt: serverTimestamp(),
+            };
+
+            if (!currentPlanId) {
+                planData.createdAt = serverTimestamp();
+            }
+            
+            await setDocumentNonBlocking(planRef, planData, { merge: true });
+
+            if(!currentPlanId) setCurrentPlanId(planRef.id);
+
+            toast({ variant: 'success', title: "Plan Guardado", description: "El plan de entrenamiento ha sido guardado correctamente." });
+        } catch (error) {
+            console.error("Error saving plan:", error);
+            toast({ variant: 'destructive', title: "Error al Guardar", description: "No se pudo guardar el plan." });
+        } finally {
+            setIsSubmitting(false);
+        }
+    }
+
+    const dayData = planState[currentWeekIndex]?.[selectedDay];
+
+    const { totalDuration, averageRpe } = useMemo(() => {
+        if (!dayData || dayData.isRestDay) return { totalDuration: 0, averageRpe: 0 };
+        let totalDuration = 0;
+        let totalRpe = 0;
+        let rpeCount = 0;
+        dayData.exercises.forEach(ex => {
+            if (ex.duration) totalDuration += parseInt(ex.duration, 10) || 0;
+            if (ex.rpe) {
+                const rpeVal = parseInt(ex.rpe, 10);
+                if (!isNaN(rpeVal)) {
+                    totalRpe += rpeVal;
+                    rpeCount++;
+                }
+            }
+        });
+        const averageRpe = rpeCount > 0 ? totalRpe / rpeCount : 0;
+        return { totalDuration, averageRpe };
+    }, [dayData]);
     
-    const isRestDay = (day: string) => {
-        return weeklyPlan[day]?.[0]?.name === 'Rest Day';
+    const getIntensityLabel = (rpe: number) => {
+        if (rpe >= 9.5) return t.plans.intensityLabels.max;
+        if (rpe >= 8) return t.plans.intensityLabels.high;
+        if (rpe >= 7) return t.plans.intensityLabels.moderate;
+        return t.plans.intensityLabels.light;
     }
 
 
@@ -255,30 +436,30 @@ export default function PlansPage() {
             </div>
         )}
         <div className="flex items-center gap-2">
-            <Button variant="outline">
+            <Button variant="outline" disabled={isSubmitting}>
                 <Forward className="mr-2 h-4 w-4" /> {t.plans.sendToClient}
             </Button>
-            <Button>
-                <Save className="mr-2 h-4 w-4" /> {t.plans.savePlan}
+            <Button onClick={handleSavePlan} disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
+                {t.plans.savePlan}
             </Button>
         </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
-        {/* Exercise Library */}
         <div className="lg:col-span-1 bg-card p-4 rounded-lg flex flex-col">
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <Select value={selectedYear} onValueChange={setSelectedYear}>
+              <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Año" />
                 </SelectTrigger>
                 <SelectContent>
                   {years.map(year => (
-                    <SelectItem key={year} value={year}>{year}</SelectItem>
+                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Mes" />
                 </SelectTrigger>
@@ -289,7 +470,7 @@ export default function PlansPage() {
                 </SelectContent>
               </Select>
             </div>
-            <Button variant="outline" className="w-full mb-4">
+            <Button variant="outline" className="w-full mb-4" onClick={handleCreatePlan} disabled={!selectedClientId}>
                 <Plus className="mr-2 h-4 w-4" /> {t.plans.createNewPlan}
             </Button>
             <div className="relative mb-4">
@@ -350,50 +531,64 @@ export default function PlansPage() {
              )}
         </div>
         
-        {/* Weekly Schedule */}
         <div className="lg:col-span-2 space-y-6 overflow-y-auto">
-            <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" size="icon" className="h-8 w-8"><ChevronLeft className="h-4 w-4" /></Button>
-                         <div>
-                            <CardTitle>{t.plans.weekScheduleTitle}</CardTitle>
-                            <CardDescription>{t.plans.weekScheduleDescription}</CardDescription>
-                        </div>
-                        <Button variant="outline" size="icon" className="h-8 w-8"><ChevronRight className="h-4 w-4" /></Button>
+             {Object.keys(planState).length === 0 ? (
+                <Card className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <p className="text-muted-foreground">Selecciona un cliente y crea un nuevo plan.</p>
                     </div>
-                    <div className="flex gap-4 text-center">
-                        <div>
-                            <p className="text-xs text-muted-foreground">{t.plans.estDuration}</p>
-                            <p className="font-bold">0h 0m</p>
+                </Card>
+            ) : (
+                <>
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentWeekIndex(p => Math.max(0, p - 1))} disabled={currentWeekIndex === 0}><ChevronLeft className="h-4 w-4" /></Button>
+                            <div>
+                                <CardTitle>{t.plans.weekScheduleTitle} {currentWeekIndex + 1}</CardTitle>
+                                <CardDescription>{t.plans.weekScheduleDescription}</CardDescription>
+                            </div>
+                            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentWeekIndex(p => Math.min(totalWeeksInMonth - 1, p + 1))} disabled={currentWeekIndex >= totalWeeksInMonth - 1}><ChevronRight className="h-4 w-4" /></Button>
                         </div>
-                        <div>
-                            <p className="text-xs text-muted-foreground">{t.plans.intensity}</p>
-                            <Badge variant="outline">N/A</Badge>
+                        <div className="flex gap-4 text-center">
+                            <div>
+                                <p className="text-xs text-muted-foreground">{t.plans.estDuration}</p>
+                                <p className="font-bold">{totalDuration}m</p>
+                            </div>
+                            <div>
+                                <p className="text-xs text-muted-foreground">{t.plans.intensity}</p>
+                                <Badge variant={averageRpe > 0 ? "default" : "outline"} className="capitalize">{averageRpe > 0 ? getIntensityLabel(averageRpe) : 'N/A'}</Badge>
+                            </div>
                         </div>
-                    </div>
-                </CardHeader>
-            </Card>
-
-            <div className="space-y-6">
-                {weekSchedule.map((dayData) => (
-                    <DaySchedule
-                        key={dayData.id}
-                        day={dayData.day}
-                        focus={dayData.focus}
-                        exercises={weeklyPlan[dayData.id] || []}
-                        onDaySelect={() => setSelectedDay(dayData.id)}
-                        isActive={selectedDay === dayData.id}
-                        onAddExercise={handleAddExercise}
-                        onRemoveExercise={(planId) => handleRemoveExercise(dayData.id, planId)}
-                        onSetRestDay={() => handleSetRestDay(dayData.id)}
-                        isRestDay={isRestDay(dayData.id)}
-                        t={t}
-                    />
-                ))}
-            </div>
+                    </CardHeader>
+                </Card>
+                <div className="space-y-6">
+                    {weekSchedule.map((dayData, index) => {
+                        const dayPlan = planState[currentWeekIndex]?.[dayData.id];
+                        return (
+                            <DaySchedule
+                                key={dayData.id}
+                                day={dayData.day}
+                                focus={dayPlan?.focus || dayData.focus}
+                                exercises={dayPlan?.exercises || []}
+                                onDaySelect={() => setSelectedDay(dayData.id)}
+                                isActive={selectedDay === dayData.id}
+                                onRemoveExercise={(planId) => handleRemoveExercise(dayData.id, planId)}
+                                onUpdateExercise={handleUpdateExercise}
+                                onSetRestDay={() => handleSetRestDay(dayData.id)}
+                                isRestDay={dayPlan?.isRestDay || false}
+                                t={t}
+                                dayIndex={index}
+                                weekNumber={currentWeekIndex}
+                            />
+                        )
+                    })}
+                </div>
+                </>
+            )}
         </div>
       </div>
     </div>
   );
 }
+

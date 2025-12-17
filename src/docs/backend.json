@@ -160,6 +160,58 @@
         "imageUrl": { "type": "string", "format": "uri" }
       },
       "required": ["id", "name", "equipment"]
+    },
+    "Mesocycle": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Mesocycle",
+      "type": "object",
+      "description": "A structured training plan for a client over a specific month (a mesocycle).",
+      "properties": {
+        "id": { "type": "string" },
+        "clientId": { "type": "string" },
+        "year": { "type": "number" },
+        "month": { "type": "number" },
+        "weeks": {
+          "type": "object",
+          "description": "Contains the plan for each week of the month.",
+          "additionalProperties": {
+            "type": "object",
+            "description": "Contains the plan for each day of the week.",
+             "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "focus": { "type": "string" },
+                    "isRestDay": { "type": "boolean" },
+                    "exercises": {
+                        "type": "array",
+                        "items": { "$ref": "#/entities/PlannedExercise" }
+                    }
+                }
+             }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "clientId", "year", "month", "weeks"]
+    },
+    "PlannedExercise": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Planned Exercise",
+        "type": "object",
+        "description": "An exercise within a workout plan, including specific parameters.",
+        "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "imageUrl": { "type": "string", "format": "uri" },
+            "muscleGroups": { "type": "array", "items": { "type": "string" } },
+            "sets": { "type": "string" },
+            "reps": { "type": "string" },
+            "rpe": { "type": "string" },
+            "rest": { "type": "string" },
+            "duration": { "type": "string" }
+        },
+        "required": ["id", "name"]
     }
   },
   "auth": {
@@ -190,9 +242,12 @@
       {
         "path": "/tenants/{tenantId}/exercises/{exerciseId}",
         "definition": { "schema": { "$ref": "#/entities/Exercise" }, "description": "Stores the exercise library for a tenant." }
+      },
+      {
+        "path": "/tenants/{tenantId}/mesocycles/{mesocycleId}",
+        "definition": { "schema": { "$ref": "#/entities/Mesocycle" }, "description": "Stores training plans for clients." }
       }
     ]
   }
 }
-
     

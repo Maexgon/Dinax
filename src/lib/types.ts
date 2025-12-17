@@ -92,14 +92,25 @@ export type Exercise = {
     reps?: number | string;
     rpe?: number | string;
     rest?: string;
+    duration?: string;
 };
 
 export type ExerciseWithId = Exercise & { id: string; };
 
+export type PlannedExercise = ExerciseWithId & {
+    planId: string;
+    sets: string;
+    reps: string;
+    rpe: string;
+    rest: string;
+    duration: string;
+};
+
+
 export type Workout = {
     day: string;
     description: string;
-    exercises?: Exercise[];
+    exercises?: PlannedExercise[];
 };
 
 export type TrainingCycle = {
@@ -109,13 +120,25 @@ export type TrainingCycle = {
   workouts: Workout[];
 };
 
-export type TrainingPlan = {
-  id: string;
-  name: string;
-  description: string;
-  mesocycles: TrainingCycle[];
-  microcycles: TrainingCycle[];
+export type Mesocycle = {
+    id: string;
+    name: string;
+    clientId: string;
+    year: number;
+    month: number;
+    weeks: {
+        [week: number]: {
+            [day: string]: {
+                focus: string;
+                isRestDay: boolean;
+                exercises: PlannedExercise[];
+            }
+        }
+    };
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
 };
+
 
 export type Service = {
   id: string;
