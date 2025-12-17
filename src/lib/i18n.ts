@@ -331,6 +331,7 @@ export const translations = {
         basicDetails: "Detalles Básicos",
         exerciseName: "Nombre del Ejercicio",
         exerciseNamePlaceholder: "Ej: Press de Banca Plano",
+        exerciseType: "Tipo de Ejercicio",
         schematicImage: "Imagen Esquemática",
         schematicImageDesc: "Genera una imagen vectorial simple para identificar este ejercicio en las tablas.",
         createWithAI: "Crear con IA",
@@ -400,6 +401,13 @@ export const translations = {
         ],
         muscleGroupsList: [
             'Pecho', 'Espalda', 'Piernas', 'Hombros', 'Bíceps', 'Tríceps', 'Abdominales', 'Glúteos', 'Isquiotibiales', 'Cuádriceps'
+        ],
+        exerciseTypeList: [
+            { value: 'cardio', label: 'Cardio' },
+            { value: 'strength', label: 'Fuerza' },
+            { value: 'plyo', label: 'Plyo' },
+            { value: 'mobility', label: 'Movilidad' },
+            { value: 'core', label: 'Core' },
         ],
         sets: "SETS",
         reps: "REPS",
@@ -784,6 +792,7 @@ export const translations = {
         basicDetails: "Basic Details",
         exerciseName: "Exercise Name",
         exerciseNamePlaceholder: "e.g., Flat Bench Press",
+        exerciseType: "Exercise Type",
         schematicImage: "Schematic Image",
         schematicImageDesc: "Generate a simple vector image to identify this exercise in tables.",
         createWithAI: "Create with AI",
@@ -854,6 +863,13 @@ export const translations = {
         muscleGroupsList: [
             'Chest', 'Back', 'Legs', 'Shoulders', 'Biceps', 'Triceps', 'Abs', 'Glutes', 'Hamstrings', 'Quads'
         ],
+        exerciseTypeList: [
+            { value: 'cardio', label: 'Cardio' },
+            { value: 'strength', label: 'Strength' },
+            { value: 'plyo', label: 'Plyo' },
+            { value: 'mobility', label: 'Mobility' },
+            { value: 'core', label: 'Core' },
+        ],
         sets: "SETS",
         reps: "REPS",
         rpe: "RPE",
@@ -910,3 +926,5 @@ export const translations = {
 export type Language = keyof typeof translations;
 
 export const getTranslations = (lang: Language) => translations[lang];
+
+    

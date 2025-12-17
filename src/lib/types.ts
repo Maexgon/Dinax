@@ -77,6 +77,7 @@ export type Biomechanics = {
 
 export type Exercise = {
     name: string;
+    type?: string;
     category?: string;
     image?: string;
     imageUrl?: string;
@@ -139,3 +140,5 @@ export type CalendarEvent = {
   studentName: string;
   studentAvatar?: string;
 };
+
+    

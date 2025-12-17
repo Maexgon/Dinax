@@ -82,33 +82,25 @@
       "properties": {
         "id": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "fitnessCertificate": { "type": "boolean" },
-        "certificateDate": { "type": "string", "format": "date" },
-        "cardiovascularDiseases": { "type": "string" },
-        "bloodPressure": { "type": "string" },
-        "restingHeartRate": { "type": "number" },
-        "diabetes": { "type": "string" },
-        "fastingGlucose": { "type": "string" },
-        "totalCholesterol": { "type": "string" },
-        "triglycerides": { "type": "string" },
-        "asthmaCopd": { "type": "boolean" },
-        "chronicJointProblems": { "type": "string" },
-        "discHernias": { "type": "boolean" },
-        "osteoporosis": { "type": "boolean" },
-        "neurologicalProblems": { "type": "boolean" },
-        "currentMedication": { "type": "string" },
-        "cardiovascularMedication": { "type": "boolean" },
-        "metabolicMedication": { "type": "boolean" },
-        "dizzinessSyncope": { "type": "boolean" },
-        "exertionalChestPain": { "type": "boolean" },
-        "exertionalShortnessOfBreath": { "type": "boolean" },
-        "relevantSurgeries": { "type": "string" },
-        "pregnancy": { "type": "boolean" },
-        "relevantAllergies": { "type": "string" },
-        "medicalRestrictions": { "type": "string" },
-        "exerciseAuthorization": { "type": "string" },
-        "riskLevel": { "type": "string", "enum": ["low", "medium", "high"] }
-      }
+        "medicalClearance": { "type": "boolean", "description": "Indicates if the user has medical clearance to exercise." },
+        "bloodType": { "type": "string", "enum": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"], "description": "The user's blood type." },
+        "currentConditions": { "type": "array", "items": { "type": "string" }, "description": "Any current medical conditions." },
+        "underMedicalTreatment": { "type": "boolean", "description": "Indicates if the user is currently under medical treatment." },
+        "currentMedications": { "type": "array", "items": { "type": "string" }, "description": "A list of current medications." },
+        "preexistingInjuries": { "type": "array", "items": { "type": "string" }, "description": "A list of known preexisting injuries." },
+        "previousSurgeries": { "type": "array", "items": { "type": "string" }, "description": "A list of previous surgeries." },
+        "chronicPain": { "type": "boolean", "description": "Indicates if the user suffers from chronic pain." },
+        "medicalRestrictions": { "type": "array", "items": { "type": "string" }, "description": "Any medical restrictions for physical activity." },
+        "emergencyContact": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "phone": { "type": "string" }
+          },
+          "description": "The user's emergency contact information."
+        }
+      },
+       "required": ["id", "createdAt"]
     },
     "Biomechanics": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -149,6 +141,24 @@
         "content": { "type": "string" }
       },
       "required": ["id", "createdAt", "coachName", "content"]
+    },
+    "Exercise": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Exercise",
+      "type": "object",
+      "description": "Represents a single fitness exercise in the library.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["Cardio", "Fuerza", "Pylo", "Movilidad", "Core"] },
+        "equipment": { "type": "string" },
+        "difficulty": { "type": "string" },
+        "instructions": { "type": "string" },
+        "muscleGroups": { "type": "array", "items": { "type": "string" } },
+        "videoUrl": { "type": "string", "format": "uri" },
+        "imageUrl": { "type": "string", "format": "uri" }
+      },
+      "required": ["id", "name", "equipment"]
     }
   },
   "auth": {
@@ -175,7 +185,13 @@
       {
         "path": "/tenants/{tenantId}/user_profile/{userId}/notes/{noteId}",
         "definition": { "schema": { "$ref": "#/entities/Note" }, "description": "Stores coach's notes for a user." }
+      },
+      {
+        "path": "/tenants/{tenantId}/exercises/{exerciseId}",
+        "definition": { "schema": { "$ref": "#/entities/Exercise" }, "description": "Stores the exercise library for a tenant." }
       }
     ]
   }
 }
+
+    

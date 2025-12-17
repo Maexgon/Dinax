@@ -26,6 +26,7 @@ import {
   Bot,
   Loader2,
   Trash2,
+  Zap,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +39,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const exerciseSchema = z.object({
   name: z.string().min(1, 'El nombre es obligatorio.'),
+  type: z.string().optional(),
   equipment: z.string().min(1, 'El equipamiento es obligatorio.'),
   difficulty: z.string().optional(),
   instructions: z.string().optional(),
@@ -96,6 +98,8 @@ export default function EditExercisePage() {
   const muscleGroupsList = t.plans.muscleGroupsList;
   const equipmentList = t.plans.equipmentList;
   const difficultyList = t.plans.difficultyList;
+  const exerciseTypeList = t.plans.exerciseTypeList;
+
 
   const toggleMuscleGroup = (muscle: string) => {
     const currentMuscles = watch('muscleGroups') || [];
@@ -257,7 +261,26 @@ export default function EditExercisePage() {
                 </Button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 <div className="space-y-2">
+                  <Label htmlFor="type">{t.plans.exerciseType}</Label>
+                  <Controller
+                    name="type"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger id="type">
+                          <SelectValue placeholder={t.plans.selectOption} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {exerciseTypeList.map(item => (
+                            <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="equipment">{t.plans.equipment} <span className="text-primary">*</span></Label>
                   <Controller
@@ -381,3 +404,5 @@ export default function EditExercisePage() {
     </form>
   );
 }
+
+    
