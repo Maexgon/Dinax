@@ -32,8 +32,8 @@ service cloud.firestore {
       // Allow a tenant owner to update their own tenant document.
       allow update, delete: if isTenantOwner(tenantId);
 
-      // Allow tenant owners to manage user profiles within their tenant.
-      match /user_profile/{userId} {
+      // This rule allows the tenant owner to manage all subcollections for their clients and exercises.
+      match /{subcollection}/{docId=**} {
         allow read, write: if isTenantOwner(tenantId);
       }
     }
