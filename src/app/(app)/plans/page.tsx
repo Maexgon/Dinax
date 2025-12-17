@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
@@ -221,7 +222,9 @@ export default function PlansPage() {
         }
         setPlanState(newPlan);
         setCurrentPlanId(null); // It's a new plan, so no ID yet
-        toast({ title: "Nuevo Plan Creado", description: `Plan para ${months[selectedMonth]} ${selectedYear} listo para editar.` });
+        
+        // Defer toast to avoid state update in render
+        setTimeout(() => toast({ title: "Nuevo Plan Creado", description: `Plan para ${months[selectedMonth]} ${selectedYear} listo para editar.` }), 0);
     };
 
     useEffect(() => {
@@ -372,7 +375,7 @@ export default function PlansPage() {
     
     const handleReplicatePreviousWeek = () => {
         if (currentWeekIndex === 0) {
-            toast({ variant: 'destructive', title: "Error", description: "No hay semana anterior para replicar." });
+             setTimeout(() => toast({ variant: 'destructive', title: "Error", description: "No hay semana anterior para replicar." }), 0);
             return;
         }
 
@@ -381,7 +384,7 @@ export default function PlansPage() {
             const previousWeekPlan = prev[currentWeekIndex - 1];
 
             if (!previousWeekPlan) {
-                 toast({ variant: 'destructive', title: "Semana Vacía", description: "La semana anterior está vacía." });
+                 setTimeout(() => toast({ variant: 'destructive', title: "Semana Vacía", description: "La semana anterior está vacía." }), 0);
                 return prev;
             }
 
@@ -396,7 +399,7 @@ export default function PlansPage() {
 
             newPlan[currentWeekIndex] = replicatedWeekPlan;
             
-            toast({ title: "Semana Replicada", description: "Se ha copiado el plan de la semana anterior." });
+            setTimeout(() => toast({ title: "Semana Replicada", description: "Se ha copiado el plan de la semana anterior." }), 0);
             return newPlan;
         });
     };
