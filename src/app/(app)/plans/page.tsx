@@ -181,22 +181,31 @@ export default function PlansPage() {
                         {Array.from({length: 3}).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)}
                     </div>
                 )}
-                {!areExercisesLoading && filteredExercises?.map((ex) => (
-                  <Link href={`/plans/exercises/${ex.id}/edit`} key={ex.id}>
-                    <Card className="hover:border-primary transition-colors cursor-pointer">
-                        <CardContent className="p-2 flex items-center gap-3">
-                            <Image src={ex.imageUrl || 'https://picsum.photos/seed/placeholder/40/40'} alt={ex.name} width={40} height={40} className="rounded-md aspect-square object-cover" />
-                            <div className="flex-1">
-                                <p className="font-semibold text-sm">{ex.name}</p>
-                                <p className="text-xs text-muted-foreground">
-                                    {ex.equipment}
-                                    {ex.type && <span className="before:content-['•'] before:mx-1">{ex.type}</span>}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                   </Link>
-                ))}
+                {!areExercisesLoading && filteredExercises?.map((ex) => {
+                  const equipmentLabel = t.plans.equipmentList.find(e => e.value === ex.equipment)?.label;
+                  const typeLabel = t.plans.exerciseTypeList.find(e => e.value === ex.type)?.label;
+
+                  const details = [
+                    equipmentLabel && equipmentLabel.toLowerCase() !== 'sin equipamiento' ? equipmentLabel : null,
+                    typeLabel
+                  ].filter(Boolean).join(' • ');
+
+                  return (
+                    <Link href={`/plans/exercises/${ex.id}/edit`} key={ex.id}>
+                      <Card className="hover:border-primary transition-colors cursor-pointer">
+                          <CardContent className="p-2 flex items-center gap-3">
+                              <Image src={ex.imageUrl || 'https://picsum.photos/seed/placeholder/40/40'} alt={ex.name} width={40} height={40} className="rounded-md aspect-square object-cover" />
+                              <div className="flex-1">
+                                  <p className="font-semibold text-sm">{ex.name}</p>
+                                  <p className="text-xs text-muted-foreground capitalize">
+                                      {details}
+                                  </p>
+                              </div>
+                          </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
                  {!areExercisesLoading && filteredExercises?.length === 0 && (
                     <p className="text-sm text-muted-foreground text-center py-4">{t.plans.noExercises}</p>
                  )}
@@ -254,3 +263,5 @@ export default function PlansPage() {
     </div>
   );
 }
+
+    
