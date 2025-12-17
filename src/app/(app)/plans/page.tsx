@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Loader2 } from 'lucide-react';
@@ -8,12 +8,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
-import { mockTrainingPlans, mockClients } from '@/lib/data';
+import { mockTrainingPlans } from '@/lib/data';
 import type { Client, TrainingPlan, Exercise, ExerciseWithId } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 const ExerciseCard = ({ exercise }: { exercise: Exercise }) => {
     const { t } = useLanguage();
@@ -106,12 +114,27 @@ export default function PlansPage() {
     const { t } = useLanguage();
     const { firestore, user } = useFirebase();
     const plan = mockTrainingPlans[0];
-    const client = mockClients[1];
     
+    const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
     const [filter, setFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
 
     const tenantId = user?.uid;
+
+    const clientsCollectionRef = useMemoFirebase(
+      () => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/user_profile`) : null),
+      [firestore, tenantId]
+    );
+    const { data: clients, isLoading: areClientsLoading } = useCollection<Client>(clientsCollectionRef);
+
+    useEffect(() => {
+        if (clients && clients.length > 0 && !selectedClientId) {
+            setSelectedClientId(clients[0].id);
+        }
+    }, [clients, selectedClientId]);
+
+    const selectedClient = clients?.find(c => c.id === selectedClientId);
+
     const exercisesCollectionRef = useMemoFirebase(
       () => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/exercises`), orderBy("name", "asc")) : null),
       [firestore, tenantId]
@@ -138,18 +161,42 @@ export default function PlansPage() {
   return (
     <div className="flex flex-col h-full">
       <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-4">
-          <Avatar className="h-12 w-12 border-2 border-primary">
-            <AvatarImage src={client.avatarUrl} alt={client.name} data-ai-hint={client.avatarHint}/>
-            <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div>
-            <h1 className="text-2xl font-bold font-headline">{t.plans.planFor} {client.name}</h1>
-            <p className="text-muted-foreground">
-              {t.plans.planObjective}
-            </p>
-          </div>
-        </div>
+        {selectedClient ? (
+            <div className="flex items-center gap-4">
+                <Avatar className="h-12 w-12 border-2 border-primary">
+                    <AvatarImage src={selectedClient.avatarUrl} alt={selectedClient.name} data-ai-hint={selectedClient.avatarHint}/>
+                    <AvatarFallback>{selectedClient.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                    <Select value={selectedClientId || ''} onValueChange={setSelectedClientId}>
+                        <SelectTrigger className="w-[200px] border-none text-2xl font-bold font-headline p-0 h-auto focus:ring-0">
+                            <SelectValue placeholder="Seleccionar cliente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {clients?.map(client => (
+                                <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                    <p className="text-muted-foreground">
+                    {t.plans.planObjective}
+                    </p>
+                </div>
+            </div>
+        ) : areClientsLoading ? (
+            <div className="flex items-center gap-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-64" />
+                </div>
+            </div>
+        ) : (
+             <div>
+                <h1 className="text-2xl font-bold font-headline">Selecciona un cliente</h1>
+                <p className="text-muted-foreground">Elige un cliente para empezar a planificar.</p>
+            </div>
+        )}
         <div className="flex items-center gap-2">
             <Button variant="outline">
                 <Forward className="mr-2 h-4 w-4" /> {t.plans.sendToClient}
@@ -263,5 +310,3 @@ export default function PlansPage() {
     </div>
   );
 }
-
-    
