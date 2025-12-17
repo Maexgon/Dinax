@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -216,11 +217,7 @@ export default function PlansPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
         {/* Exercise Library */}
         <div className="lg:col-span-1 bg-card p-4 rounded-lg flex flex-col">
-            <div className="relative mb-4">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input placeholder={t.plans.searchExercises} className="pl-8" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-            </div>
-             <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-2 gap-4 mb-4">
               <Select value={selectedYear} onValueChange={setSelectedYear}>
                 <SelectTrigger>
                   <SelectValue placeholder="Año" />
@@ -241,6 +238,13 @@ export default function PlansPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <Button variant="outline" className="w-full mb-4">
+                <Plus className="mr-2 h-4 w-4" /> {t.plans.createNewPlan}
+            </Button>
+            <div className="relative mb-4">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input placeholder={t.plans.searchExercises} className="pl-8" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
             </div>
             <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
                  {filterButtons.map(btn => (
