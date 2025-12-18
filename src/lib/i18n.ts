@@ -349,10 +349,19 @@ export const translations = {
         }
     },
     schedule: {
-        title: "Agenda",
-        description: "Tu calendario de citas y sesiones.",
-        upcomingSessions: "Próximas Sesiones",
-        noUpcomingSessions: "No hay próximas sesiones."
+        title: "Agenda de Entrenamiento",
+        description: "Organiza tus sesiones, clases y eventos.",
+        newSession: "Nueva Sesión",
+        month: "Mes",
+        week: "Semana",
+        day: "Día",
+        today: "Hoy",
+        sessionsToday: "Sesiones Hoy",
+        scheduled: "programadas",
+        pendingWeek: "Pendientes Semana",
+        vsLastWeek: "+2 vs semana pasada",
+        completedMonth: "Completadas Mes",
+        attendance: "asistencia",
     },
 
     plans: {
@@ -928,10 +937,19 @@ unilateralBalance: "Unilateral balance (s)",
         }
     },
     schedule: {
-        title: "Schedule",
-        description: "Your calendar of appointments and sessions.",
-        upcomingSessions: "Upcoming Sessions",
-        noUpcomingSessions: "No upcoming sessions."
+        title: "Training Schedule",
+        description: "Organize your sessions, classes, and events.",
+        newSession: "New Session",
+        month: "Month",
+        week: "Week",
+        day: "Day",
+        today: "Today",
+        sessionsToday: "Sessions Today",
+        scheduled: "scheduled",
+        pendingWeek: "Pending Week",
+        vsLastWeek: "+2 vs last week",
+        completedMonth: "Completed Month",
+        attendance: "attendance",
     },
 
     plans: {

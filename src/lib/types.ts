@@ -158,10 +158,13 @@ export type Payment = {
 export type CalendarEvent = {
   id: string;
   title: string;
-  start: Date;
-  end: Date;
-  studentName: string;
-  studentAvatar?: string;
+  start: Date | Timestamp;
+  end: Date | Timestamp;
+  type: 'group' | 'individual';
+  location?: string;
+  workPlan?: string;
+  equipment?: string[];
+  clients?: string[];
 };
 
 export type ServicePlan = {
