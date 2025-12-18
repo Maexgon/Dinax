@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import ServicePlanForm from '../../../services/service-plan-form';
+import ServicePlanForm from '../service-plan-form';
 import { useLanguage } from '@/context/language-context';
 import { useFirebase, useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';

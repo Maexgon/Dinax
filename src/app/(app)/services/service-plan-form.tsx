@@ -89,7 +89,7 @@ export default function ServicePlanForm({ existingPlan }: ServicePlanFormProps) 
     formState: { errors, isSubmitting },
   } = useForm<ServicePlanFormData>({
     resolver: zodResolver(servicePlanSchema),
-    defaultValues: {
+    defaultValues: existingPlan || {
       name: 'Nuevo Plan',
       description: '',
       price: 0,
@@ -99,7 +99,7 @@ export default function ServicePlanForm({ existingPlan }: ServicePlanFormProps) 
       benefits: [],
     },
   });
-
+  
   useEffect(() => {
     if (existingPlan) {
         reset(existingPlan);
@@ -239,7 +239,7 @@ export default function ServicePlanForm({ existingPlan }: ServicePlanFormProps) 
                         {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="currency">{t.settings.currency}</Label>
+                        <Label htmlFor="currency">Moneda</Label>
                         <Controller
                             name="currency"
                             control={control}
@@ -425,7 +425,7 @@ export default function ServicePlanForm({ existingPlan }: ServicePlanFormProps) 
                     </div>
 
 
-                    {watchData.hasPromo && (
+                    {watchData.hasPromo && watchData.promoValue && (
                         <div className="mb-8 mt-2">
                              <Badge variant="secondary" className="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
                                 <Tag className="mr-1 h-3 w-3"/>
@@ -435,7 +435,7 @@ export default function ServicePlanForm({ existingPlan }: ServicePlanFormProps) 
                     )}
                     
                     <ul className="w-full flex flex-col gap-3 mb-8 text-left">
-                       {watchData.benefits.map((benefit, index) => (
+                       {watchData.benefits && watchData.benefits.map((benefit, index) => (
                          <li key={index} className="flex items-center gap-3 text-sm">
                             <Check className="text-primary h-4 w-4" /> {benefit.text}
                          </li>
