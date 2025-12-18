@@ -107,8 +107,8 @@ export function Nav() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-             <SidebarMenuButton asChild tooltip={t.nav.settings}>
-                <Link href="#">
+             <SidebarMenuButton asChild tooltip={t.nav.settings} isActive={pathname.startsWith('/settings')}>
+                <Link href="/settings">
                   <Settings />
                   <span className={cn(
                       'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
