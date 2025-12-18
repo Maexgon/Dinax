@@ -223,6 +223,7 @@
         "name": { "type": "string" },
         "description": { "type": "string" },
         "price": { "type": "number" },
+        "currency": { "type": "string", "enum": ["usd", "eur", "ars"] },
         "frequency": { "type": "string", "enum": ["monthly", "quarterly", "semiannually", "annually", "once"] },
         "hasPromo": { "type": "boolean" },
         "promoType": { "type": "string", "enum": ["percentage", "fixed"] },
@@ -231,7 +232,7 @@
         "promoMonths": { "type": "number" },
         "benefits": { "type": "array", "items": { "type": "string" } }
       },
-      "required": ["id", "name", "price", "frequency", "benefits"]
+      "required": ["id", "name", "price", "currency", "frequency", "benefits"]
     },
     "Settings": {
       "$schema": "http://json-schema.org/draft-07/schema#",

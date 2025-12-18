@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { toPng } from 'html-to-image';
 import {
   Pen,
   CreditCard,
@@ -15,6 +16,7 @@ import {
   Save,
   Check,
   Info,
+  Download,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -25,7 +27,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
@@ -48,6 +49,7 @@ const servicePlanSchema = z.object({
   name: z.string().min(1, 'El nombre del plan es obligatorio.'),
   description: z.string().optional(),
   price: z.coerce.number().min(0, 'El precio no puede ser negativo.'),
+  currency: z.enum(['eur', 'usd', 'ars']),
   frequency: z.enum(['monthly', 'quarterly', 'semiannually', 'annually', 'once']),
   hasPromo: z.boolean(),
   promoType: z.enum(['percentage', 'fixed']).optional(),
@@ -62,6 +64,7 @@ type ServicePlanFormData = z.infer<typeof servicePlanSchema>;
 export default function ServicePlansPage() {
   const { t } = useLanguage();
   const [newBenefit, setNewBenefit] = useState('');
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const {
     register,
@@ -75,6 +78,7 @@ export default function ServicePlansPage() {
       name: 'Reto Transformación',
       description: 'El programa definitivo para cambiar tu cuerpo y mente en solo 12 semanas.',
       price: 49,
+      currency: 'usd',
       frequency: 'monthly',
       hasPromo: true,
       promoType: 'percentage',
@@ -106,6 +110,23 @@ export default function ServicePlansPage() {
   const onSubmit = (data: ServicePlanFormData) => {
     console.log(data);
   };
+  
+  const handleDownloadImage = useCallback(() => {
+    if (previewRef.current === null) {
+      return;
+    }
+
+    toPng(previewRef.current, { cacheBust: true, pixelRatio: 2 })
+      .then((dataUrl) => {
+        const link = document.createElement('a');
+        link.download = `${watchData.name?.replace(/ /g, '_') || 'plan'}-preview.png`;
+        link.href = dataUrl;
+        link.click();
+      })
+      .catch((err) => {
+        console.error('oops, something went wrong!', err);
+      });
+  }, [previewRef, watchData.name]);
 
   const finalPrice =
     watchData.hasPromo && watchData.promoValue
@@ -127,6 +148,13 @@ export default function ServicePlansPage() {
     { value: 'first_month', label: t.services.firstMonth },
     { value: 'custom', label: t.services.customMonths },
   ];
+  
+  const currencySymbols: { [key: string]: string } = {
+    usd: '$',
+    eur: '€',
+    ars: '$',
+  };
+  const currencySymbol = currencySymbols[watchData.currency] || '$';
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
@@ -167,17 +195,34 @@ export default function ServicePlansPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="price">{t.services.subscriptionAmount}</Label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">$</span>
-                    <Input id="price" type="number" {...register('price')} className="pl-7 font-bold text-lg" />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">USD</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">{currencySymbol}</span>
+                    <Input id="price" type="number" {...register('price')} className="pl-8 font-bold text-lg" />
                   </div>
                    {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
                 </div>
                 <div className="space-y-2">
+                    <Label htmlFor="currency">{t.settings.defaultCurrency}</Label>
+                    <Controller
+                        name="currency"
+                        control={control}
+                        render={({ field }) => (
+                            <Select value={field.value} onValueChange={field.onChange}>
+                                <SelectTrigger id="currency"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="usd">{t.settings.usd}</SelectItem>
+                                    <SelectItem value="eur">{t.settings.eur}</SelectItem>
+                                    <SelectItem value="ars">{t.settings.ars}</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        )}
+                    />
+                </div>
+
+                 <div className="md:col-span-3 space-y-2">
                   <Label htmlFor="frequency">{t.services.subscriptionType}</Label>
                    <Controller
                     name="frequency"
@@ -247,7 +292,7 @@ export default function ServicePlansPage() {
                            <div className="relative">
                                 <Input type="number" {...register('promoValue')} className="pr-12"/>
                                 <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">
-                                    {watchData.promoType === 'percentage' ? '%' : '$'}
+                                    {watchData.promoType === 'percentage' ? '%' : currencySymbol}
                                 </span>
                            </div>
                         </div>
@@ -318,7 +363,7 @@ export default function ServicePlansPage() {
         <div className="lg:col-span-5 xl:col-span-4">
           <div className="sticky top-6 space-y-4">
             <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">{t.services.preview}</h3>
-            <div className="bg-card rounded-2xl overflow-hidden shadow-2xl border transform transition-transform hover:scale-[1.02] duration-300">
+            <div ref={previewRef} className="bg-card rounded-2xl overflow-hidden shadow-2xl border transform transition-transform hover:scale-[1.02] duration-300">
                 <div className="h-32 bg-gradient-to-br from-primary to-blue-600 relative overflow-hidden">
                     <div className="absolute inset-0 opacity-20" style={{backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)", backgroundSize: "20px 20px"}}></div>
                     <div className="absolute bottom-4 left-6 flex gap-2">
@@ -333,8 +378,8 @@ export default function ServicePlansPage() {
                     <p className="text-muted-foreground text-sm mb-4 line-clamp-2 h-10">{watchData.description || t.services.shortDescriptionPlaceholder}</p>
                     
                     <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-4xl font-black text-primary">${finalPrice.toFixed(2)}</span>
-                        {watchData.hasPromo && <span className="text-lg text-muted-foreground line-through">${watchData.price.toFixed(2)}</span>}
+                        <span className="text-4xl font-black text-primary">{currencySymbol}{finalPrice.toFixed(2)}</span>
+                        {watchData.hasPromo && <span className="text-lg text-muted-foreground line-through">{currencySymbol}{watchData.price.toFixed(2)}</span>}
                         <span className="text-muted-foreground font-medium">/ {t.services.month}</span>
                     </div>
 
@@ -342,7 +387,7 @@ export default function ServicePlansPage() {
                         <div className="mb-8">
                              <Badge variant="secondary" className="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
                                 <Tag className="mr-1 h-3 w-3"/>
-                                {watchData.promoValue}{watchData.promoType === 'percentage' ? '%' : '$'} OFF {watchData.promoDuration === 'custom' ? `x ${watchData.promoMonths} ${t.services.months}`: ''}
+                                {watchData.promoValue}{watchData.promoType === 'percentage' ? '%' : currencySymbol} OFF {watchData.promoDuration === 'custom' ? `x ${watchData.promoMonths} ${t.services.months}`: ''}
                             </Badge>
                         </div>
                     )}
@@ -360,6 +405,9 @@ export default function ServicePlansPage() {
                 </div>
             </div>
             <div className="mt-4 flex flex-col gap-3">
+                <Button onClick={handleDownloadImage} type="button" variant="secondary" className="w-full font-bold">
+                    <Download className="mr-2"/> Descargar para Redes
+                </Button>
                 <Button className="w-full bg-foreground text-background hover:bg-foreground/80 font-bold shadow-xl">
                     <Rocket className="mr-2"/> {t.services.publishPlan}
                 </Button>
