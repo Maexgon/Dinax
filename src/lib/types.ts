@@ -178,4 +178,16 @@ export type ServicePlan = {
   promoMonths?: number;
   benefits: string[];
 };
+
+export type AppSettings = {
+  units: 'metric' | 'imperial';
+  theme: 'light' | 'dark' | 'system';
+  currency: string;
+  language: 'es' | 'en';
+  location?: string;
+  workingDays: string[];
+  startTime: string;
+  endTime: string;
+  googleCalendarSync: boolean;
+};
     
