@@ -171,7 +171,7 @@ export type ServicePlan = {
   description?: string;
   price: number;
   currency: 'usd' | 'eur' | 'ars';
-  frequency: 'monthly' | 'quarterly' | 'semiannually' | 'annually' | 'once';
+  frequency: 'weekly' | 'monthly' | 'quarterly' | 'semiannually' | 'annually' | 'once';
   hasPromo: boolean;
   promoType?: 'percentage' | 'fixed';
   promoValue?: number;

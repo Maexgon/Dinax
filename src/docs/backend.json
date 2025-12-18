@@ -212,6 +212,45 @@
             "duration": { "type": "string" }
         },
         "required": ["id", "name"]
+    },
+    "ServicePlan": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Service Plan",
+      "type": "object",
+      "description": "Defines a commercial service plan offered by the coach.",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "currency": { "type": "string", "enum": ["usd", "eur", "ars"] },
+        "frequency": { "type": "string", "enum": ["weekly", "monthly", "quarterly", "semiannually", "annually", "once"] },
+        "hasPromo": { "type": "boolean" },
+        "promoType": { "type": "string", "enum": ["percentage", "fixed"] },
+        "promoValue": { "type": "number" },
+        "promoDuration": { "type": "string", "enum": ["indefinite", "first_month", "custom"] },
+        "promoMonths": { "type": "number" },
+        "benefits": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "name", "price", "currency", "frequency", "benefits"]
+    },
+    "Settings": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Settings",
+      "type": "object",
+      "description": "Stores user-specific application settings.",
+      "properties": {
+        "units": { "type": "string", "enum": ["metric", "imperial"] },
+        "theme": { "type": "string", "enum": ["light", "dark", "system"] },
+        "currency": { "type": "string" },
+        "language": { "type": "string", "enum": ["es", "en"] },
+        "location": { "type": "string" },
+        "workingDays": { "type": "array", "items": { "type": "string" } },
+        "startTime": { "type": "string", "format": "time" },
+        "endTime": { "type": "string", "format": "time" },
+        "googleCalendarSync": { "type": "boolean" }
+      },
+      "required": ["units", "theme", "currency", "language", "workingDays", "startTime", "endTime", "googleCalendarSync"]
     }
   },
   "auth": {
@@ -246,6 +285,14 @@
       {
         "path": "/tenants/{tenantId}/mesocycles/{mesocycleId}",
         "definition": { "schema": { "$ref": "#/entities/Mesocycle" }, "description": "Stores training plans for clients." }
+      },
+       {
+        "path": "/tenants/{tenantId}/services/{serviceId}",
+        "definition": { "schema": { "$ref": "#/entities/ServicePlan" }, "description": "Stores the service plans offered by a tenant." }
+      },
+      {
+        "path": "/tenants/{tenantId}/settings/preferences",
+        "definition": { "schema": { "$ref": "#/entities/Settings" }, "description": "Stores application settings for a tenant." }
       }
     ]
   }

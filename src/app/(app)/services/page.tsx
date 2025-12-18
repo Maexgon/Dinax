@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
@@ -51,7 +52,7 @@ const servicePlanSchema = z.object({
   description: z.string().optional(),
   price: z.coerce.number().min(0, 'El precio no puede ser negativo.'),
   currency: z.enum(['eur', 'usd', 'ars']),
-  frequency: z.enum(['monthly', 'quarterly', 'semiannually', 'annually', 'once']),
+  frequency: z.enum(['weekly', 'monthly', 'quarterly', 'semiannually', 'annually', 'once']),
   hasPromo: z.boolean(),
   promoType: z.enum(['percentage', 'fixed']).optional(),
   promoValue: z.coerce.number().optional(),
@@ -137,6 +138,7 @@ export default function ServicePlansPage() {
       : Number(watchData.price);
       
   const planFrequencies = [
+    { value: 'weekly', label: t.services.weekly },
     { value: 'monthly', label: t.services.monthly },
     { value: 'quarterly', label: t.services.quarterly },
     { value: 'semiannually', label: t.services.semiannually },
@@ -391,7 +393,7 @@ export default function ServicePlansPage() {
                     
                     <div className="flex flex-col items-center mb-1">
                         <div className="flex items-baseline gap-2">
-                          <span className={cn("font-black text-primary", finalPriceString.length > 8 ? 'text-3xl' : 'text-4xl')}>{currencySymbol}{finalPrice.toFixed(2)}</span>
+                          <span className={cn("font-black text-primary", priceFontSizeClass)}>{currencySymbol}{finalPrice.toFixed(2)}</span>
                           <span className="text-muted-foreground font-medium">/ {t.services.month}</span>
                         </div>
                         {watchData.hasPromo && (
