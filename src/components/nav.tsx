@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -12,6 +13,7 @@ import {
   Bot,
   LogOut,
   User,
+  Package,
 } from 'lucide-react';
 
 import {
@@ -52,6 +54,7 @@ export function Nav() {
     { href: '/schedule', icon: Calendar, label: t.nav.schedule },
     { href: '/payments', icon: Wallet, label: t.nav.finances },
     { href: '/plans', icon: Dumbbell, label: t.plans.title },
+    { href: '/services', icon: Package, label: t.nav.services },
     { href: '/ai-goals', icon: Bot, label: t.aiGoals.title },
   ];
   

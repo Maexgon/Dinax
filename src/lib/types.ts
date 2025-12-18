@@ -165,4 +165,17 @@ export type CalendarEvent = {
   studentAvatar?: string;
 };
 
+export type ServicePlan = {
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
+  frequency: 'monthly' | 'quarterly' | 'semiannually' | 'annually' | 'once';
+  hasPromo: boolean;
+  promoType?: 'percentage' | 'fixed';
+  promoValue?: number;
+  promoDuration?: 'indefinite' | 'first_month' | 'custom';
+  promoMonths?: number;
+  benefits: string[];
+};
     
