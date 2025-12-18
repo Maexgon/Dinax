@@ -1,8 +1,7 @@
-
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Link as LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -62,11 +61,18 @@ export default function ClientsPage() {
             <h1 className="text-3xl font-bold font-headline">{t.clients.title}</h1>
             <p className="text-muted-foreground">{t.clients.description}</p>
         </div>
-        <Button asChild>
-          <Link href="/clients/new">
-            <PlusCircle className="mr-2 h-4 w-4" /> {t.clients.addNewClient}
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+            <Button asChild variant="outline">
+                <Link href="/clients/assign-plan">
+                    <LinkIcon className="mr-2 h-4 w-4" /> {t.clients.assignCommercialPlan}
+                </Link>
+            </Button>
+            <Button asChild>
+                <Link href="/clients/new">
+                    <PlusCircle className="mr-2 h-4 w-4" /> {t.clients.addNewClient}
+                </Link>
+            </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

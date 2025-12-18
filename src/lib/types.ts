@@ -1,4 +1,3 @@
-
 import { Timestamp } from 'firebase/firestore';
 
 export type Client = {
@@ -177,7 +176,18 @@ export type ServicePlan = {
   promoValue?: number;
   promoDuration?: 'indefinite' | 'first_month' | 'custom';
   promoMonths?: number;
-  benefits: string[];
+  benefits: { text: string }[];
+};
+
+export type ClientPlan = {
+    id: string;
+    clientId: string;
+    servicePlanId: string;
+    trainingDays: string[];
+    hoursPerClass: number;
+    monthlyCost: number;
+    paymentMethod: 'cash' | 'card' | 'transfer';
+    createdAt: Timestamp;
 };
 
 export type AppSettings = {
@@ -191,4 +201,3 @@ export type AppSettings = {
   endTime: string;
   googleCalendarSync: boolean;
 };
-    
