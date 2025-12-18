@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -165,7 +166,7 @@ export default function SettingsPage() {
                       <SelectContent>
                         <SelectItem value="eur">{t.settings.eur}</SelectItem>
                         <SelectItem value="usd">{t.settings.usd}</SelectItem>
-                        <SelectItem value="gbp">{t.settings.gbp}</SelectItem>
+                        <SelectItem value="ars">{t.settings.ars}</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
