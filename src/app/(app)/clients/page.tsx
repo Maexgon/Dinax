@@ -1,3 +1,4 @@
+
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -14,9 +15,11 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { useLanguage } from '@/context/language-context';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import type { Client } from '@/lib/types';
+import type { Client, ClientPlan, ServicePlan } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collection } from 'firebase/firestore';
+import { Badge } from '@/components/ui/badge';
+import React from 'react';
 
 function ClientCardSkeleton() {
     return (
@@ -46,12 +49,30 @@ export default function ClientsPage() {
   const { firestore, user } = useFirebase();
 
   const tenantId = user?.uid;
-  const clientsCollectionRef = useMemoFirebase(
-    () => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/user_profile`) : null),
-    [firestore, tenantId]
-  );
   
-  const { data: clients, isLoading } = useCollection<Client>(clientsCollectionRef);
+  const clientsRef = useMemoFirebase(() => tenantId ? collection(firestore, `tenants/${tenantId}/user_profile`) : null, [tenantId, firestore]);
+  const clientPlansRef = useMemoFirebase(() => tenantId ? collection(firestore, `tenants/${tenantId}/client_plans`) : null, [tenantId, firestore]);
+  const servicePlansRef = useMemoFirebase(() => tenantId ? collection(firestore, `tenants/${tenantId}/services`) : null, [tenantId, firestore]);
+
+  const { data: clients, isLoading: areClientsLoading } = useCollection<Client>(clientsRef);
+  const { data: clientPlans, isLoading: areClientPlansLoading } = useCollection<ClientPlan>(clientPlansRef);
+  const { data: servicePlans, isLoading: areServicePlansLoading } = useCollection<ServicePlan>(servicePlansRef);
+
+  const isLoading = areClientsLoading || areClientPlansLoading || areServicePlansLoading;
+  
+  const enrichedClients = React.useMemo(() => {
+    if (isLoading || !clients || !clientPlans || !servicePlans) return [];
+
+    return clients.map(client => {
+      const clientPlan = clientPlans.find(cp => cp.clientId === client.id);
+      const servicePlan = clientPlan ? servicePlans.find(sp => sp.id === clientPlan.servicePlanId) : null;
+
+      return {
+        ...client,
+        servicePlanName: servicePlan?.name || null,
+      };
+    });
+  }, [clients, clientPlans, servicePlans, isLoading]);
 
 
   return (
@@ -76,9 +97,9 @@ export default function ClientsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {isLoading && !clients && Array.from({ length: 4 }).map((_, i) => <ClientCardSkeleton key={i} />)}
+        {isLoading && Array.from({ length: 4 }).map((_, i) => <ClientCardSkeleton key={i} />)}
         
-        {!isLoading && clients?.map((client) => {
+        {!isLoading && enrichedClients?.map((client) => {
           const planTypeLabel = t.clientDetail.planTypes.find(p => p.value === client.planType)?.label;
           return (
             <Card key={client.id} className="flex flex-col">
@@ -94,7 +115,7 @@ export default function ClientsPage() {
               </CardHeader>
               <CardContent className="flex-grow text-center">
                 <CardTitle className="font-headline">{client.name}</CardTitle>
-                {planTypeLabel && <p className="text-sm text-primary font-medium mt-1">{planTypeLabel}</p>}
+                 {client.servicePlanName && <Badge variant="secondary" className="mt-1">{client.servicePlanName}</Badge>}
                 <CardDescription className="mt-1">{client.email}</CardDescription>
                 <div className="mt-4">
                   <p className="text-sm font-medium text-muted-foreground mb-1">
