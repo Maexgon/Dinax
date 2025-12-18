@@ -147,12 +147,12 @@ export type Service = {
 
 export type Payment = {
   id: string;
-  studentId: string;
-  studentName: string;
-  service: string;
+  clientId: string;
+  clientPlanId: string;
+  servicePlanId: string;
   amount: number;
-  date: string;
-  status: 'Paid' | 'Pending' | 'Overdue';
+  paymentDate: string | Timestamp;
+  status: 'paid' | 'pending' | 'overdue';
 };
 
 export type CalendarEvent = {

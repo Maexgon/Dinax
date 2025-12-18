@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "Tenant": {
@@ -230,9 +229,42 @@
         "promoValue": { "type": "number" },
         "promoDuration": { "type": "string", "enum": ["indefinite", "first_month", "custom"] },
         "promoMonths": { "type": "number" },
-        "benefits": { "type": "array", "items": { "type": "string" } }
+        "benefits": { "type": "array", "items": { "type": "object", "properties": { "text": { "type": "string" } } } }
       },
-      "required": ["id", "name", "price", "currency", "frequency", "benefits"]
+      "required": ["id", "name", "price", "currency", "frequency"]
+    },
+    "ClientPlan": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Client Plan",
+        "type": "object",
+        "description": "Represents an assigned commercial plan for a specific client.",
+        "properties": {
+            "id": { "type": "string" },
+            "clientId": { "type": "string" },
+            "servicePlanId": { "type": "string" },
+            "trainingDays": { "type": "array", "items": { "type": "string" } },
+            "hoursPerClass": { "type": "number" },
+            "monthlyCost": { "type": "number" },
+            "paymentMethod": { "type": "string", "enum": ["cash", "card", "transfer"] },
+            "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["id", "clientId", "servicePlanId", "trainingDays", "monthlyCost", "paymentMethod", "createdAt"]
+    },
+    "Payment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Payment",
+      "type": "object",
+      "description": "Represents a single payment transaction for a client's plan.",
+      "properties": {
+        "id": { "type": "string" },
+        "clientId": { "type": "string" },
+        "clientPlanId": { "type": "string" },
+        "servicePlanId": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["paid", "pending", "overdue"] }
+      },
+      "required": ["id", "clientId", "clientPlanId", "amount", "paymentDate", "status"]
     },
     "Settings": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -291,10 +323,17 @@
         "definition": { "schema": { "$ref": "#/entities/ServicePlan" }, "description": "Stores the service plans offered by a tenant." }
       },
       {
+        "path": "/tenants/{tenantId}/client_plans/{planId}",
+        "definition": { "schema": { "$ref": "#/entities/ClientPlan" }, "description": "Stores the commercial plans assigned to clients." }
+      },
+      {
+        "path": "/tenants/{tenantId}/payments/{paymentId}",
+        "definition": { "schema": { "$ref": "#/entities/Payment" }, "description": "Stores individual payment transactions for clients." }
+      },
+      {
         "path": "/tenants/{tenantId}/settings/preferences",
         "definition": { "schema": { "$ref": "#/entities/Settings" }, "description": "Stores application settings for a tenant." }
       }
     ]
   }
 }
-    
