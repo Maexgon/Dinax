@@ -155,8 +155,8 @@ export default function PaymentsPage() {
     return new Intl.DateTimeFormat(language === 'es' ? 'es' : 'en', options).format(d);
   };
   
-  const selectedClientFullData = enrichedClientData.find(c => c.id === selectedClient?.id);
-  const selectedClientPayments = payments?.filter(p => p.clientId === selectedClient?.id).sort((a,b) => new Date(b.paymentDate as string).getTime() - new Date(a.paymentDate as string).getTime());
+  const selectedClientFullData = useMemo(() => enrichedClientData.find(c => c.id === selectedClient?.id), [enrichedClientData, selectedClient]);
+  const selectedClientPayments = useMemo(() => payments?.filter(p => p.clientId === selectedClient?.id).sort((a,b) => new Date(b.paymentDate as string).getTime() - new Date(a.paymentDate as string).getTime()), [payments, selectedClient]);
 
 
   return (
