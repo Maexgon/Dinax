@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
@@ -205,7 +206,7 @@ export default function ServicePlansPage() {
                    {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="currency">{t.settings.defaultCurrency}</Label>
+                    <Label htmlFor="currency">{t.settings.currency}</Label>
                     <Controller
                         name="currency"
                         control={control}
@@ -379,7 +380,7 @@ export default function ServicePlansPage() {
                     
                     <div className="flex items-baseline gap-2 mb-1">
                         <span className="text-4xl font-black text-primary">{currencySymbol}{finalPrice.toFixed(2)}</span>
-                        {watchData.hasPromo && <span className="text-lg text-muted-foreground line-through">{currencySymbol}{watchData.price.toFixed(2)}</span>}
+                        {watchData.hasPromo && <span className="text-lg text-muted-foreground line-through">{currencySymbol}{Number(watchData.price).toFixed(2)}</span>}
                         <span className="text-muted-foreground font-medium">/ {t.services.month}</span>
                     </div>
 
