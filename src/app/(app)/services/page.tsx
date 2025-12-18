@@ -133,9 +133,9 @@ export default function ServicePlansPage() {
   const finalPrice =
     watchData.hasPromo && watchData.promoValue
       ? watchData.promoType === 'percentage'
-        ? watchData.price * (1 - watchData.promoValue / 100)
-        : watchData.price - watchData.promoValue
-      : watchData.price;
+        ? Number(watchData.price) * (1 - Number(watchData.promoValue) / 100)
+        : Number(watchData.price) - Number(watchData.promoValue)
+      : Number(watchData.price);
       
   const planFrequencies = [
     { value: 'monthly', label: t.services.monthly },
@@ -161,10 +161,10 @@ export default function ServicePlansPage() {
   const finalPriceString = finalPrice.toFixed(2);
   const priceFontSizeClass =
     finalPriceString.length > 8
-      ? 'text-3xl'
+      ? 'text-2xl'
       : finalPriceString.length > 6
-      ? 'text-4xl'
-      : 'text-5xl';
+      ? 'text-3xl'
+      : 'text-4xl';
 
 
   return (
