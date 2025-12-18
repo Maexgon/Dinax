@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
@@ -390,14 +389,21 @@ export default function ServicePlansPage() {
                     <h3 className="text-2xl font-black mb-2">{watchData.name || t.services.planNamePlaceholder}</h3>
                     <p className="text-muted-foreground text-sm mb-4 line-clamp-2 h-10">{watchData.description || t.services.shortDescriptionPlaceholder}</p>
                     
-                    <div className="flex items-baseline gap-2 mb-1">
-                        <span className={cn("font-black text-primary", priceFontSizeClass)}>{currencySymbol}{finalPrice.toFixed(2)}</span>
-                        {watchData.hasPromo && <span className="text-lg text-muted-foreground line-through">{currencySymbol}{Number(watchData.price).toFixed(2)}</span>}
-                        <span className="text-muted-foreground font-medium">/ {t.services.month}</span>
+                    <div className="flex flex-col items-center mb-1">
+                        <div className="flex items-baseline gap-2">
+                          <span className={cn("font-black text-primary", finalPriceString.length > 8 ? 'text-3xl' : 'text-4xl')}>{currencySymbol}{finalPrice.toFixed(2)}</span>
+                          <span className="text-muted-foreground font-medium">/ {t.services.month}</span>
+                        </div>
+                        {watchData.hasPromo && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            ({t.services.regularPrice}: <span className="line-through">{currencySymbol}{Number(watchData.price).toFixed(2)}</span>)
+                          </p>
+                        )}
                     </div>
 
+
                     {watchData.hasPromo && (
-                        <div className="mb-8">
+                        <div className="mb-8 mt-2">
                              <Badge variant="secondary" className="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
                                 <Tag className="mr-1 h-3 w-3"/>
                                 {watchData.promoValue}{watchData.promoType === 'percentage' ? '%' : currencySymbol} OFF {watchData.promoDuration === 'custom' ? `x ${watchData.promoMonths} ${t.services.months}`: ''}
