@@ -40,6 +40,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
+import { cn } from '@/lib/utils';
 
 const benefitSchema = z.object({
   id: z.string(),
@@ -157,6 +158,15 @@ export default function ServicePlansPage() {
   };
   const currencySymbol = currencySymbols[watchData.currency] || '$';
 
+  const finalPriceString = finalPrice.toFixed(2);
+  const priceFontSizeClass =
+    finalPriceString.length > 8
+      ? 'text-3xl'
+      : finalPriceString.length > 6
+      ? 'text-4xl'
+      : 'text-5xl';
+
+
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8 space-y-6">
       <div className="space-y-1">
@@ -196,31 +206,33 @@ export default function ServicePlansPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="price">{t.services.subscriptionAmount}</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">{currencySymbol}</span>
-                    <Input id="price" type="number" {...register('price')} className="pl-8 font-bold text-lg" />
-                  </div>
-                   {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="currency">{t.settings.currency}</Label>
-                    <Controller
-                        name="currency"
-                        control={control}
-                        render={({ field }) => (
-                            <Select value={field.value} onValueChange={field.onChange}>
-                                <SelectTrigger id="currency"><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="usd">{t.settings.usd}</SelectItem>
-                                    <SelectItem value="eur">{t.settings.eur}</SelectItem>
-                                    <SelectItem value="ars">{t.settings.ars}</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        )}
-                    />
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
+                <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2 col-span-2">
+                        <Label htmlFor="price">{t.services.subscriptionAmount}</Label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">{currencySymbol}</span>
+                            <Input id="price" type="number" {...register('price')} className="pl-8 font-bold text-lg" />
+                        </div>
+                        {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="currency">{t.settings.currency}</Label>
+                        <Controller
+                            name="currency"
+                            control={control}
+                            render={({ field }) => (
+                                <Select value={field.value} onValueChange={field.onChange}>
+                                    <SelectTrigger id="currency"><SelectValue /></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="usd">{t.settings.usd}</SelectItem>
+                                        <SelectItem value="eur">{t.settings.eur}</SelectItem>
+                                        <SelectItem value="ars">{t.settings.ars}</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            )}
+                        />
+                    </div>
                 </div>
 
                  <div className="md:col-span-3 space-y-2">
@@ -379,7 +391,7 @@ export default function ServicePlansPage() {
                     <p className="text-muted-foreground text-sm mb-4 line-clamp-2 h-10">{watchData.description || t.services.shortDescriptionPlaceholder}</p>
                     
                     <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-4xl font-black text-primary">{currencySymbol}{finalPrice.toFixed(2)}</span>
+                        <span className={cn("font-black text-primary", priceFontSizeClass)}>{currencySymbol}{finalPrice.toFixed(2)}</span>
                         {watchData.hasPromo && <span className="text-lg text-muted-foreground line-through">{currencySymbol}{Number(watchData.price).toFixed(2)}</span>}
                         <span className="text-muted-foreground font-medium">/ {t.services.month}</span>
                     </div>
