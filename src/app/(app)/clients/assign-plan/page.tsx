@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -69,6 +70,7 @@ export default function AssignPlanPage() {
     handleSubmit,
     watch,
     setValue,
+    register,
     formState: { errors, isSubmitting },
   } = useForm<AssignPlanFormData>({
     resolver: zodResolver(assignPlanSchema),
