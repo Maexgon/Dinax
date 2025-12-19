@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -21,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import type { Client, Mesocycle } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
@@ -92,8 +93,8 @@ export default function NewSessionPage() {
     const eventData = {
       id: newEventRef.id,
       title: data.title,
-      start: startDate,
-      end: endDate,
+      start: Timestamp.fromDate(startDate),
+      end: Timestamp.fromDate(endDate),
       clients: [data.clientId],
       location: data.location,
       workPlan: data.workPlanId,
@@ -214,16 +215,22 @@ export default function NewSessionPage() {
             
               <div className="space-y-2 pt-4 border-t">
                   <Label>Plan de Entrenamiento (Opcional)</Label>
-                  <Select {...control.register('workPlanId')}>
-                      <SelectTrigger>
-                          <SelectValue placeholder="Asociar a un plan existente..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                          {/* This would be populated with the client's mesocycles */}
-                          <SelectItem value="plan1">Hipertrofia - Semana 3</SelectItem>
-                           <SelectItem value="plan2">Pérdida de Grasa - Semana 1</SelectItem>
-                      </SelectContent>
-                  </Select>
+                  <Controller
+                    name="workPlanId"
+                    control={control}
+                    render={({ field }) => (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Asociar a un plan existente..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {/* This would be populated with the client's mesocycles */}
+                                <SelectItem value="plan1">Hipertrofia - Semana 3</SelectItem>
+                                <SelectItem value="plan2">Pérdida de Grasa - Semana 1</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
               </div>
 
             </CardContent>
@@ -233,5 +240,3 @@ export default function NewSessionPage() {
     </div>
   );
 }
-
-    
