@@ -15,7 +15,8 @@ service cloud.firestore {
 
     // Secure helper function to check if the user is an owner of the specified tenant.
     function isTenantOwner(tenantId) {
-       return isSignedIn() && request.auth.uid == tenantId;
+      return isSignedIn() && exists(/databases/$(database)/documents/tenants/$(tenantId)) &&
+             get(/databases/$(database)/documents/tenants/$(tenantId)).data.members[request.auth.uid] == 'owner';
     }
 
     match /tenants/{tenantId} {
