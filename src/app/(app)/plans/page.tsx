@@ -187,13 +187,13 @@ export default function PlansPage() {
     );
     const { data: exercises, isLoading: areExercisesLoading } = useCollection<ExerciseWithId>(exercisesCollectionRef);
 
+    const filterButtons = useMemo(() => [{value: 'all', label: t.plans.all}, ...t.plans.exerciseTypeList], [t]);
+
      const filteredExercises = useMemo(() => exercises?.filter(ex => {
         const matchesType = filter === 'all' || ex.type === filter;
         const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesType && matchesSearch;
     }), [exercises, filter, searchQuery]);
-    
-    const filterButtons = [{value: 'all', label: t.plans.all}, ...t.plans.exerciseTypeList];
 
     const weekSchedule = useMemo(() => [
         { day: t.plans.day.monday, focus: t.plans.focus.legs, id: 'Lunes' },

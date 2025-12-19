@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   format,
   startOfMonth,
@@ -78,10 +78,13 @@ export default function SchedulePage() {
     setCurrentDate(new Date());
   };
 
-  const weekdays =
-    language === 'es'
-      ? ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
-      : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const weekdays = useMemo(
+    () =>
+      language === 'es'
+        ? ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+        : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    [language]
+  );
 
   return (
     <div className="space-y-6 flex flex-col h-full">

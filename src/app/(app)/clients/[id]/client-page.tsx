@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import Image from 'next/image';
 import {
   Dumbbell, HeartPulse, Scale, Ruler, FileText, User, MessageSquare, CalendarDays,
@@ -170,7 +170,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
   const { watch: watchBiomechanics } = biomechanicsForm;
   const weight = watchBiomechanics('weight');
   const height = watchBiomechanics('height');
-  const calculatedBmi = React.useMemo(() => {
+  const calculatedBmi = useMemo(() => {
     if (weight > 0 && height > 0) {
         const heightInMeters = height / 100;
         return (weight / (heightInMeters * heightInMeters)).toFixed(2);
@@ -272,42 +272,51 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
   if (!client) return <div>{t.clientDetail.notFound || "Client not found."}</div>;
   
   const clientName = client.name;
-  const calculateAge = (birthDateString: string | undefined) => {
-    if (!birthDateString) return null;
-    const birthDate = new Date(birthDateString);
-    if (isNaN(birthDate.getTime())) return null;
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
-    return age;
-  };
-  const clientAge = calculateAge(client.birthDate);
-  const getNoteDate = (note: Note) => {
-    if (!note.createdAt) return '';
-    const date = (note.createdAt as Timestamp)?.toDate ? (note.createdAt as Timestamp).toDate() : new Date(note.createdAt as string);
-    return format(date, "PPP", { locale: language === 'es' ? es : undefined });
-  };
-  const getFormattedDate = (date: string | Timestamp | undefined) => {
-      if(!date) return null;
-      const d = (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : new Date(date as string);
-      return format(d, 'dd MMM yyyy');
-  }
 
-  const profileCompletion = React.useMemo(() => {
+  const { clientAge, getNoteDate, getFormattedDate } = useMemo(() => {
+    const calculateAge = (birthDateString: string | undefined) => {
+      if (!birthDateString) return null;
+      const birthDate = new Date(birthDateString);
+      if (isNaN(birthDate.getTime())) return null;
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
+      return age;
+    };
+    
+    const getNoteDate = (note: Note) => {
+      if (!note.createdAt) return '';
+      const date = (note.createdAt as Timestamp)?.toDate ? (note.createdAt as Timestamp).toDate() : new Date(note.createdAt as string);
+      return format(date, "PPP", { locale: language === 'es' ? es : undefined });
+    };
+
+    const getFormattedDate = (date: string | Timestamp | undefined) => {
+        if(!date) return null;
+        const d = (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : new Date(date as string);
+        return format(d, 'dd MMM yyyy');
+    };
+
+    return {
+        clientAge: calculateAge(client.birthDate),
+        getNoteDate,
+        getFormattedDate,
+    };
+  }, [client.birthDate, language]);
+
+
+  const profileCompletion = useMemo(() => {
     if (!client) return { percentage: 0, message: "No hay datos para calcular el progreso." };
 
     let totalFields = 0;
     let completedFields = 0;
 
-    // Personal Info
     const personalInfoFields = ['birthDate', 'occupation', 'objective', 'planType', 'phoneNumber', 'address'];
     totalFields += personalInfoFields.length;
     personalInfoFields.forEach(field => {
         if (client[field as keyof Client]) completedFields++;
     });
 
-    // Medical History
     if (latestMedicalHistory) {
         const medicalFields = ['bloodType', 'currentConditions', 'currentMedications', 'preexistingInjuries', 'previousSurgeries', 'medicalRestrictions', 'emergencyContact'];
         totalFields += medicalFields.length;
@@ -319,10 +328,9 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
         if (latestMedicalHistory.medicalRestrictions && latestMedicalHistory.medicalRestrictions.length > 0) completedFields++;
         if (latestMedicalHistory.emergencyContact?.name && latestMedicalHistory.emergencyContact?.phone) completedFields++;
     } else {
-         totalFields += 7; // if no record, all are considered empty
+         totalFields += 7;
     }
 
-    // Biomechanics
     if (latestBiomechanics) {
         const biomechanicsFields = ['ankleDorsiflexion', 'hipMobility', 'shoulderMobility', 'coreStability', 'hipStability', 'squatPattern', 'hipHingePattern', 'relativeStrengthLower', 'relativeStrengthUpper', 'unilateralBalance', 'asymmetries', 'movementPain'];
         totalFields += biomechanicsFields.length;
@@ -331,7 +339,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
             if (typeof value === 'number' && value > 0) completedFields++;
         });
     } else {
-        totalFields += 12; // if no record, all are considered empty
+        totalFields += 12;
     }
     
     if (totalFields === 0) return { percentage: 0, message: "No hay datos para calcular el progreso." };
