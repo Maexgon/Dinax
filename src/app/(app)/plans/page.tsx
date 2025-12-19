@@ -164,7 +164,6 @@ export default function PlansPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
 
-
     const tenantId = user?.uid;
 
     const clientsCollectionRef = useMemoFirebase(
@@ -179,22 +178,26 @@ export default function PlansPage() {
         }
     }, [clients, selectedClientId]);
 
-    const selectedClient = clients?.find(c => c.id === selectedClientId);
+    const selectedClient = useMemo(() => clients?.find(c => c.id === selectedClientId), [clients, selectedClientId]);
 
     const exercisesCollectionRef = useMemoFirebase(
       () => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/exercises`), orderBy("name", "asc")) : null),
       [firestore, tenantId]
     );
     const { data: exercises, isLoading: areExercisesLoading } = useCollection<ExerciseWithId>(exercisesCollectionRef);
-
-    const filterButtons = useMemo(() => [{value: 'all', label: t.plans.all}, ...t.plans.exerciseTypeList], [t]);
     
-     const filteredExercises = useMemo(() => exercises?.filter(ex => {
+    const filteredExercises = useMemo(() => exercises?.filter(ex => {
         const matchesType = filter === 'all' || ex.type === filter;
         const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesType && matchesSearch;
     }), [exercises, filter, searchQuery]);
-
+    
+    const years = useMemo(() => Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i - 2), []);
+    const months = useMemo(() => t.plans.months, [t]);
+    const totalWeeksInMonth = useMemo(() => {
+        return getWeeksInMonth(new Date(selectedYear, selectedMonth), { weekStartsOn: 1 });
+    }, [selectedYear, selectedMonth]);
+    
     const weekSchedule = useMemo(() => [
         { day: t.plans.day.monday, focus: t.plans.focus.legs, id: 'Lunes' },
         { day: t.plans.day.tuesday, focus: t.plans.focus.push, id: 'Martes' },
@@ -204,11 +207,9 @@ export default function PlansPage() {
         { day: t.plans.day.saturday, focus: t.plans.focus.rest, id: 'Sábado' },
         { day: t.plans.day.sunday, focus: t.plans.focus.rest, id: 'Domingo' },
     ], [t]);
-
-    const years = useMemo(() => Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i - 2), []);
-    const months = useMemo(() => t.plans.months, [t]);
-    const totalWeeksInMonth = useMemo(() => getWeeksInMonth(new Date(selectedYear, selectedMonth)), [selectedYear, selectedMonth]);
     
+    const filterButtons = useMemo(() => [{value: 'all', label: t.plans.all}, ...t.plans.exerciseTypeList], [t]);
+
     const fetchPlan = useCallback(async () => {
         if (!firestore || !tenantId || !selectedClientId) return;
 

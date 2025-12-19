@@ -203,4 +203,3 @@ export type AppSettings = {
   endTime: string;
   googleCalendarSync: boolean;
 };
-
