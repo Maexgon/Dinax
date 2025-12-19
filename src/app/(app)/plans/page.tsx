@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Trash2, Moon, ChevronLeft, ChevronRight, Bed, Loader2, Copy } from 'lucide-react';
@@ -12,7 +12,7 @@ import { useLanguage } from '@/context/language-context';
 import type { Client, ExerciseWithId, PlannedExercise, Mesocycle } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useFirebase, useCollection, useMemoFirebase, setDocumentNonBlocking, useDoc } from '@/firebase';
-import { collection, query, orderBy, doc, serverTimestamp, getDocs, where, limit } from 'firebase/firestore';
+import { collection, query, orderBy, doc, serverTimestamp, getDocs, where, limit, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
@@ -24,7 +24,7 @@ import {
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { getWeeksInMonth, startOfWeek } from 'date-fns';
+import { getWeeksInMonth, startOfWeek, getDaysInMonth } from 'date-fns';
 
 type WeeklyPlan = {
     [day: string]: {
@@ -88,8 +88,6 @@ const PlannedExerciseCard = ({ exercise, onRemove, onUpdate, isRestDay }: { exer
 
 const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onRemoveExercise, onSetRestDay, isRestDay, t, onUpdateExercise, dayIndex, weekNumber }: { day: string, focus: string, exercises: PlannedExercise[], onDaySelect: () => void, isActive: boolean, onRemoveExercise: (planId: string) => void, onSetRestDay: () => void, isRestDay: boolean, t: any, onUpdateExercise: (day: string, planId: string, field: keyof PlannedExercise, value: string) => void, dayIndex: number, weekNumber: number }) => {
     
-    const dayDate = startOfWeek(new Date(new Date().getFullYear(), 0, (weekNumber * 7) + 1 + dayIndex), { weekStartsOn: 1});
-
     if (isRestDay) {
         return (
              <Card className="bg-muted/50 border-2 border-dashed">
@@ -200,10 +198,10 @@ export default function PlansPage() {
 
     const weekSchedule = useMemo(() => [
         { day: t.plans.day.monday, focus: t.plans.focus.legs, id: 'Lunes' },
-        { day: t.plans.day.tuesday, focus: 'Push', id: 'Martes' },
+        { day: t.plans.day.tuesday, focus: t.plans.focus.push, id: 'Martes' },
         { day: t.plans.day.wednesday, focus: t.plans.focus.pull, id: 'Miércoles' },
-        { day: t.plans.day.thursday, focus: 'Upper Body', id: 'Jueves' },
-        { day: t.plans.day.friday, focus: 'Full Body', id: 'Viernes' },
+        { day: t.plans.day.thursday, focus: t.plans.focus.upper, id: 'Jueves' },
+        { day: t.plans.day.friday, focus: t.plans.focus.full, id: 'Viernes' },
         { day: t.plans.day.saturday, focus: t.plans.focus.rest, id: 'Sábado' },
         { day: t.plans.day.sunday, focus: t.plans.focus.rest, id: 'Domingo' },
     ], [t]);
@@ -211,6 +209,42 @@ export default function PlansPage() {
     const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i - 2);
     const months = t.plans.months;
     const totalWeeksInMonth = getWeeksInMonth(new Date(selectedYear, selectedMonth));
+    
+    const fetchPlan = useCallback(async () => {
+        if (!firestore || !tenantId || !selectedClientId) return;
+
+        setIsPlanLoading(true);
+        const planQuery = query(
+            collection(firestore, `tenants/${tenantId}/mesocycles`),
+            where("clientId", "==", selectedClientId),
+            where("year", "==", selectedYear),
+            where("month", "==", selectedMonth),
+            orderBy("createdAt", "desc"),
+            limit(1)
+        );
+        
+        try {
+            const querySnapshot = await getDocs(planQuery);
+            if (!querySnapshot.empty) {
+                const planDoc = querySnapshot.docs[0];
+                const planData = planDoc.data() as Mesocycle;
+                setPlanState(planData.weeks);
+                setCurrentPlanId(planDoc.id);
+            } else {
+                setPlanState({});
+                setCurrentPlanId(null);
+            }
+        } catch (error) {
+            console.error("Error fetching plan:", error);
+            toast({ variant: 'destructive', title: "Error", description: "No se pudo cargar el plan existente."});
+        } finally {
+            setIsPlanLoading(false);
+        }
+    }, [firestore, tenantId, selectedClientId, selectedYear, selectedMonth, toast]);
+
+    useEffect(() => {
+        fetchPlan();
+    }, [fetchPlan]);
 
     const handleCreatePlan = () => {
         const newPlan: PlanState = {};
@@ -226,42 +260,6 @@ export default function PlansPage() {
         // Defer toast to avoid state update in render
         setTimeout(() => toast({ title: "Nuevo Plan Creado", description: `Plan para ${months[selectedMonth]} ${selectedYear} listo para editar.` }), 0);
     };
-
-    useEffect(() => {
-        const fetchPlan = async () => {
-            if (!firestore || !tenantId || !selectedClientId) return;
-
-            setIsPlanLoading(true);
-            const planQuery = query(
-                collection(firestore, `tenants/${tenantId}/mesocycles`),
-                where("clientId", "==", selectedClientId),
-                where("year", "==", selectedYear),
-                where("month", "==", selectedMonth),
-                orderBy("createdAt", "desc"),
-                limit(1)
-            );
-            
-            try {
-                const querySnapshot = await getDocs(planQuery);
-                if (!querySnapshot.empty) {
-                    const planDoc = querySnapshot.docs[0];
-                    const planData = planDoc.data() as Mesocycle;
-                    setPlanState(planData.weeks);
-                    setCurrentPlanId(planDoc.id);
-                } else {
-                    setPlanState({});
-                    setCurrentPlanId(null);
-                }
-            } catch (error) {
-                console.error("Error fetching plan:", error);
-                toast({ variant: 'destructive', title: "Error", description: "No se pudo cargar el plan existente."});
-            } finally {
-                setIsPlanLoading(false);
-            }
-        };
-
-        fetchPlan();
-    }, [firestore, tenantId, selectedClientId, selectedYear, selectedMonth, toast]);
 
 
     const handleAddExercise = (exercise: ExerciseWithId) => {
