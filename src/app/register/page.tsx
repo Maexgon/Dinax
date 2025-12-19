@@ -96,6 +96,7 @@ export default function RegisterPage() {
           tenantId: tenantId,
           firstName: firstName,
           lastName: lastName,
+          name: `${firstName} ${lastName}`,
           email: email,
           isProfileComplete: false, 
           joinDate: new Date().toISOString().split('T')[0],
