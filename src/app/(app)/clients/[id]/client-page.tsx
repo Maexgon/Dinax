@@ -1,6 +1,7 @@
 'use client';
 import React, { useMemo } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   Dumbbell, HeartPulse, Scale, Ruler, FileText, User, MessageSquare, CalendarDays,
   Briefcase, Cake, Phone, Mail, MapPin, Flag, Plus, X, CheckCircle2, ChevronRight,
@@ -357,7 +358,11 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
               <h1 className="text-3xl font-bold font-headline">{clientName}</h1>
               <p className="text-muted-foreground">{t.clientDetail.objective}: {client.objective}</p>
               <div className="mt-4 flex gap-2">
-                <Button className="flex-1 bg-primary hover:bg-primary/90"><MessageSquare className="mr-2 h-4 w-4" />{t.clientDetail.message}</Button>
+                <Button asChild className="flex-1 bg-primary hover:bg-primary/90">
+                    <Link href={`/clients/${client.id}/wall`}>
+                        <MessageSquare className="mr-2 h-4 w-4" />{t.clientDetail.message}
+                    </Link>
+                </Button>
                 <Button variant="outline" size="icon"><CalendarDays className="h-4 w-4" /></Button>
               </div>
             </CardContent>
