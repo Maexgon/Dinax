@@ -133,14 +133,15 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     [firestore, tenantId, clientId]
   );
   const { data: biomechanicsHistory, isLoading: areBiomechanicsLoading } = useCollection<Biomechanics>(biomechanicsCollectionRef);
-  const latestBiomechanics = biomechanicsHistory?.[0];
   
   const medicalHistoryCollectionRef = useMemoFirebase(
     () => (firestore && tenantId && clientId ? query(collection(firestore, `tenants/${tenantId}/user_profile/${clientId}/medicalHistory`), orderBy("createdAt", "desc"), limit(1)) : null),
     [firestore, tenantId, clientId]
   );
   const { data: medicalHistory, isLoading: areMedicalHistoryLoading } = useCollection<MedicalHistory>(medicalHistoryCollectionRef);
-  const latestMedicalHistory = medicalHistory?.[0];
+
+  const latestBiomechanics = useMemo(() => biomechanicsHistory?.[0], [biomechanicsHistory]);
+  const latestMedicalHistory = useMemo(() => medicalHistory?.[0], [medicalHistory]);
 
   // --- Forms ---
   const clientForm = useForm<ClientFormData>({
