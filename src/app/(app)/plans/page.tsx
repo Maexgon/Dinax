@@ -36,7 +36,7 @@ type PlanState = {
     [week: number]: WeeklyPlan;
 };
 
-const PlannedExerciseCard = ({ exercise, onRemove, onUpdate, isRestDay }: { exercise: PlannedExercise, onRemove: (planId: string) => void, onUpdate: (planId: string, field: keyof PlannedExercise, value: string) => void, isRestDay: boolean }) => {
+const PlannedExerciseCard = ({ exercise, onRemove, onUpdate, isRestDay }: { exercise: PlannedExercise, onRemove: () => void, onUpdate: (planId: string, field: keyof PlannedExercise, value: string) => void, isRestDay: boolean }) => {
     const { t } = useLanguage();
     
     if(isRestDay) return null;
@@ -53,7 +53,7 @@ const PlannedExerciseCard = ({ exercise, onRemove, onUpdate, isRestDay }: { exer
                             {exercise.muscleGroups?.slice(0, 2).map(m => <Badge key={m} variant="secondary" className='text-xs'>{m}</Badge>)}
                         </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onRemove(exercise.planId)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onRemove}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                 </div>
@@ -143,7 +143,7 @@ const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onRemoveExe
             </CardHeader>
             <CardContent className="space-y-3 min-h-[100px]">
                 {exercises.map((ex) => (
-                    <PlannedExerciseCard key={ex.planId} exercise={ex} onRemove={onRemoveExercise} onUpdate={onUpdateExercise} isRestDay={false} />
+                    <PlannedExerciseCard key={ex.planId} exercise={ex} onRemove={() => onRemoveExercise(ex.planId)} onUpdate={onUpdateExercise} isRestDay={false} />
                 ))}
                 {isActive && (
                      <div className="p-4 border-2 border-dashed rounded-lg text-center text-muted-foreground">
