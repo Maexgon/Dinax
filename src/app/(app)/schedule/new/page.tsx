@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -34,9 +33,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
 
 const newSessionSchema = z.object({
-  clientId: z.string().min(1, "Debes seleccionar un cliente."),
+  clientIds: z.array(z.string()).min(1, "Debes seleccionar al menos un cliente."),
   title: z.string().min(1, "El título es obligatorio."),
   workPlanId: z.string().optional(),
   startDateTime: z.string().min(1, "La fecha y hora de inicio son obligatorias."),
@@ -73,10 +74,11 @@ export default function NewSessionPage() {
     defaultValues: {
       duration: 60,
       startDateTime: formatISO(new Date()).slice(0, 16),
+      clientIds: [],
     },
   });
 
-  const watchClientId = watch('clientId');
+  const watchClientIds = watch('clientIds');
 
   const filteredClients = useMemo(() => {
     if (!clients) return [];
@@ -95,11 +97,11 @@ export default function NewSessionPage() {
       title: data.title,
       start: Timestamp.fromDate(startDate),
       end: Timestamp.fromDate(endDate),
-      clients: [data.clientId],
+      clients: data.clientIds,
       location: data.location,
       workPlan: data.workPlanId,
       instructions: data.instructions,
-      type: 'individual',
+      type: data.clientIds.length > 1 ? 'group' : 'individual',
       createdAt: serverTimestamp(),
     };
 
@@ -111,6 +113,14 @@ export default function NewSessionPage() {
         toast({ variant: 'destructive', title: "Error", description: "No se pudo crear la sesión." });
     }
   };
+
+  const handleClientToggle = (clientId: string) => {
+    const currentClientIds = watchClientIds || [];
+    const newClientIds = currentClientIds.includes(clientId)
+        ? currentClientIds.filter(id => id !== clientId)
+        : [...currentClientIds, clientId];
+    setValue('clientIds', newClientIds, { shouldValidate: true });
+  }
 
   return (
     <div className="space-y-6">
@@ -182,7 +192,7 @@ export default function NewSessionPage() {
         <div className="lg:col-span-1">
           <Card className="sticky top-6">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3"><User className="text-primary"/> Asignar Cliente</CardTitle>
+              <CardTitle className="flex items-center gap-3"><User className="text-primary"/> Asignar Clientes</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="relative">
@@ -196,9 +206,17 @@ export default function NewSessionPage() {
                   filteredClients.map(client => (
                     <div
                       key={client.id}
-                      onClick={() => setValue('clientId', client.id, { shouldValidate: true })}
-                      className={`p-3 rounded-lg border-2 flex items-center gap-3 cursor-pointer transition-colors ${watchClientId === client.id ? 'border-primary bg-primary/5' : 'hover:bg-muted'}`}
+                      onClick={() => handleClientToggle(client.id)}
+                      className={cn(
+                        "p-3 rounded-lg border-2 flex items-center gap-3 cursor-pointer transition-colors",
+                        (watchClientIds || []).includes(client.id) ? 'border-primary bg-primary/5' : 'hover:bg-muted'
+                      )}
                     >
+                      <Checkbox
+                        id={`client-${client.id}`}
+                        checked={(watchClientIds || []).includes(client.id)}
+                        onCheckedChange={() => handleClientToggle(client.id)}
+                      />
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={client.avatarUrl} />
                         <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
@@ -211,7 +229,7 @@ export default function NewSessionPage() {
                   ))
                 )}
               </div>
-              {errors.clientId && <p className="text-xs text-destructive">{errors.clientId.message}</p>}
+              {errors.clientIds && <p className="text-xs text-destructive">{errors.clientIds.message}</p>}
             
               <div className="space-y-2 pt-4 border-t">
                   <Label>Plan de Entrenamiento (Opcional)</Label>

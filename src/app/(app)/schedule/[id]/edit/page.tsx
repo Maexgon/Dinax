@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -46,9 +45,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
 
 const sessionSchema = z.object({
-  clientId: z.string().min(1, "Debes seleccionar un cliente."),
+  clientIds: z.array(z.string()).min(1, "Debes seleccionar al menos un cliente."),
   title: z.string().min(1, "El título es obligatorio."),
   workPlanId: z.string().optional(),
   startDateTime: z.string().min(1, "La fecha y hora de inicio son obligatorias."),
@@ -90,7 +91,10 @@ export default function EditSessionPage() {
     reset,
     formState: { errors, isSubmitting },
   } = useForm<SessionFormData>({
-    resolver: zodResolver(sessionSchema)
+    resolver: zodResolver(sessionSchema),
+    defaultValues: {
+      clientIds: [],
+    }
   });
 
   useEffect(() => {
@@ -101,7 +105,7 @@ export default function EditSessionPage() {
         
       reset({
         title: eventData.title,
-        clientId: eventData.clients?.[0] || '',
+        clientIds: eventData.clients || [],
         startDateTime: formatISO(start).slice(0, 16),
         duration: duration,
         location: eventData.location || '',
@@ -111,7 +115,7 @@ export default function EditSessionPage() {
     }
   }, [eventData, reset]);
 
-  const watchClientId = watch('clientId');
+  const watchClientIds = watch('clientIds');
 
   const filteredClients = useMemo(() => {
     if (!clients) return [];
@@ -128,7 +132,7 @@ export default function EditSessionPage() {
       title: data.title,
       start: Timestamp.fromDate(startDate),
       end: Timestamp.fromDate(endDate),
-      clients: [data.clientId],
+      clients: data.clientIds,
       location: data.location,
       workPlan: data.workPlanId,
       instructions: data.instructions,
@@ -152,6 +156,14 @@ export default function EditSessionPage() {
     } catch(e: any) {
         toast({ variant: 'destructive', title: "Error", description: "No se pudo eliminar la sesión." });
     }
+  }
+
+  const handleClientToggle = (clientId: string) => {
+    const currentClientIds = watchClientIds || [];
+    const newClientIds = currentClientIds.includes(clientId)
+        ? currentClientIds.filter(id => id !== clientId)
+        : [...currentClientIds, clientId];
+    setValue('clientIds', newClientIds, { shouldValidate: true });
   }
   
   if (isEventLoading) {
@@ -218,9 +230,9 @@ export default function EditSessionPage() {
                 <div className="space-y-2">
                   <Label htmlFor="duration">Duración (minutos)</Label>
                   <div className="flex items-center gap-2">
-                    <Button type="button" variant="outline" size="icon" onClick={() => setValue('duration', Math.max(15, watch('duration') - 15))}><Minus className="h-4 w-4" /></Button>
+                    <Button type="button" variant="outline" size="icon" onClick={() => setValue('duration', Math.max(15, (watch('duration') || 0) - 15))}><Minus className="h-4 w-4" /></Button>
                     <Input id="duration" type="number" className="text-center" {...control.register('duration')} />
-                    <Button type="button" variant="outline" size="icon" onClick={() => setValue('duration', watch('duration') + 15)}><Plus className="h-4 w-4" /></Button>
+                    <Button type="button" variant="outline" size="icon" onClick={() => setValue('duration', (watch('duration') || 0) + 15)}><Plus className="h-4 w-4" /></Button>
                   </div>
                   {errors.duration && <p className="text-xs text-destructive">{errors.duration.message}</p>}
                 </div>
@@ -247,7 +259,7 @@ export default function EditSessionPage() {
         <div className="lg:col-span-1">
           <Card className="sticky top-6">
             <CardHeader>
-              <CardTitle className="flex items-center gap-3"><User className="text-primary"/> Cliente Asignado</CardTitle>
+              <CardTitle className="flex items-center gap-3"><User className="text-primary"/> Clientes Asignados</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="relative">
@@ -261,9 +273,17 @@ export default function EditSessionPage() {
                   filteredClients.map(client => (
                     <div
                       key={client.id}
-                      onClick={() => setValue('clientId', client.id, { shouldValidate: true })}
-                      className={`p-3 rounded-lg border-2 flex items-center gap-3 cursor-pointer transition-colors ${watchClientId === client.id ? 'border-primary bg-primary/5' : 'hover:bg-muted'}`}
+                      onClick={() => handleClientToggle(client.id)}
+                      className={cn(
+                        "p-3 rounded-lg border-2 flex items-center gap-3 cursor-pointer transition-colors",
+                        (watchClientIds || []).includes(client.id) ? 'border-primary bg-primary/5' : 'hover:bg-muted'
+                      )}
                     >
+                      <Checkbox
+                        id={`client-${client.id}`}
+                        checked={(watchClientIds || []).includes(client.id)}
+                        onCheckedChange={() => handleClientToggle(client.id)}
+                      />
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={client.avatarUrl} />
                         <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
@@ -276,7 +296,7 @@ export default function EditSessionPage() {
                   ))
                 )}
               </div>
-              {errors.clientId && <p className="text-xs text-destructive">{errors.clientId.message}</p>}
+              {errors.clientIds && <p className="text-xs text-destructive">{errors.clientIds.message}</p>}
             
               <div className="space-y-2 pt-4 border-t">
                   <Label>Plan de Entrenamiento (Opcional)</Label>
@@ -284,7 +304,7 @@ export default function EditSessionPage() {
                     name="workPlanId"
                     control={control}
                     render={({ field }) => (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Asociar a un plan existente..." />
                             </SelectTrigger>
@@ -304,4 +324,3 @@ export default function EditSessionPage() {
     </div>
   );
 }
-
