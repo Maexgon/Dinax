@@ -188,7 +188,7 @@ export default function PlansPage() {
     const { data: exercises, isLoading: areExercisesLoading } = useCollection<ExerciseWithId>(exercisesCollectionRef);
 
     const filterButtons = useMemo(() => [{value: 'all', label: t.plans.all}, ...t.plans.exerciseTypeList], [t]);
-
+    
      const filteredExercises = useMemo(() => exercises?.filter(ex => {
         const matchesType = filter === 'all' || ex.type === filter;
         const matchesSearch = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -639,3 +639,5 @@ export default function PlansPage() {
     </div>
   );
 }
+
+    

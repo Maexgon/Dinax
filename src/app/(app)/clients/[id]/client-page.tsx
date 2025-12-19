@@ -255,55 +255,28 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     toast({ variant: 'success', title: 'Datos Médicos Guardados', description: 'El historial médico del cliente ha sido actualizado.' });
   }
   
-  if (isClientLoading) {
-      return (
-          <div className="space-y-6">
-              <Skeleton className="h-8 w-1/2" />
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="lg:col-span-1 space-y-6">
-                      <Skeleton className="h-64 w-full" /><Skeleton className="h-48 w-full" /><Skeleton className="h-24 w-full" />
-                  </div>
-                  <div className="lg:col-span-2"> <Skeleton className="h-[600px] w-full" /></div>
-              </div>
-          </div>
-      );
-  }
+  const clientAge = useMemo(() => {
+    if (!client?.birthDate) return null;
+    const birthDate = new Date(client.birthDate);
+    if (isNaN(birthDate.getTime())) return null;
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
+    return age;
+  }, [client?.birthDate]);
 
-  if (!client) return <div>{t.clientDetail.notFound || "Client not found."}</div>;
-  
-  const clientName = client.name;
-
-  const { clientAge, getNoteDate, getFormattedDate } = useMemo(() => {
-    const calculateAge = (birthDateString: string | undefined) => {
-      if (!birthDateString) return null;
-      const birthDate = new Date(birthDateString);
-      if (isNaN(birthDate.getTime())) return null;
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const m = today.getMonth() - birthDate.getMonth();
-      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) { age--; }
-      return age;
-    };
-    
-    const getNoteDate = (note: Note) => {
+  const getNoteDate = (note: Note) => {
       if (!note.createdAt) return '';
       const date = (note.createdAt as Timestamp)?.toDate ? (note.createdAt as Timestamp).toDate() : new Date(note.createdAt as string);
       return format(date, "PPP", { locale: language === 'es' ? es : undefined });
-    };
-
-    const getFormattedDate = (date: string | Timestamp | undefined) => {
-        if(!date) return null;
-        const d = (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : new Date(date as string);
-        return format(d, 'dd MMM yyyy');
-    };
-
-    return {
-        clientAge: calculateAge(client.birthDate),
-        getNoteDate,
-        getFormattedDate,
-    };
-  }, [client.birthDate, language]);
-
+  };
+  
+  const getFormattedDate = (date: string | Timestamp | undefined) => {
+      if(!date) return null;
+      const d = (date as Timestamp)?.toDate ? (date as Timestamp).toDate() : new Date(date as string);
+      return format(d, 'dd MMM yyyy');
+  };
 
   const profileCompletion = useMemo(() => {
     if (!client) return { percentage: 0, message: "No hay datos para calcular el progreso." };
@@ -349,7 +322,24 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     
     return { percentage, message };
   }, [client, latestMedicalHistory, latestBiomechanics]);
+  
+  if (isClientLoading) {
+      return (
+          <div className="space-y-6">
+              <Skeleton className="h-8 w-1/2" />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-1 space-y-6">
+                      <Skeleton className="h-64 w-full" /><Skeleton className="h-48 w-full" /><Skeleton className="h-24 w-full" />
+                  </div>
+                  <div className="lg:col-span-2"> <Skeleton className="h-[600px] w-full" /></div>
+              </div>
+          </div>
+      );
+  }
 
+  if (!client) return <div>{t.clientDetail.notFound || "Client not found."}</div>;
+  
+  const clientName = client.name;
   const planTypeOptions = t.clientDetail.planTypes;
 
   return (
@@ -459,7 +449,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                     </div>
                                 </div>
                                 <div className="flex justify-end gap-2">
-                                    <Button variant="ghost" type="button" onClick={() => clientForm.reset()}>{t.clientDetail.cancel}</Button>
+                                    <Button variant="ghost" type="button" onClick={()={() => clientForm.reset()}}>{t.clientDetail.cancel}</Button>
                                     <Button type="submit" disabled={clientForm.formState.isSubmitting}>{clientForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} {t.clientDetail.saveChanges}</Button>
                                 </div>
                             </CardContent>
@@ -493,7 +483,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <SelectTrigger><SelectValue placeholder="Seleccionar grupo sanguíneo" /></SelectTrigger>
                                                 <SelectContent>
-                                                    {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                                                    {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((type) => <SelectItem key={type} value={type}>{type}</SelectItem>)}
                                                 </SelectContent>
                                             </Select>
                                         )} />
@@ -544,7 +534,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                         <CardDescription>{t.clientDetail.biomechanics.descriptionForm}</CardDescription>
                                     </div>
                                     <p className="text-sm text-muted-foreground pt-1">
-                                        {latestBiomechanics?.createdAt ? `Última act: ${format((latestBiomechanics.createdAt as Timestamp).toDate(), 'dd MMM yyyy')}` : 'Sin datos previos'}
+                                        {latestBiomechanics?.createdAt ? `Última act: ${getFormattedDate(latestBiomechanics.createdAt)}` : 'Sin datos previos'}
                                     </p>
                                 </div>
                             </CardHeader>
@@ -603,3 +593,5 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     </div>
   );
 }
+
+    

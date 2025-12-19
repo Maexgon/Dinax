@@ -133,8 +133,8 @@ export type Mesocycle = {
             }
         }
     };
-    createdAt: Timestamp;
-    updatedAt: Timestamp;
+    createdAt?: Timestamp;
+    updatedAt?: Timestamp;
 };
 
 
@@ -203,3 +203,5 @@ export type AppSettings = {
   endTime: string;
   googleCalendarSync: boolean;
 };
+
+    
