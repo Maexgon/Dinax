@@ -33,14 +33,43 @@ service cloud.firestore {
       // Allow a tenant owner to update their own tenant document.
       allow update, delete: if isTenantOwner(tenantId);
 
-      // Grant the tenant owner full read/write access to ALL subcollections and their documents.
-      match /{path=**} {
+      // --- Explicit Subcollection Rules ---
+
+      match /user_profile/{userId}/{path=**} {
         allow read, write: if isTenantOwner(tenantId);
+      }
+      
+      match /exercises/{exerciseId} {
+        allow read, write: if isTenantOwner(tenantId);
+      }
+      
+      match /mesocycles/{mesocycleId} {
+         allow read, write: if isTenantOwner(tenantId);
+      }
+      
+      match /services/{serviceId} {
+         allow read, write: if isTenantOwner(tenantId);
+      }
+      
+      match /client_plans/{planId} {
+         allow read, write: if isTenantOwner(tenantId);
+      }
+      
+      match /payments/{paymentId} {
+         allow read, write: if isTenantOwner(tenantId);
+      }
+      
+      match /events/{eventId} {
+         allow read, write: if isTenantOwner(tenantId);
+      }
+      
+       match /settings/preferences {
+         allow read, write: if isTenantOwner(tenantId);
       }
     }
     
+    // This rule allows a coach to create their own user profile document.
     match /user_profile/{userId} {
-      // A user can read and write their own profile (the coach's profile).
       allow read, write: if isSelf(userId);
     }
   }
