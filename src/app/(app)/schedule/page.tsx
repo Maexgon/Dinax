@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -57,14 +58,17 @@ export default function SchedulePage() {
             where('start', '<=', monthEnd)
           )
         : null,
-    [firestore, tenantId, monthStart, monthEnd]
+    [firestore, tenantId, currentDate.getFullYear(), currentDate.getMonth()]
   );
 
   const { data: events, isLoading } = useCollection<CalendarEvent>(eventsRef);
 
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
+  const daysInMonth = useMemo(() => eachDayOfInterval({ start: monthStart, end: monthEnd }), [monthStart, monthEnd]);
 
-  const startingDay = getDay(monthStart) === 0 ? 6 : getDay(monthStart) - 1; // Adjust so Monday is 0
+  const startingDay = useMemo(() => {
+    const day = getDay(monthStart);
+    return day === 0 ? 6 : day - 1; // Adjust so Monday is 0
+  }, [monthStart]);
 
   const handlePrevMonth = () => {
     setCurrentDate(subMonths(currentDate, 1));
@@ -282,5 +286,3 @@ export default function SchedulePage() {
     </div>
   );
 }
-
-    
