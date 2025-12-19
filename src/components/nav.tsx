@@ -15,6 +15,7 @@ import {
   User,
   Package,
 } from 'lucide-react';
+import React from 'react';
 
 import {
   Sidebar,
@@ -48,7 +49,7 @@ export function Nav() {
   const { state } = useSidebar();
   const { user, auth } = useFirebase();
 
-  const navItems = [
+  const navItems = React.useMemo(() => [
     { href: '/dashboard', icon: LayoutDashboard, label: t.nav.dashboard },
     { href: '/clients', icon: Users, label: t.nav.clients },
     { href: '/schedule', icon: Calendar, label: t.nav.schedule },
@@ -56,7 +57,7 @@ export function Nav() {
     { href: '/plans', icon: Dumbbell, label: t.plans.title },
     { href: '/services', icon: Package, label: t.nav.services },
     { href: '/ai-goals', icon: Bot, label: t.aiGoals.title },
-  ];
+  ], [t]);
   
   const handleLogout = async () => {
     await signOut(auth);
