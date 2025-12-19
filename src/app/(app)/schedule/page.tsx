@@ -88,10 +88,10 @@ const DayView = ({ events, currentDate, t, isLoading }: { events: CalendarEvent[
 }
 
 const WeekView = ({ events, currentDate, t, isLoading }: { events: CalendarEvent[], currentDate: Date, t: any, isLoading: boolean }) => {
+    const { language } = useLanguage();
     const weekStartsOn = language === 'es' ? 1 : 0;
     const weekStart = startOfWeek(currentDate, { weekStartsOn });
     const weekDays = eachDayOfInterval({ start: weekStart, end: endOfWeek(currentDate, { weekStartsOn }) });
-    const { language } = useLanguage();
 
      return (
         <Card className="flex-1">
@@ -129,10 +129,10 @@ const WeekView = ({ events, currentDate, t, isLoading }: { events: CalendarEvent
 
 
 const MonthView = ({ events, currentDate, t, isLoading }: { events: CalendarEvent[], currentDate: Date, t: any, isLoading: boolean }) => {
+    const { language } = useLanguage();
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
     const daysInMonth = useMemo(() => eachDayOfInterval({ start: monthStart, end: monthEnd }), [monthStart, monthEnd]);
-    const { language } = useLanguage();
 
     const startingDay = useMemo(() => {
         const day = getDay(monthStart);
@@ -401,5 +401,3 @@ export default function SchedulePage() {
     </div>
   );
 }
-
-    
