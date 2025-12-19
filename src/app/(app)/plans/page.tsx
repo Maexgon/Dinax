@@ -48,12 +48,12 @@ const PlannedExerciseCard = ({ exercise, onRemove, onUpdate, isRestDay }: { exer
                     <GripVertical className="h-5 w-5 text-muted-foreground cursor-grab" />
                      <Image src={exercise.imageUrl || 'https://picsum.photos/seed/placeholder/100/100'} alt={exercise.name} width={60} height={60} className="rounded-md object-cover" />
                     <div className="flex-1">
-                        <p className="font-semibold">{exercise.name}</p>
+                        <Input className="font-semibold border-none p-0 h-auto focus-visible:ring-0 text-base" value={exercise.name} onChange={e => onUpdate(exercise.planId, 'name', e.target.value)} />
                         <div className='flex gap-1 mt-1'>
                             {exercise.muscleGroups?.slice(0, 2).map(m => <Badge key={m} variant="secondary" className='text-xs'>{m}</Badge>)}
                         </div>
                     </div>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => onRemove(exercise.planId)}>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onRemove(exercise.planId)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
                 </div>
@@ -380,8 +380,8 @@ export default function PlansPage() {
             
             const planData: Omit<Mesocycle, 'id' | 'createdAt'> & { createdAt?: any } = {
                 clientId: selectedClientId,
-                year: new Date().getFullYear(), // Storing year for reference
-                month: new Date().getMonth(), // Storing month for reference
+                year: new Date().getFullYear(),
+                month: new Date().getMonth(),
                 weeks: planState,
                 updatedAt: serverTimestamp(),
             };
