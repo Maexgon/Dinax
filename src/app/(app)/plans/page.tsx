@@ -11,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
 import type { Client, ExerciseWithId, PlannedExercise, Mesocycle } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useFirebase, useCollection, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, setDocumentNonBlocking, useDoc } from '@/firebase';
 import { collection, query, orderBy, doc, serverTimestamp, getDocs, where, limit } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -642,5 +642,3 @@ export default function PlansPage() {
     </div>
   );
 }
-
-    

@@ -102,7 +102,7 @@ export default function ProfilePage() {
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
 
   const userDocRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, `user_profile`, user.uid) : null),
+    () => (firestore && user ? doc(firestore, 'user_profile', user.uid) : null),
     [firestore, user]
   );
 
