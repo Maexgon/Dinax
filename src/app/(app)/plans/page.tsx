@@ -84,7 +84,7 @@ const PlannedExerciseCard = ({ exercise, onRemove, onUpdate, isRestDay }: { exer
     )
 }
 
-const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onRemoveExercise, onSetRestDay, isRestDay, t, onUpdateExercise }: { day: string, focus: string, exercises: PlannedExercise[], onDaySelect: () => void, isActive: boolean, onRemoveExercise: (planId: string) => void, onSetRestDay: () => void, isRestDay: boolean, t: any, onUpdateExercise: (day: string, planId: string, field: keyof PlannedExercise, value: string) => void }) => {
+const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onRemoveExercise, onSetRestDay, isRestDay, t, onUpdateExercise }: { day: string, focus: string, exercises: PlannedExercise[], onDaySelect: () => void, isActive: boolean, onRemoveExercise: (planId: string) => void, onSetRestDay: () => void, isRestDay: boolean, t: any, onUpdateExercise: (planId: string, field: keyof PlannedExercise, value: string) => void }) => {
     
     if (isRestDay) {
         return (
@@ -134,7 +134,7 @@ const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onRemoveExe
             </CardHeader>
             <CardContent className="space-y-3 min-h-[100px]">
                 {exercises.map((ex) => (
-                    <PlannedExerciseCard key={ex.planId} exercise={ex} onRemove={onRemoveExercise} onUpdate={(planId, field, value) => onUpdateExercise(day, planId, field, value)} isRestDay={false} />
+                    <PlannedExerciseCard key={ex.planId} exercise={ex} onRemove={onRemoveExercise} onUpdate={onUpdateExercise} isRestDay={false} />
                 ))}
                 {isActive && (
                      <div className="p-4 border-2 border-dashed rounded-lg text-center text-muted-foreground">
@@ -310,7 +310,7 @@ export default function PlansPage() {
             return newPlan;
         });
     }
-
+    
     const handleUpdateExercise = (day: string, planId: string, field: keyof PlannedExercise, value: string) => {
         setPlanState(prev => {
             const newPlan = JSON.parse(JSON.stringify(prev)); // Deep copy
@@ -615,7 +615,7 @@ export default function PlansPage() {
                                 onDaySelect={() => setSelectedDay(dayDataItem.id)}
                                 isActive={selectedDay === dayDataItem.id}
                                 onRemoveExercise={(planId) => handleRemoveExercise(dayDataItem.id, planId)}
-                                onUpdateExercise={handleUpdateExercise}
+                                onUpdateExercise={(planId, field, value) => handleUpdateExercise(dayDataItem.id, planId, field, value)}
                                 onSetRestDay={() => handleSetRestDay(dayDataItem.id)}
                                 isRestDay={dayPlan?.isRestDay || false}
                                 t={t}
