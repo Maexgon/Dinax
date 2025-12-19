@@ -449,7 +449,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                     </div>
                                 </div>
                                 <div className="flex justify-end gap-2">
-                                    <Button variant="ghost" type="button" onClick={()={() => clientForm.reset()}}>{t.clientDetail.cancel}</Button>
+                                    <Button variant="ghost" type="button" onClick={() => clientForm.reset()}>{t.clientDetail.cancel}</Button>
                                     <Button type="submit" disabled={clientForm.formState.isSubmitting}>{clientForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} {t.clientDetail.saveChanges}</Button>
                                 </div>
                             </CardContent>
