@@ -1,4 +1,3 @@
-
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -19,7 +18,7 @@ import type { Client, ClientPlan, ServicePlan } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { collection } from 'firebase/firestore';
 import { Badge } from '@/components/ui/badge';
-import React from 'react';
+import React, { useMemo } from 'react';
 
 function ClientCardSkeleton() {
     return (
@@ -60,7 +59,7 @@ export default function ClientsPage() {
 
   const isLoading = areClientsLoading || areClientPlansLoading || areServicePlansLoading;
   
-  const enrichedClients = React.useMemo(() => {
+  const enrichedClients = useMemo(() => {
     if (isLoading || !clients || !clientPlans || !servicePlans) return [];
 
     return clients.map(client => {

@@ -23,7 +23,7 @@ import {
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { getWeeksInMonth, startOfWeek, getDaysInMonth } from 'date-fns';
+import { getWeeksInMonth } from 'date-fns';
 
 type WeeklyPlan = {
     [day: string]: {
@@ -85,7 +85,7 @@ const PlannedExerciseCard = ({ exercise, onRemove, onUpdate, isRestDay }: { exer
     )
 }
 
-const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onRemoveExercise, onSetRestDay, isRestDay, t, onUpdateExercise, dayIndex, weekNumber }: { day: string, focus: string, exercises: PlannedExercise[], onDaySelect: () => void, isActive: boolean, onRemoveExercise: (planId: string) => void, onSetRestDay: () => void, isRestDay: boolean, t: any, onUpdateExercise: (day: string, planId: string, field: keyof PlannedExercise, value: string) => void, dayIndex: number, weekNumber: number }) => {
+const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onRemoveExercise, onSetRestDay, isRestDay, t, onUpdateExercise }: { day: string, focus: string, exercises: PlannedExercise[], onDaySelect: () => void, isActive: boolean, onRemoveExercise: (planId: string) => void, onSetRestDay: () => void, isRestDay: boolean, t: any, onUpdateExercise: (day: string, planId: string, field: keyof PlannedExercise, value: string) => void }) => {
     
     if (isRestDay) {
         return (
@@ -207,7 +207,7 @@ export default function PlansPage() {
 
     const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i - 2);
     const months = t.plans.months;
-    const totalWeeksInMonth = getWeeksInMonth(new Date(selectedYear, selectedMonth));
+    const totalWeeksInMonth = useMemo(() => getWeeksInMonth(new Date(selectedYear, selectedMonth)), [selectedYear, selectedMonth]);
     
     const fetchPlan = useCallback(async () => {
         if (!firestore || !tenantId || !selectedClientId) return;
@@ -245,7 +245,7 @@ export default function PlansPage() {
         fetchPlan();
     }, [fetchPlan]);
 
-    const handleCreatePlan = () => {
+    const handleCreatePlan = useCallback(() => {
         const newPlan: PlanState = {};
         for (let i = 0; i < totalWeeksInMonth; i++) {
             newPlan[i] = weekSchedule.reduce((acc, day) => {
@@ -258,7 +258,7 @@ export default function PlansPage() {
         
         // Defer toast to avoid state update in render
         setTimeout(() => toast({ title: "Nuevo Plan Creado", description: `Plan para ${months[selectedMonth]} ${selectedYear} listo para editar.` }), 0);
-    };
+    }, [totalWeeksInMonth, weekSchedule, months, selectedMonth, selectedYear, toast]);
 
 
     const handleAddExercise = (exercise: ExerciseWithId) => {
@@ -611,7 +611,7 @@ export default function PlansPage() {
                     </CardHeader>
                 </Card>
                 <div className="space-y-6">
-                    {weekSchedule.map((dayDataItem, index) => {
+                    {weekSchedule.map((dayDataItem) => {
                         const dayPlan = planState[currentWeekIndex]?.[dayDataItem.id];
                         return (
                             <DaySchedule
@@ -626,8 +626,6 @@ export default function PlansPage() {
                                 onSetRestDay={() => handleSetRestDay(dayDataItem.id)}
                                 isRestDay={dayPlan?.isRestDay || false}
                                 t={t}
-                                dayIndex={index}
-                                weekNumber={currentWeekIndex}
                             />
                         )
                     })}
@@ -639,5 +637,3 @@ export default function PlansPage() {
     </div>
   );
 }
-
-    
