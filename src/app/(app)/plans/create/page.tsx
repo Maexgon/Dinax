@@ -11,7 +11,7 @@ import { useLanguage } from '@/context/language-context';
 import type { Client, ExerciseWithId, PlannedExercise, Mesocycle, AppSettings } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useFirebase, useCollection, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
-import { collection, query, orderBy, doc, serverTimestamp, getDocs, where, limit, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, doc, serverTimestamp, getDocs, where, limit, Timestamp, getDoc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
