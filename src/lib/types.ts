@@ -137,6 +137,17 @@ export type Mesocycle = {
     updatedAt?: Timestamp;
 };
 
+export type PlanSummary = {
+    id: string;
+    title: string;
+    focus: string;
+    clientId: string;
+    clientName?: string;
+    clientAvatar?: string;
+    trainingDays: number;
+    duration: number; // in minutes
+}
+
 
 export type Service = {
   id: string;
@@ -203,5 +214,3 @@ export type AppSettings = {
   endTime: string;
   googleCalendarSync: boolean;
 };
-
-    

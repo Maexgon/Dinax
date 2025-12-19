@@ -212,6 +212,23 @@
         },
         "required": ["id", "name"]
     },
+    "PlanSummary": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Plan Summary",
+        "type": "object",
+        "description": "A summary of a training plan for display in a list.",
+        "properties": {
+            "id": { "type": "string" },
+            "title": { "type": "string" },
+            "focus": { "type": "string" },
+            "clientId": { "type": "string" },
+            "clientName": { "type": "string" },
+            "clientAvatar": { "type": "string" },
+            "trainingDays": { "type": "number" },
+            "duration": { "type": "number" }
+        },
+        "required": ["id", "title", "clientId"]
+    },
     "ServicePlan": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Service Plan",
@@ -359,5 +376,3 @@
     ]
   }
 }
-
-    
