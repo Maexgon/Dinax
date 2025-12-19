@@ -84,7 +84,7 @@ const PlannedExerciseCard = ({ exercise, onRemove, onUpdate, isRestDay }: { exer
     )
 }
 
-const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onRemoveExercise, onSetRestDay, isRestDay, t, onUpdateExercise }: { day: string, focus: string, exercises: PlannedExercise[], onDaySelect: () => void, isActive: boolean, onRemoveExercise: (planId: string) => void, onSetRestDay: () => void, isRestDay: boolean, t: any, onUpdateExercise: (planId: string, field: keyof PlannedExercise, value: string) => void }) => {
+const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onRemoveExercise, onSetRestDay, isRestDay, t, onUpdateExercise, onUpdateFocus }: { day: string, focus: string, exercises: PlannedExercise[], onDaySelect: () => void, isActive: boolean, onRemoveExercise: (planId: string) => void, onSetRestDay: () => void, isRestDay: boolean, t: any, onUpdateExercise: (planId: string, field: keyof PlannedExercise, value: string) => void, onUpdateFocus: (newFocus: string) => void }) => {
     
     if (isRestDay) {
         return (
@@ -119,7 +119,16 @@ const DaySchedule = ({ day, focus, exercises, onDaySelect, isActive, onRemoveExe
         <Card onClick={onDaySelect} className={cn("cursor-pointer transition-all", isActive ? 'border-primary shadow-lg' : 'hover:border-primary/50')}>
             <CardHeader>
                 <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold">{day} <span className="text-sm font-normal text-muted-foreground">{focus}</span></h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold">{day}</h3>
+                      <Input 
+                        value={focus} 
+                        onChange={(e) => onUpdateFocus(e.target.value)}
+                        placeholder="Enfoque del día..."
+                        className="text-sm font-normal text-muted-foreground h-8 border-none bg-transparent focus-visible:ring-1 focus-visible:bg-muted"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                              <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="h-5 w-5 text-muted-foreground" /></Button>
@@ -320,6 +329,16 @@ export default function PlansPage() {
             const exerciseIndex = dayExercises.findIndex((ex: PlannedExercise) => ex.planId === planId);
             if (exerciseIndex > -1) {
                 dayExercises[exerciseIndex][field] = value;
+            }
+            return newPlan;
+        });
+    };
+
+    const handleUpdateFocus = (day: string, newFocus: string) => {
+        setPlanState(prev => {
+            const newPlan = JSON.parse(JSON.stringify(prev));
+            if (newPlan[currentWeekIndex] && newPlan[currentWeekIndex][day]) {
+                newPlan[currentWeekIndex][day].focus = newFocus;
             }
             return newPlan;
         });
@@ -616,6 +635,7 @@ export default function PlansPage() {
                                 isActive={selectedDay === dayDataItem.id}
                                 onRemoveExercise={(planId) => handleRemoveExercise(dayDataItem.id, planId)}
                                 onUpdateExercise={(planId, field, value) => handleUpdateExercise(dayDataItem.id, planId, field, value)}
+                                onUpdateFocus={(newFocus) => handleUpdateFocus(dayDataItem.id, newFocus)}
                                 onSetRestDay={() => handleSetRestDay(dayDataItem.id)}
                                 isRestDay={dayPlan?.isRestDay || false}
                                 t={t}
