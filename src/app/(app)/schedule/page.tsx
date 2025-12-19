@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -39,6 +38,8 @@ import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, query, where, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+
 
 const eventColors = [
   'bg-blue-100 border-l-4 border-blue-500 text-blue-800',
@@ -50,6 +51,7 @@ const eventColors = [
 
 const DayView = ({ events, currentDate, t, isLoading }: { events: CalendarEvent[], currentDate: Date, t: any, isLoading: boolean }) => {
     const hours = Array.from({ length: 15 }, (_, i) => i + 7); // 7 AM to 9 PM
+    const router = useRouter();
     
     const dayEvents = useMemo(() => events?.filter(event => {
         const eventDate = (event.start as Timestamp).toDate();
@@ -71,14 +73,14 @@ const DayView = ({ events, currentDate, t, isLoading }: { events: CalendarEvent[
                     {isLoading ? <Skeleton className="absolute inset-0" /> : dayEvents.map((event, index) => {
                          const start = (event.start as Timestamp).toDate();
                          const end = (event.end as Timestamp).toDate();
-                         const top = ((start.getHours() - 7 + start.getMinutes() / 60) * 80) + 1; // 80px per hour
+                         const top = (start.getHours() - 7 + start.getMinutes() / 60) * 80;
                          const height = ((end.getTime() - start.getTime()) / (1000 * 60 * 60)) * 80 - 2;
 
                         return (
-                             <div key={event.id} style={{ top: `${top}px`, height: `${height}px` }} className={cn("absolute left-24 right-4 p-2 rounded-lg text-xs", eventColors[index % eventColors.length])}>
+                             <Link href={`/schedule/${event.id}/edit`} key={event.id} style={{ top: `${top}px`, height: `${height}px` }} className={cn("absolute left-24 right-4 p-2 rounded-lg text-xs cursor-pointer hover:opacity-80 transition-opacity", eventColors[index % eventColors.length])}>
                                  <p className="font-semibold truncate">{event.title}</p>
                                 <p>{format(start, 'p')} - {format(end, 'p')}</p>
-                            </div>
+                            </Link>
                         )
                     })}
                 </div>
@@ -113,9 +115,9 @@ const WeekView = ({ events, currentDate, t, isLoading }: { events: CalendarEvent
                                 </div>
                                 <div className="flex flex-col gap-2 mt-1">
                                     {isLoading ? <Skeleton className="h-10 w-full" /> : dayEvents.map((event, eventIndex) => (
-                                        <div key={event.id} className={cn('p-1.5 rounded-md text-[11px]', eventColors[eventIndex % eventColors.length])}>
+                                        <Link href={`/schedule/${event.id}/edit`} key={event.id} className={cn('p-1.5 rounded-md text-[11px] block cursor-pointer hover:opacity-80 transition-opacity', eventColors[eventIndex % eventColors.length])}>
                                             <p className="font-semibold truncate">{format((event.start as Timestamp).toDate(), 'HH:mm')} {event.title}</p>
-                                        </div>
+                                        </Link>
                                     ))}
                                 </div>
                             </div>
@@ -191,17 +193,18 @@ const MonthView = ({ events, currentDate, t, isLoading }: { events: CalendarEven
                         ) : (
                         dayEvents.map((event, eventIndex) => {
                             return (
-                            <div
+                            <Link
+                                href={`/schedule/${event.id}/edit`}
                                 key={event.id}
                                 className={cn(
-                                'p-1.5 rounded-md text-[11px]',
+                                'p-1.5 rounded-md text-[11px] block cursor-pointer hover:opacity-80 transition-opacity',
                                 eventColors[eventIndex % eventColors.length]
                                 )}
                             >
                                 <p className="font-semibold truncate">
                                 {format((event.start as Timestamp).toDate(), 'HH:mm')} {event.title}
                                 </p>
-                            </div>
+                            </Link>
                             );
                         })
                         )}
@@ -238,9 +241,15 @@ export default function SchedulePage() {
   const tenantId = user?.uid;
   
   const {rangeStart, rangeEnd} = useMemo(() => {
+    const locale = { weekStartsOn: language === 'es' ? 1 : 0 };
     if (view === 'month') return { rangeStart: startOfMonth(currentDate), rangeEnd: endOfMonth(currentDate) };
-    if (view === 'week') return { rangeStart: startOfWeek(currentDate, { weekStartsOn: language === 'es' ? 1 : 0 }), rangeEnd: endOfWeek(currentDate, { weekStartsOn: language === 'es' ? 1 : 0 }) };
-    return { rangeStart: currentDate, rangeEnd: currentDate };
+    if (view === 'week') return { rangeStart: startOfWeek(currentDate, locale), rangeEnd: endOfWeek(currentDate, locale) };
+    // For day view, fetch for the whole day.
+    const startOfDay = new Date(currentDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(currentDate);
+    endOfDay.setHours(23, 59, 59, 999);
+    return { rangeStart: startOfDay, rangeEnd: endOfDay };
   }, [currentDate, view, language]);
 
   const eventsRef = useMemoFirebase(
@@ -275,10 +284,11 @@ export default function SchedulePage() {
   
   const headerTitle = useMemo(() => {
     const locale = language === 'es' ? es : undefined;
+    const weekOptions = { weekStartsOn: language === 'es' ? 1 : 0 };
     if (view === 'month') return format(currentDate, 'MMMM yyyy', { locale });
     if (view === 'week') {
-      const start = startOfWeek(currentDate, { weekStartsOn: language === 'es' ? 1 : 0 });
-      const end = endOfWeek(currentDate, { weekStartsOn: language === 'es' ? 1 : 0 });
+      const start = startOfWeek(currentDate, weekOptions);
+      const end = endOfWeek(currentDate, weekOptions);
       return `${format(start, 'd MMM', { locale })} - ${format(end, 'd MMM yyyy', { locale })}`;
     }
     return format(currentDate, 'd MMMM yyyy', { locale });
