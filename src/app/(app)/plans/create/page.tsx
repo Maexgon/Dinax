@@ -23,7 +23,7 @@ import {
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 type WeeklyPlan = {
     [day: string]: {
@@ -161,6 +161,7 @@ export default function CreatePlanPage() {
     const { firestore, user } = useFirebase();
     const { toast } = useToast();
     const router = useRouter();
+    const searchParams = useSearchParams();
     
     const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
     const [filter, setFilter] = useState('all');
@@ -170,7 +171,9 @@ export default function CreatePlanPage() {
     const [planState, setPlanState] = useState<PlanState>({});
     const [isPlanLoading, setIsPlanLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+    
+    const planIdFromParams = searchParams.get('planId');
+    const [currentPlanId, setCurrentPlanId] = useState<string | null>(planIdFromParams);
 
     const tenantId = user?.uid;
 
@@ -187,10 +190,10 @@ export default function CreatePlanPage() {
     const { data: settings, isLoading: areSettingsLoading } = useDoc<AppSettings>(settingsDocRef);
 
     useEffect(() => {
-        if (clients && clients.length > 0 && !selectedClientId) {
+        if (clients && clients.length > 0 && !selectedClientId && !planIdFromParams) {
             setSelectedClientId(clients[0].id);
         }
-    }, [clients, selectedClientId]);
+    }, [clients, selectedClientId, planIdFromParams]);
 
     const selectedClient = useMemo(() => clients?.find(c => c.id === selectedClientId), [clients, selectedClientId]);
 
@@ -237,28 +240,22 @@ export default function CreatePlanPage() {
     
     const filterButtons = useMemo(() => [{value: 'all', label: t.plans.all}, ...t.plans.exerciseTypeList], [t]);
 
-    const fetchPlan = useCallback(async () => {
-        if (!firestore || !tenantId || !selectedClientId) return;
+    const fetchPlan = useCallback(async (planId: string) => {
+        if (!firestore || !tenantId) return;
 
         setIsPlanLoading(true);
-        // Simplified query to get the latest plan for a client
-        const planQuery = query(
-            collection(firestore, `tenants/${tenantId}/mesocycles`),
-            where("clientId", "==", selectedClientId),
-            orderBy("createdAt", "desc"),
-            limit(1)
-        );
+        const planDocRef = doc(firestore, `tenants/${tenantId}/mesocycles`, planId);
         
         try {
-            const querySnapshot = await getDocs(planQuery);
-            if (!querySnapshot.empty) {
-                const planDoc = querySnapshot.docs[0];
-                const planData = planDoc.data() as Mesocycle;
+            const docSnap = await getDoc(planDocRef);
+            if (docSnap.exists()) {
+                const planData = docSnap.data() as Mesocycle;
                 setPlanState(planData.weeks);
-                setCurrentPlanId(planDoc.id);
+                setCurrentPlanId(docSnap.id);
+                setSelectedClientId(planData.clientId); // Set client from plan
             } else {
-                setPlanState({});
-                setCurrentPlanId(null);
+                toast({ variant: 'destructive', title: "Error", description: "El plan que intentas editar no existe."});
+                router.push('/plans');
             }
         } catch (error) {
             console.error("Error fetching plan:", error);
@@ -266,11 +263,13 @@ export default function CreatePlanPage() {
         } finally {
             setIsPlanLoading(false);
         }
-    }, [firestore, tenantId, selectedClientId, toast]);
+    }, [firestore, tenantId, toast, router]);
 
     useEffect(() => {
-        fetchPlan();
-    }, [fetchPlan]);
+        if (planIdFromParams) {
+            fetchPlan(planIdFromParams);
+        }
+    }, [planIdFromParams, fetchPlan]);
 
     const handleCreatePlan = useCallback(() => {
         const newPlan: PlanState = {};
@@ -478,7 +477,7 @@ export default function CreatePlanPage() {
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <a onClick={() => router.push('/plans')} className="hover:text-primary transition-colors cursor-pointer">{t.plans.title}</a>
                 <span>/</span>
-                <span>{t.plans.createNewPlan}</span>
+                <span>{planIdFromParams ? 'Editar Plan' : t.plans.createNewPlan}</span>
             </div>
         </header>
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
@@ -497,7 +496,7 @@ export default function CreatePlanPage() {
                         <AvatarFallback>{selectedClient.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div>
-                        <Select value={selectedClientId || ''} onValueChange={setSelectedClientId}>
+                        <Select value={selectedClientId || ''} onValueChange={setSelectedClientId} disabled={!!planIdFromParams}>
                             <SelectTrigger className="w-[200px] border-none text-2xl font-bold font-headline p-0 h-auto focus:ring-0">
                                 <SelectValue placeholder="Seleccionar cliente" />
                             </SelectTrigger>
@@ -508,7 +507,7 @@ export default function CreatePlanPage() {
                             </SelectContent>
                         </Select>
                         <p className="text-muted-foreground">
-                        {t.plans.planObjective}
+                        {selectedClient.objective || t.plans.planObjective}
                         </p>
                     </div>
                 </div>
@@ -531,7 +530,7 @@ export default function CreatePlanPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
         <div className="lg:col-span-1 bg-card p-4 rounded-lg flex flex-col">
-            <Button variant="outline" className="w-full mb-4" onClick={handleCreatePlan} disabled={!selectedClientId}>
+            <Button variant="outline" className="w-full mb-4" onClick={handleCreatePlan} disabled={!selectedClientId || !!planIdFromParams}>
                 <Plus className="mr-2 h-4 w-4" /> {t.plans.createNewPlan}
             </Button>
             <div className="relative mb-4">
