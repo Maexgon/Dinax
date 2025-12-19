@@ -204,4 +204,3 @@ export type AppSettings = {
   googleCalendarSync: boolean;
 };
 
-    

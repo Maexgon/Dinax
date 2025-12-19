@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
 import type { Client, ExerciseWithId, PlannedExercise, Mesocycle } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useFirebase, useCollection, useMemoFirebase, setDocumentNonBlocking, useDoc } from '@/firebase';
+import { useFirebase, useCollection, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, doc, serverTimestamp, getDocs, where, limit, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -205,8 +205,8 @@ export default function PlansPage() {
         { day: t.plans.day.sunday, focus: t.plans.focus.rest, id: 'Domingo' },
     ], [t]);
 
-    const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i - 2);
-    const months = t.plans.months;
+    const years = useMemo(() => Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i - 2), []);
+    const months = useMemo(() => t.plans.months, [t]);
     const totalWeeksInMonth = useMemo(() => getWeeksInMonth(new Date(selectedYear, selectedMonth)), [selectedYear, selectedMonth]);
     
     const fetchPlan = useCallback(async () => {
@@ -255,9 +255,7 @@ export default function PlansPage() {
         }
         setPlanState(newPlan);
         setCurrentPlanId(null); // It's a new plan, so no ID yet
-        
-        // Defer toast to avoid state update in render
-        setTimeout(() => toast({ title: "Nuevo Plan Creado", description: `Plan para ${months[selectedMonth]} ${selectedYear} listo para editar.` }), 0);
+        toast({ title: "Nuevo Plan Creado", description: `Plan para ${months[selectedMonth]} ${selectedYear} listo para editar.` });
     }, [totalWeeksInMonth, weekSchedule, months, selectedMonth, selectedYear, toast]);
 
 
@@ -370,9 +368,9 @@ export default function PlansPage() {
         }
     }
     
-    const handleReplicatePreviousWeek = () => {
+    const handleReplicatePreviousWeek = useCallback(() => {
         if (currentWeekIndex === 0) {
-             setTimeout(() => toast({ variant: 'destructive', title: "Error", description: "No hay semana anterior para replicar." }), 0);
+             toast({ variant: 'destructive', title: "Error", description: "No hay semana anterior para replicar." });
             return;
         }
 
@@ -381,7 +379,7 @@ export default function PlansPage() {
             const previousWeekPlan = prev[currentWeekIndex - 1];
 
             if (!previousWeekPlan) {
-                 setTimeout(() => toast({ variant: 'destructive', title: "Semana Vacía", description: "La semana anterior está vacía." }), 0);
+                 toast({ variant: 'destructive', title: "Semana Vacía", description: "La semana anterior está vacía." });
                 return prev;
             }
 
@@ -396,10 +394,10 @@ export default function PlansPage() {
 
             newPlan[currentWeekIndex] = replicatedWeekPlan;
             
-            setTimeout(() => toast({ title: "Semana Replicada", description: "Se ha copiado el plan de la semana anterior." }), 0);
+            toast({ title: "Semana Replicada", description: "Se ha copiado el plan de la semana anterior." });
             return newPlan;
         });
-    };
+    }, [currentWeekIndex, toast]);
 
     const { totalDuration, averageRpe } = useMemo(() => {
         let totalDuration = 0;
