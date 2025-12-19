@@ -405,20 +405,19 @@ export default function PlansPage() {
     
     const handleReplicatePreviousWeek = useCallback(() => {
         if (currentWeekIndex === 0) {
-             toast({ variant: 'destructive', title: "Error", description: "No hay semana anterior para replicar." });
+            toast({ variant: 'destructive', title: "Error", description: "No hay semana anterior para replicar." });
             return;
         }
-
+    
+        const previousWeekPlan = planState[currentWeekIndex - 1];
+    
+        if (!previousWeekPlan) {
+            toast({ variant: 'destructive', title: "Semana Vacía", description: "La semana anterior está vacía." });
+            return;
+        }
+    
         setPlanState(prev => {
             const newPlan = { ...prev };
-            const previousWeekPlan = prev[currentWeekIndex - 1];
-
-            if (!previousWeekPlan) {
-                 toast({ variant: 'destructive', title: "Semana Vacía", description: "La semana anterior está vacía." });
-                return prev;
-            }
-
-            // Deep copy and assign new planIds to exercises
             const replicatedWeekPlan = JSON.parse(JSON.stringify(previousWeekPlan));
             Object.keys(replicatedWeekPlan).forEach(dayId => {
                 replicatedWeekPlan[dayId].exercises = replicatedWeekPlan[dayId].exercises.map((ex: PlannedExercise) => ({
@@ -426,13 +425,12 @@ export default function PlansPage() {
                     planId: `${ex.id}-${Date.now()}-${Math.random()}`
                 }));
             });
-
             newPlan[currentWeekIndex] = replicatedWeekPlan;
-            
-            toast({ title: "Semana Replicada", description: "Se ha copiado el plan de la semana anterior." });
             return newPlan;
         });
-    }, [currentWeekIndex, toast]);
+    
+        toast({ title: "Semana Replicada", description: "Se ha copiado el plan de la semana anterior." });
+    }, [currentWeekIndex, planState, toast]);
 
     const { totalDuration, averageRpe } = useMemo(() => {
         let totalDuration = 0;
