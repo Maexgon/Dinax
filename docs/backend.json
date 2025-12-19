@@ -200,7 +200,8 @@
         "type": "object",
         "description": "An exercise within a workout plan, including specific parameters.",
         "properties": {
-            "id": { "type": "string" },
+            "id": { "type": "string", "description": "Reference to the exercise in the /exercises collection" },
+            "planId": { "type": "string", "description": "Unique ID for this instance in the plan" },
             "name": { "type": "string" },
             "imageUrl": { "type": "string", "format": "uri" },
             "muscleGroups": { "type": "array", "items": { "type": "string" } },
@@ -210,7 +211,24 @@
             "rest": { "type": "string" },
             "duration": { "type": "string" }
         },
-        "required": ["id", "name"]
+        "required": ["id", "planId", "name"]
+    },
+    "PlanSummary": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "Plan Summary",
+        "type": "object",
+        "description": "A summary of a training plan for display in a list.",
+        "properties": {
+            "id": { "type": "string" },
+            "title": { "type": "string" },
+            "focus": { "type": "string" },
+            "clientId": { "type": "string" },
+            "clientName": { "type": "string" },
+            "clientAvatar": { "type": "string" },
+            "trainingDays": { "type": "number" },
+            "duration": { "type": "number" }
+        },
+        "required": ["id", "title", "clientId"]
     },
     "ServicePlan": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -249,6 +267,40 @@
             "createdAt": { "type": "string", "format": "date-time" }
         },
         "required": ["id", "clientId", "servicePlanId", "trainingDays", "monthlyCost", "paymentMethod", "createdAt"]
+    },
+    "Payment": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Payment",
+      "type": "object",
+      "description": "Represents a single payment transaction for a client's plan.",
+      "properties": {
+        "id": { "type": "string" },
+        "clientId": { "type": "string" },
+        "clientPlanId": { "type": "string" },
+        "servicePlanId": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["paid", "pending", "overdue"] }
+      },
+      "required": ["id", "clientId", "clientPlanId", "amount", "paymentDate", "status"]
+    },
+    "CalendarEvent": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Calendar Event",
+      "type": "object",
+      "description": "Represents an event in the coach's calendar, such as a class or appointment.",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "start": { "type": "string", "format": "date-time" },
+        "end": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["group", "individual"] },
+        "location": { "type": "string" },
+        "workPlan": { "type": "string" },
+        "instructions": { "type": "string" },
+        "clients": { "type": "array", "items": { "type": "string" }, "description": "Array of client UIDs participating in the event." }
+      },
+      "required": ["id", "title", "start", "end", "type"]
     },
     "Settings": {
       "$schema": "http://json-schema.org/draft-07/schema#",
@@ -309,6 +361,14 @@
       {
         "path": "/tenants/{tenantId}/client_plans/{planId}",
         "definition": { "schema": { "$ref": "#/entities/ClientPlan" }, "description": "Stores the commercial plans assigned to clients." }
+      },
+      {
+        "path": "/tenants/{tenantId}/payments/{paymentId}",
+        "definition": { "schema": { "$ref": "#/entities/Payment" }, "description": "Stores individual payment transactions for clients." }
+      },
+       {
+        "path": "/tenants/{tenantId}/events/{eventId}",
+        "definition": { "schema": { "$ref": "#/entities/CalendarEvent" }, "description": "Stores calendar events for a tenant." }
       },
       {
         "path": "/tenants/{tenantId}/settings/preferences",

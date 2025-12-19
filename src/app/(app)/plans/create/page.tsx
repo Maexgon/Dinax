@@ -11,7 +11,7 @@ import { useLanguage } from '@/context/language-context';
 import type { Client, ExerciseWithId, PlannedExercise, Mesocycle, AppSettings } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useFirebase, useCollection, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
-import { collection, query, orderBy, doc, serverTimestamp, getDocs, where, limit, Timestamp, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, doc, serverTimestamp, getDoc, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
@@ -299,7 +299,10 @@ export default function CreatePlanPage() {
             const dayPlan = weekPlan[selectedDay] ? { ...weekPlan[selectedDay] } : { focus: '', isRestDay: false, exercises: [] };
 
             const newExercise: PlannedExercise = {
-                ...exercise,
+                id: exercise.id,
+                name: exercise.name,
+                imageUrl: exercise.imageUrl,
+                muscleGroups: exercise.muscleGroups,
                 planId: `${exercise.id}-${Date.now()}`,
                 sets: '', reps: '', rpe: '', rest: '', duration: '',
             };
@@ -370,11 +373,30 @@ export default function CreatePlanPage() {
 
     const handleSavePlan = async () => {
         if (!firestore || !tenantId || !selectedClientId) {
-            toast({ variant: 'destructive', title: "Error", description: "Faltan datos para guardar el plan." });
+            toast({ variant: "destructive", title: "Error", description: "Faltan datos para guardar el plan." });
             return;
         }
         setIsSubmitting(true);
         try {
+            // Create a deep copy and clean the plan before saving
+            const cleanPlanState = JSON.parse(JSON.stringify(planState));
+            for (const week in cleanPlanState) {
+                for (const day in cleanPlanState[week]) {
+                    cleanPlanState[week][day].exercises = cleanPlanState[week][day].exercises.map((ex: any) => ({
+                        id: ex.id,
+                        planId: ex.planId,
+                        name: ex.name,
+                        imageUrl: ex.imageUrl,
+                        muscleGroups: ex.muscleGroups,
+                        sets: ex.sets || '',
+                        reps: ex.reps || '',
+                        rpe: ex.rpe || '',
+                        rest: ex.rest || '',
+                        duration: ex.duration || '',
+                    }));
+                }
+            }
+            
             const planRef = currentPlanId 
                 ? doc(firestore, `tenants/${tenantId}/mesocycles`, currentPlanId)
                 : doc(collection(firestore, `tenants/${tenantId}/mesocycles`));
@@ -383,7 +405,7 @@ export default function CreatePlanPage() {
                 clientId: selectedClientId,
                 year: new Date().getFullYear(),
                 month: new Date().getMonth(),
-                weeks: planState,
+                weeks: cleanPlanState, // Use the cleaned data
                 updatedAt: serverTimestamp(),
             };
 
@@ -391,7 +413,7 @@ export default function CreatePlanPage() {
                 planData.createdAt = serverTimestamp();
             }
             
-            await setDocumentNonBlocking(planRef, planData, { merge: true });
+            await setDocumentNonBlocking(planRef, planData, { merge: false });
 
             if(!currentPlanId) setCurrentPlanId(planRef.id);
 

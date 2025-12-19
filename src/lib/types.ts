@@ -96,8 +96,12 @@ export type Exercise = {
 
 export type ExerciseWithId = Exercise & { id: string; };
 
-export type PlannedExercise = ExerciseWithId & {
-    planId: string;
+export type PlannedExercise = {
+    id: string; // Reference to the exercise in the /exercises collection
+    planId: string; // Unique ID for this specific instance in the plan
+    name: string;
+    imageUrl?: string;
+    muscleGroups?: string[];
     sets: string;
     reps: string;
     rpe: string;
