@@ -47,19 +47,17 @@ export default function AssignPlanPage() {
   
   const tenantId = user?.uid;
 
-  const { data: servicePlans, isLoading: arePlansLoading } = useCollection<ServicePlan>(
-    useMemoFirebase(
-      () => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/services`)) : null),
-      [firestore, tenantId]
-    )
+  const servicePlansQuery = useMemoFirebase(
+    () => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/services`)) : null),
+    [firestore, tenantId]
   );
+  const { data: servicePlans, isLoading: arePlansLoading } = useCollection<ServicePlan>(servicePlansQuery);
 
-  const { data: clients, isLoading: areClientsLoading } = useCollection<Client>(
-    useMemoFirebase(
-      () => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/user_profile`)) : null),
-      [firestore, tenantId]
-    )
+  const clientsQuery = useMemoFirebase(
+    () => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/user_profile`)) : null),
+    [firestore, tenantId]
   );
+  const { data: clients, isLoading: areClientsLoading } = useCollection<Client>(clientsQuery);
 
   const filteredClients = useMemo(() => {
     return clients?.filter(client => client.name.toLowerCase().includes(searchQuery.toLowerCase()));

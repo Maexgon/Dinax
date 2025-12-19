@@ -50,9 +50,9 @@ export default function ClientsPage() {
 
   const tenantId = user?.uid;
   
-  const clientsRef = useMemoFirebase(() => tenantId ? collection(firestore, `tenants/${tenantId}/user_profile`) : null, [tenantId, firestore]);
-  const clientPlansRef = useMemoFirebase(() => tenantId ? collection(firestore, `tenants/${tenantId}/client_plans`) : null, [tenantId, firestore]);
-  const servicePlansRef = useMemoFirebase(() => tenantId ? collection(firestore, `tenants/${tenantId}/services`) : null, [tenantId, firestore]);
+  const clientsRef = useMemoFirebase(() => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/user_profile`) : null), [tenantId, firestore]);
+  const clientPlansRef = useMemoFirebase(() => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/client_plans`) : null), [tenantId, firestore]);
+  const servicePlansRef = useMemoFirebase(() => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/services`) : null), [tenantId, firestore]);
 
   const { data: clients, isLoading: areClientsLoading } = useCollection<Client>(clientsRef);
   const { data: clientPlans, isLoading: areClientPlansLoading } = useCollection<ClientPlan>(clientPlansRef);
