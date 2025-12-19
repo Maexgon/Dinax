@@ -162,7 +162,7 @@ export type CalendarEvent = {
   type: 'group' | 'individual';
   location?: string;
   workPlan?: string;
-  equipment?: string[];
+  instructions?: string;
   clients?: string[];
 };
 
@@ -203,3 +203,5 @@ export type AppSettings = {
   endTime: string;
   googleCalendarSync: boolean;
 };
+
+    

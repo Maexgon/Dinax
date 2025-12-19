@@ -279,7 +279,7 @@
         "type": { "type": "string", "enum": ["group", "individual"] },
         "location": { "type": "string" },
         "workPlan": { "type": "string" },
-        "equipment": { "type": "array", "items": { "type": "string" } },
+        "instructions": { "type": "string" },
         "clients": { "type": "array", "items": { "type": "string" }, "description": "Array of client UIDs participating in the event." }
       },
       "required": ["id", "title", "start", "end", "type"]
@@ -359,3 +359,5 @@
     ]
   }
 }
+
+    
