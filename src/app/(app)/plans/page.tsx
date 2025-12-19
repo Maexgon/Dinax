@@ -8,9 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
-import type { Client, ExerciseWithId, PlannedExercise, Mesocycle } from '@/lib/types';
+import type { Client, ExerciseWithId, PlannedExercise, Mesocycle, AppSettings } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useFirebase, useCollection, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
+import { useFirebase, useCollection, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { collection, query, orderBy, doc, serverTimestamp, getDocs, where, limit, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -23,7 +23,6 @@ import {
 import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { getWeeksInMonth } from 'date-fns';
 
 type WeeklyPlan = {
     [day: string]: {
@@ -155,8 +154,6 @@ export default function PlansPage() {
     const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
     const [filter, setFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-    const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
     const [currentWeekIndex, setCurrentWeekIndex] = useState<number>(0);
     const [selectedDay, setSelectedDay] = useState<string>('Lunes');
     const [planState, setPlanState] = useState<PlanState>({});
@@ -171,6 +168,12 @@ export default function PlansPage() {
       [firestore, tenantId]
     );
     const { data: clients, isLoading: areClientsLoading } = useCollection<Client>(clientsCollectionRef);
+
+    const settingsDocRef = useMemoFirebase(
+      () => (firestore && tenantId ? doc(firestore, `tenants/${tenantId}/settings`, 'preferences') : null),
+      [firestore, tenantId]
+    );
+    const { data: settings, isLoading: areSettingsLoading } = useDoc<AppSettings>(settingsDocRef);
 
     useEffect(() => {
         if (clients && clients.length > 0 && !selectedClientId) {
@@ -192,21 +195,34 @@ export default function PlansPage() {
         return matchesType && matchesSearch;
     }), [exercises, filter, searchQuery]);
     
-    const years = useMemo(() => Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i - 2), []);
-    const months = useMemo(() => t.plans.months, [t]);
-    const totalWeeksInMonth = useMemo(() => {
-        return getWeeksInMonth(new Date(selectedYear, selectedMonth), { weekStartsOn: 1 });
-    }, [selectedYear, selectedMonth]);
+    const totalWeeksInMonth = 4;
     
-    const weekSchedule = useMemo(() => [
-        { day: t.plans.day.monday, focus: t.plans.focus.legs, id: 'Lunes' },
-        { day: t.plans.day.tuesday, focus: t.plans.focus.push, id: 'Martes' },
-        { day: t.plans.day.wednesday, focus: t.plans.focus.pull, id: 'Miércoles' },
-        { day: t.plans.day.thursday, focus: t.plans.focus.upper, id: 'Jueves' },
-        { day: t.plans.day.friday, focus: t.plans.focus.full, id: 'Viernes' },
-        { day: t.plans.day.saturday, focus: t.plans.focus.rest, id: 'Sábado' },
-        { day: t.plans.day.sunday, focus: t.plans.focus.rest, id: 'Domingo' },
-    ], [t]);
+    const weekDayMap = useMemo(() => ({
+        'L': t.plans.day.monday,
+        'M': t.plans.day.tuesday,
+        'X': t.plans.day.wednesday,
+        'J': t.plans.day.thursday,
+        'V': t.plans.day.friday,
+        'S': t.plans.day.saturday,
+        'D': t.plans.day.sunday,
+    }), [t]);
+    
+    const weekSchedule = useMemo(() => {
+        const defaultFocus = [t.plans.focus.legs, t.plans.focus.push, t.plans.focus.pull, t.plans.focus.upper, t.plans.focus.full, t.plans.focus.rest, t.plans.focus.rest];
+        const workingDays = settings?.workingDays || ['L', 'M', 'X', 'J', 'V'];
+        
+        return workingDays.map((day, index) => ({
+            day: weekDayMap[day as keyof typeof weekDayMap],
+            focus: defaultFocus[index % defaultFocus.length],
+            id: day
+        }));
+    }, [settings, t, weekDayMap]);
+
+    useEffect(() => {
+        if (weekSchedule.length > 0) {
+            setSelectedDay(weekSchedule[0].id);
+        }
+    }, [weekSchedule]);
     
     const filterButtons = useMemo(() => [{value: 'all', label: t.plans.all}, ...t.plans.exerciseTypeList], [t]);
 
@@ -214,11 +230,10 @@ export default function PlansPage() {
         if (!firestore || !tenantId || !selectedClientId) return;
 
         setIsPlanLoading(true);
+        // Simplified query to get the latest plan for a client
         const planQuery = query(
             collection(firestore, `tenants/${tenantId}/mesocycles`),
             where("clientId", "==", selectedClientId),
-            where("year", "==", selectedYear),
-            where("month", "==", selectedMonth),
             orderBy("createdAt", "desc"),
             limit(1)
         );
@@ -240,7 +255,7 @@ export default function PlansPage() {
         } finally {
             setIsPlanLoading(false);
         }
-    }, [firestore, tenantId, selectedClientId, selectedYear, selectedMonth, toast]);
+    }, [firestore, tenantId, selectedClientId, toast]);
 
     useEffect(() => {
         fetchPlan();
@@ -256,8 +271,8 @@ export default function PlansPage() {
         }
         setPlanState(newPlan);
         setCurrentPlanId(null); // It's a new plan, so no ID yet
-        toast({ title: "Nuevo Plan Creado", description: `Plan para ${months[selectedMonth]} ${selectedYear} listo para editar.` });
-    }, [totalWeeksInMonth, weekSchedule, months, selectedMonth, selectedYear, toast]);
+        toast({ title: "Nuevo Plan Creado", description: `Plan de 4 semanas listo para editar.` });
+    }, [totalWeeksInMonth, weekSchedule, toast]);
 
 
     const handleAddExercise = (exercise: ExerciseWithId) => {
@@ -346,8 +361,8 @@ export default function PlansPage() {
             
             const planData: Omit<Mesocycle, 'id' | 'createdAt'> & { createdAt?: any } = {
                 clientId: selectedClientId,
-                year: selectedYear,
-                month: selectedMonth,
+                year: new Date().getFullYear(), // Storing year for reference
+                month: new Date().getMonth(), // Storing month for reference
                 weeks: planState,
                 updatedAt: serverTimestamp(),
             };
@@ -436,11 +451,12 @@ export default function PlansPage() {
         return 'N/A';
     }
 
+  const isLoading = areClientsLoading || areExercisesLoading || areSettingsLoading;
 
   return (
     <div className="flex flex-col h-full">
       <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
-        {areClientsLoading ? (
+        {isLoading ? (
             <div className="flex items-center gap-4">
                 <Skeleton className="h-12 w-12 rounded-full" />
                 <div className="space-y-2">
@@ -489,28 +505,6 @@ export default function PlansPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
         <div className="lg:col-span-1 bg-card p-4 rounded-lg flex flex-col">
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Año" />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map(year => (
-                    <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Mes" />
-                </SelectTrigger>
-                <SelectContent>
-                  {months.map((month, index) => (
-                    <SelectItem key={index} value={index.toString()}>{month}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
             <Button variant="outline" className="w-full mb-4" onClick={handleCreatePlan} disabled={!selectedClientId}>
                 <Plus className="mr-2 h-4 w-4" /> {t.plans.createNewPlan}
             </Button>
