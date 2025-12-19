@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
@@ -23,10 +24,11 @@ import { useFirebase, useMemoFirebase, useDoc, useCollection, addDocumentNonBloc
 import { doc, collection, query, orderBy, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
-export default function ClientWallPage({ params }: { params: { id: string } }) {
-  const { id: clientId } = params;
+export default function ClientWallPage() {
+  const params = useParams();
+  const clientId = params.id as string;
   const { t, language } = useLanguage();
   const { firestore, user } = useFirebase();
   const { toast } = useToast();
@@ -62,7 +64,8 @@ export default function ClientWallPage({ params }: { params: { id: string } }) {
       };
 
       try {
-          await addDocumentNonBlocking(collection(firestore, `tenants/${tenantId}/user_profile/${clientId}/notes`), noteData);
+          const notesRef = collection(firestore, `tenants/${tenantId}/user_profile/${clientId}/notes`);
+          await addDocumentNonBlocking(notesRef, noteData);
           setNewNote('');
           toast({ variant: 'success', title: 'Nota Publicada', description: 'Tu nota ha sido añadida al muro del cliente.'});
       } catch (error) {
