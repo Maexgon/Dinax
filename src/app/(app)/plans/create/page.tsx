@@ -62,23 +62,23 @@ const PlannedExerciseCard = ({ exercise, onRemove, onUpdate, isRestDay }: { exer
                 <div className="grid grid-cols-5 gap-2 text-center mt-3">
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.duration}</p>
-                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="m" value={exercise.duration} onChange={e => onUpdate(exercise.planId, 'duration', e.target.value)} />
+                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="m" value={exercise.duration || ''} onChange={e => onUpdate(exercise.planId, 'duration', e.target.value)} />
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.sets}</p>
-                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-" value={exercise.sets} onChange={e => onUpdate(exercise.planId, 'sets', e.target.value)} />
+                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-" value={exercise.sets || ''} onChange={e => onUpdate(exercise.planId, 'sets', e.target.value)} />
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.reps}</p>
-                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-" value={exercise.reps} onChange={e => onUpdate(exercise.planId, 'reps', e.target.value)} />
+                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-" value={exercise.reps || ''} onChange={e => onUpdate(exercise.planId, 'reps', e.target.value)} />
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.rpe}</p>
-                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-" value={exercise.rpe} onChange={e => onUpdate(exercise.planId, 'rpe', e.target.value)}/>
+                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="-" value={exercise.rpe || ''} onChange={e => onUpdate(exercise.planId, 'rpe', e.target.value)}/>
                     </div>
                     <div>
                         <p className="text-xs text-muted-foreground">{t.plans.rest}</p>
-                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="s" value={exercise.rest} onChange={e => onUpdate(exercise.planId, 'rest', e.target.value)} />
+                        <Input className="p-1 bg-muted rounded-md mt-1 font-bold text-center h-8" placeholder="s" value={exercise.rest || ''} onChange={e => onUpdate(exercise.planId, 'rest', e.target.value)} />
                     </div>
                 </div>
             </CardContent>
@@ -381,7 +381,7 @@ export default function CreatePlanPage() {
             const cleanPlanState = JSON.parse(JSON.stringify(planState));
             for (const week in cleanPlanState) {
                 for (const day in cleanPlanState[week]) {
-                    cleanPlanState[week][day].exercises = cleanPlanState[week][day].exercises.map((ex: any) => ({
+                    cleanPlanState[week][day].exercises = cleanPlanState[week][day].exercises.map((ex: PlannedExercise) => ({
                         id: ex.id,
                         planId: ex.planId,
                         name: ex.name,
@@ -413,7 +413,7 @@ export default function CreatePlanPage() {
                 planData.createdAt = serverTimestamp();
             }
             
-            await setDocumentNonBlocking(planRef, planData, { merge: true });
+            await setDocumentNonBlocking(planRef, planData);
 
             if(!currentPlanId) setCurrentPlanId(planRef.id);
 
