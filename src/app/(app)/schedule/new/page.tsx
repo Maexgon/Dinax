@@ -204,9 +204,9 @@ export default function NewSessionPage() {
                   <Skeleton className="h-24 w-full" />
                 ) : (
                   filteredClients.map(client => (
-                    <div
+                    <label
                       key={client.id}
-                      onClick={() => handleClientToggle(client.id)}
+                      htmlFor={`client-${client.id}`}
                       className={cn(
                         "p-3 rounded-lg border-2 flex items-center gap-3 cursor-pointer transition-colors",
                         (watchClientIds || []).includes(client.id) ? 'border-primary bg-primary/5' : 'hover:bg-muted'
@@ -225,7 +225,7 @@ export default function NewSessionPage() {
                         <p className="font-semibold">{client.name}</p>
                         <p className="text-sm text-muted-foreground">{client.email}</p>
                       </div>
-                    </div>
+                    </label>
                   ))
                 )}
               </div>
