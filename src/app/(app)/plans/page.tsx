@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MoreVertical, Copy, PlusCircle, Search, CalendarDays, Timer, User, BookCopy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
@@ -135,6 +135,7 @@ export default function PlansPage() {
         });
     }, [planSummaries, searchQuery]);
 
+
     const filterButtons = [
         { value: 'all', label: t.plans.all },
         { value: 'fuerza', label: t.plans.strength },
@@ -242,5 +243,3 @@ export default function PlansPage() {
         </div>
     );
 }
-
-    
