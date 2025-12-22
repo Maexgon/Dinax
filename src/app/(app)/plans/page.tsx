@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
@@ -5,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { MoreVertical, Copy, PlusCircle, Search, CalendarDays, Timer, User, BookCopy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
@@ -127,8 +128,9 @@ export default function PlansPage() {
 
     const filteredPlans = useMemo(() => {
         return planSummaries.filter(plan => {
-            const matchesSearch = plan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                plan.clientName?.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesSearch =
+              (plan.name && plan.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+              (plan.clientName && plan.clientName.toLowerCase().includes(searchQuery.toLowerCase()));
             return matchesSearch;
         });
     }, [planSummaries, searchQuery]);
@@ -197,7 +199,7 @@ export default function PlansPage() {
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                            <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">{plan.name}</CardTitle>
+                            <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">{plan.name || 'Plan sin nombre'}</CardTitle>
                             <CardDescription className="flex items-center gap-2 pt-1 text-xs h-5">
                                 {plan.clientId && plan.clientName ? (
                                     <>
@@ -240,3 +242,5 @@ export default function PlansPage() {
         </div>
     );
 }
+
+    
