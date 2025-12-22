@@ -125,7 +125,8 @@ export type TrainingCycle = {
 
 export type Mesocycle = {
     id: string;
-    clientId: string;
+    clientId: string | null;
+    name: string;
     year: number;
     month: number;
     weeks: {
@@ -143,9 +144,9 @@ export type Mesocycle = {
 
 export type PlanSummary = {
     id: string;
-    title: string;
+    name: string;
     focus: string;
-    clientId: string;
+    clientId: string | null;
     clientName?: string;
     clientAvatar?: string;
     trainingDays: number;

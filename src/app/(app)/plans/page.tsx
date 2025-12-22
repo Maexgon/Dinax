@@ -3,17 +3,18 @@ import { useState, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MoreVertical, Copy, PlusCircle, Search, CalendarDays, Timer } from 'lucide-react';
+import { MoreVertical, Copy, PlusCircle, Search, CalendarDays, Timer, User, BookCopy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
 import type { Mesocycle, Client, PlanSummary } from '@/lib/types';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, where } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
+import { collection, query, orderBy, doc, serverTimestamp } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
 
 function PlanCardSkeleton() {
     return (
@@ -38,6 +39,7 @@ export default function PlansPage() {
     const { t } = useLanguage();
     const router = useRouter();
     const { firestore, user } = useFirebase();
+    const { toast } = useToast();
     const tenantId = user?.uid;
 
     const [searchQuery, setSearchQuery] = useState('');
@@ -57,10 +59,39 @@ export default function PlansPage() {
     
     const isLoading = areMesocyclesLoading || areClientsLoading;
 
+    const handleDuplicateAndAssign = async (plan: PlanSummary) => {
+        if (!firestore || !tenantId) return;
+
+        const originalPlan = mesocycles?.find(m => m.id === plan.id);
+        if (!originalPlan) {
+            toast({ variant: 'destructive', title: 'Error', description: 'Plan original no encontrado.' });
+            return;
+        }
+
+        // Deep copy and clean the plan to be duplicated
+        const newPlanData = JSON.parse(JSON.stringify(originalPlan));
+        delete newPlanData.id; // Remove original ID
+        newPlanData.createdAt = serverTimestamp();
+        newPlanData.updatedAt = serverTimestamp();
+        // Set clientId to null initially, it will be assigned in the create page
+        newPlanData.clientId = null; 
+
+        try {
+            const newPlanRef = doc(collection(firestore, `tenants/${tenantId}/mesocycles`));
+            await addDocumentNonBlocking(newPlanRef, newPlanData);
+            
+            toast({ variant: 'success', title: 'Plan Duplicado', description: `Se creó una copia de "${plan.name}". Ahora puedes asignarlo.` });
+            router.push(`/plans/create?planId=${newPlanRef.id}&assign=true`);
+        } catch (error) {
+            console.error(error);
+            toast({ variant: 'destructive', title: 'Error', description: 'No se pudo duplicar el plan.' });
+        }
+    };
+    
     const planSummaries: PlanSummary[] = useMemo(() => {
-        if (isLoading || !mesocycles || !clients) return [];
+        if (isLoading || !mesocycles ) return [];
         return mesocycles.map(mesocycle => {
-            const client = clients.find(c => c.id === mesocycle.clientId);
+            const client = clients?.find(c => c.id === mesocycle.clientId);
             let totalTrainingDays = 0;
             let totalDuration = 0;
 
@@ -84,22 +115,20 @@ export default function PlansPage() {
             return {
                 id: mesocycle.id,
                 clientId: mesocycle.clientId,
-                clientName: client?.name || 'Cliente no encontrado',
-                clientAvatar: client?.avatarUrl || '',
-                title: `${t.plans.months[mesocycle.month]} ${mesocycle.year}`,
+                clientName: client?.name,
+                clientAvatar: client?.avatarUrl,
+                name: mesocycle.name,
                 focus: focus,
                 trainingDays: averageTrainingDays,
                 duration: averageDuration,
             };
         });
-    }, [isLoading, mesocycles, clients, t.plans.months]);
+    }, [isLoading, mesocycles, clients]);
 
     const filteredPlans = useMemo(() => {
         return planSummaries.filter(plan => {
-            const matchesSearch = plan.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            const matchesSearch = plan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 plan.clientName?.toLowerCase().includes(searchQuery.toLowerCase());
-            // Filter logic can be extended here if needed
-            // const matchesFilter = filter === 'all' || plan.focus.toLowerCase() === filter;
             return matchesSearch;
         });
     }, [planSummaries, searchQuery]);
@@ -162,16 +191,25 @@ export default function PlansPage() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
-                                        <DropdownMenuItem>
-                                            <Copy className="mr-2 h-4 w-4" /> Duplicar
+                                        <DropdownMenuItem onClick={() => handleDuplicateAndAssign(plan)}>
+                                            <Copy className="mr-2 h-4 w-4" /> Duplicar y Asignar
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
-                            <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">{plan.title}</CardTitle>
-                            <CardDescription className="flex items-center gap-2 pt-1 text-xs">
-                                <Image src={plan.clientAvatar || ''} alt={plan.clientName || ''} width={20} height={20} className="rounded-full" />
-                                {plan.clientName}
+                            <CardTitle className="text-lg font-bold group-hover:text-primary transition-colors">{plan.name}</CardTitle>
+                            <CardDescription className="flex items-center gap-2 pt-1 text-xs h-5">
+                                {plan.clientId && plan.clientName ? (
+                                    <>
+                                        <Image src={plan.clientAvatar || ''} alt={plan.clientName || ''} width={20} height={20} className="rounded-full" />
+                                        {plan.clientName}
+                                    </>
+                                ) : (
+                                    <>
+                                        <BookCopy className="h-4 w-4 text-muted-foreground" />
+                                        <span className="italic text-muted-foreground">Plantilla</span>
+                                    </>
+                                )}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="p-4 flex-grow space-y-3">

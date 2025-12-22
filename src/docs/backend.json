@@ -164,10 +164,11 @@
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Mesocycle",
       "type": "object",
-      "description": "A structured training plan for a client over a specific month (a mesocycle).",
+      "description": "A structured training plan for a client over a specific month (a mesocycle). Can be a template if clientId is null.",
       "properties": {
         "id": { "type": "string" },
-        "clientId": { "type": "string" },
+        "clientId": { "type": ["string", "null"], "description": "The ID of the client this plan is assigned to. Null if it's a template." },
+        "name": { "type": "string", "description": "The name of the training plan." },
         "year": { "type": "number" },
         "month": { "type": "number" },
         "weeks": {
@@ -192,7 +193,7 @@
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "clientId", "year", "month", "weeks"]
+      "required": ["id", "name", "year", "month", "weeks"]
     },
     "PlannedExercise": {
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -200,7 +201,8 @@
         "type": "object",
         "description": "An exercise within a workout plan, including specific parameters.",
         "properties": {
-            "id": { "type": "string" },
+            "id": { "type": "string", "description": "Reference to the exercise in the /exercises collection" },
+            "planId": { "type": "string", "description": "Unique ID for this instance in the plan" },
             "name": { "type": "string" },
             "imageUrl": { "type": "string", "format": "uri" },
             "muscleGroups": { "type": "array", "items": { "type": "string" } },
@@ -210,7 +212,7 @@
             "rest": { "type": "string" },
             "duration": { "type": "string" }
         },
-        "required": ["id", "name"]
+        "required": ["id", "planId", "name"]
     },
     "PlanSummary": {
         "$schema": "http://json-schema.org/draft-07/schema#",
@@ -219,15 +221,15 @@
         "description": "A summary of a training plan for display in a list.",
         "properties": {
             "id": { "type": "string" },
-            "title": { "type": "string" },
+            "name": { "type": "string" },
             "focus": { "type": "string" },
-            "clientId": { "type": "string" },
+            "clientId": { "type": ["string", "null"] },
             "clientName": { "type": "string" },
             "clientAvatar": { "type": "string" },
             "trainingDays": { "type": "number" },
             "duration": { "type": "number" }
         },
-        "required": ["id", "title", "clientId"]
+        "required": ["id", "name"]
     },
     "ServicePlan": {
       "$schema": "http://json-schema.org/draft-07/schema#",

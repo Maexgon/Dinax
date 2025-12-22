@@ -2,7 +2,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Trash2, Moon, ChevronLeft, ChevronRight, Bed, Loader2, Copy } from 'lucide-react';
+import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Trash2, Moon, ChevronLeft, ChevronRight, Bed, Loader2, Copy, BookCopy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -163,7 +163,8 @@ export default function CreatePlanPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     
-    const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+    const [planName, setPlanName] = useState("Nuevo Plan de Entrenamiento");
+    const [selectedClientId, setSelectedClientId] = useState<string | null>("template"); // 'template' for generic plans
     const [filter, setFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [currentWeekIndex, setCurrentWeekIndex] = useState<number>(0);
@@ -188,12 +189,6 @@ export default function CreatePlanPage() {
       [firestore, tenantId]
     );
     const { data: settings, isLoading: areSettingsLoading } = useDoc<AppSettings>(settingsDocRef);
-
-    useEffect(() => {
-        if (clients && clients.length > 0 && !selectedClientId && !planIdFromParams) {
-            setSelectedClientId(clients[0].id);
-        }
-    }, [clients, selectedClientId, planIdFromParams]);
 
     const selectedClient = useMemo(() => clients?.find(c => c.id === selectedClientId), [clients, selectedClientId]);
 
@@ -250,9 +245,10 @@ export default function CreatePlanPage() {
             const docSnap = await getDoc(planDocRef);
             if (docSnap.exists()) {
                 const planData = docSnap.data() as Mesocycle;
+                setPlanName(planData.name);
                 setPlanState(planData.weeks);
                 setCurrentPlanId(docSnap.id);
-                setSelectedClientId(planData.clientId); // Set client from plan
+                setSelectedClientId(planData.clientId || "template");
             } else {
                 toast({ variant: 'destructive', title: "Error", description: "El plan que intentas editar no existe."});
                 router.push('/plans');
@@ -280,7 +276,9 @@ export default function CreatePlanPage() {
             }, {} as WeeklyPlan);
         }
         setPlanState(newPlan);
-        setCurrentPlanId(null); // It's a new plan, so no ID yet
+        setCurrentPlanId(null);
+        setPlanName("Nuevo Plan de Entrenamiento");
+        setSelectedClientId("template");
         toast({ title: "Nuevo Plan Creado", description: `Plan de 4 semanas listo para editar.` });
     }, [totalWeeksInMonth, weekSchedule, toast]);
 
@@ -372,7 +370,7 @@ export default function CreatePlanPage() {
     }
 
     const handleSavePlan = async () => {
-        if (!firestore || !tenantId || !selectedClientId) {
+        if (!firestore || !tenantId) {
             toast({ variant: "destructive", title: "Error", description: "Faltan datos para guardar el plan." });
             return;
         }
@@ -402,10 +400,11 @@ export default function CreatePlanPage() {
                 : doc(collection(firestore, `tenants/${tenantId}/mesocycles`));
             
             const planData: Omit<Mesocycle, 'id' | 'createdAt'> & { createdAt?: any } = {
-                clientId: selectedClientId,
+                clientId: selectedClientId === 'template' ? null : selectedClientId,
+                name: planName,
                 year: new Date().getFullYear(),
                 month: new Date().getMonth(),
-                weeks: cleanPlanState, // Use the cleaned data
+                weeks: cleanPlanState,
                 updatedAt: serverTimestamp(),
             };
 
@@ -418,6 +417,7 @@ export default function CreatePlanPage() {
             if(!currentPlanId) setCurrentPlanId(planRef.id);
 
             toast({ variant: 'success', title: "Plan Guardado", description: "El plan de entrenamiento ha sido guardado correctamente." });
+            router.push('/plans');
         } catch (error) {
             console.error("Error saving plan:", error);
             toast({ variant: 'destructive', title: "Error al Guardar", description: "No se pudo guardar el plan." });
@@ -511,32 +511,36 @@ export default function CreatePlanPage() {
                         <Skeleton className="h-4 w-64" />
                     </div>
                 </div>
-            ) : selectedClient ? (
+            ) : (
                 <div className="flex items-center gap-4">
-                    <Avatar className="h-12 w-12 border-2 border-primary">
-                        <AvatarImage src={selectedClient.avatarUrl} alt={selectedClient.name} data-ai-hint={selectedClient.avatarHint}/>
-                        <AvatarFallback>{selectedClient.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
+                     <div className="h-12 w-12 border-2 border-primary rounded-full flex items-center justify-center">
+                        {selectedClientId === 'template' || !selectedClient ? (
+                            <BookCopy className="h-6 w-6 text-primary" />
+                        ) : (
+                            <Avatar className="h-full w-full">
+                                <AvatarImage src={selectedClient.avatarUrl} alt={selectedClient.name} data-ai-hint={selectedClient.avatarHint}/>
+                                <AvatarFallback>{selectedClient.name.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                        )}
+                    </div>
                     <div>
-                        <Select value={selectedClientId || ''} onValueChange={setSelectedClientId} disabled={!!planIdFromParams}>
-                            <SelectTrigger className="w-[200px] border-none text-2xl font-bold font-headline p-0 h-auto focus:ring-0">
+                        <Input 
+                            className="text-2xl font-bold font-headline p-0 h-auto border-none focus-visible:ring-0" 
+                            value={planName}
+                            onChange={(e) => setPlanName(e.target.value)}
+                        />
+                         <Select value={selectedClientId || 'template'} onValueChange={setSelectedClientId}>
+                            <SelectTrigger className="w-auto border-none text-muted-foreground p-0 h-auto focus:ring-0">
                                 <SelectValue placeholder="Seleccionar cliente" />
                             </SelectTrigger>
                             <SelectContent>
+                                <SelectItem value="template">Crear como Plantilla</SelectItem>
                                 {clients?.map(client => (
                                     <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
-                        <p className="text-muted-foreground">
-                        {selectedClient.objective || t.plans.planObjective}
-                        </p>
                     </div>
-                </div>
-            ) : (
-                <div>
-                    <h1 className="text-2xl font-bold font-headline">Selecciona un cliente</h1>
-                    <p className="text-muted-foreground">Elige un cliente para empezar a planificar.</p>
                 </div>
             )}
             <div className="flex items-center gap-2">
@@ -552,7 +556,7 @@ export default function CreatePlanPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1">
         <div className="lg:col-span-1 bg-card p-4 rounded-lg flex flex-col">
-            <Button variant="outline" className="w-full mb-4" onClick={handleCreatePlan} disabled={!selectedClientId || !!planIdFromParams}>
+            <Button variant="outline" className="w-full mb-4" onClick={handleCreatePlan} disabled={!!planIdFromParams}>
                 <Plus className="mr-2 h-4 w-4" /> {t.plans.createNewPlan}
             </Button>
             <div className="relative mb-4">
@@ -619,7 +623,7 @@ export default function CreatePlanPage() {
              ) : Object.keys(planState).length === 0 ? (
                 <Card className="flex items-center justify-center min-h-[400px]">
                     <div className="text-center">
-                        <p className="text-muted-foreground">Selecciona un cliente y crea un nuevo plan.</p>
+                        <p className="text-muted-foreground">Crea un nuevo plan para comenzar.</p>
                     </div>
                 </Card>
             ) : (
