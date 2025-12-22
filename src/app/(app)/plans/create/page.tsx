@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
@@ -412,7 +413,7 @@ export default function CreatePlanPage() {
                 planData.createdAt = serverTimestamp();
             }
             
-            await setDocumentNonBlocking(planRef, planData, { merge: false });
+            await setDocumentNonBlocking(planRef, planData, { merge: true });
 
             if(!currentPlanId) setCurrentPlanId(planRef.id);
 
