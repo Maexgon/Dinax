@@ -23,10 +23,12 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useLanguage } from '@/context/language-context';
-import { useFirebase, useDoc, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types';
+import { useFirebase, useDoc, useMemoFirebase, useCollection } from '@/firebase';
+import { doc, collection, query, where, Timestamp } from 'firebase/firestore';
+import type { UserProfile, Payment, CalendarEvent, Client } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { startOfMonth, endOfMonth, startOfDay, endOfDay } from 'date-fns';
+import React, { useMemo } from 'react';
 
 const paymentData = [
     { name: 'Pagado', value: 2450, color: 'hsl(var(--chart-1))' },
@@ -37,20 +39,54 @@ const paymentData = [
 export default function Dashboard() {
   const { t, language } = useLanguage();
   const { firestore, user } = useFirebase();
+  const tenantId = user?.uid;
 
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'user_profile', user.uid) : null),
     [firestore, user]
   );
-  
   const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+  
+  const now = new Date();
+  const startOfCurrentMonth = startOfMonth(now);
+  const endOfCurrentMonth = endOfMonth(now);
+  const startOfToday = startOfDay(now);
+  const endOfToday = endOfDay(now);
 
-  const today = new Date();
+  const clientsRef = useMemoFirebase(() => tenantId ? collection(firestore, `tenants/${tenantId}/user_profile`) : null, [tenantId, firestore]);
+  const { data: clients, isLoading: areClientsLoading } = useCollection<Client>(clientsRef);
+
+  const paymentsThisMonthRef = useMemoFirebase(() => tenantId ? query(collection(firestore, `tenants/${tenantId}/payments`), where('paymentDate', '>=', startOfCurrentMonth), where('paymentDate', '<=', endOfCurrentMonth)) : null, [tenantId, firestore, startOfCurrentMonth, endOfCurrentMonth]);
+  const { data: paymentsThisMonth, isLoading: arePaymentsLoading } = useCollection<Payment>(paymentsThisMonthRef);
+
+  const eventsTodayRef = useMemoFirebase(() => tenantId ? query(collection(firestore, `tenants/${tenantId}/events`), where('start', '>=', startOfToday), where('start', '<=', endOfToday)) : null, [tenantId, firestore, startOfToday, endOfToday]);
+  const { data: eventsToday, isLoading: areEventsLoading } = useCollection<CalendarEvent>(eventsTodayRef);
+
+  const dashboardStats = useMemo(() => {
+    const totalClients = clients?.length || 0;
+    
+    const paidThisMonth = paymentsThisMonth?.filter(p => p.status === 'paid').reduce((acc, p) => acc + p.amount, 0) || 0;
+    const pendingPayments = paymentsThisMonth?.filter(p => p.status === 'pending' || p.status === 'overdue').length || 0;
+    
+    const totalSessionsToday = eventsToday?.length || 0;
+    const completedSessionsToday = eventsToday?.filter(e => ((e.end as Timestamp).toDate() < now)).length || 0;
+
+    return {
+      totalClients,
+      paidThisMonth,
+      pendingPayments,
+      totalSessionsToday,
+      completedSessionsToday,
+    };
+  }, [clients, paymentsThisMonth, eventsToday, now]);
+
+  const isLoading = isProfileLoading || areClientsLoading || arePaymentsLoading || areEventsLoading;
+
   const formattedDate = new Intl.DateTimeFormat(language === 'es' ? 'es-ES' : 'en-US', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
-  }).format(today);
+  }).format(now);
 
   return (
     <div className="flex flex-1 flex-col gap-6">
@@ -82,7 +118,7 @@ export default function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
+            {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{dashboardStats.totalClients}</div>}
             <p className="text-xs text-primary/80">
               {t.dashboard.newStudents}
             </p>
@@ -96,8 +132,8 @@ export default function Dashboard() {
             <Dumbbell className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4 <span className="text-base text-muted-foreground">/ 6 {t.dashboard.sessions}</span></div>
-             <Progress value={(4/6) * 100} className="h-2 mt-2" />
+             {isLoading ? <Skeleton className="h-8 w-3/4 mb-2" /> : <div className="text-2xl font-bold">{dashboardStats.completedSessionsToday} <span className="text-base text-muted-foreground">/ {dashboardStats.totalSessionsToday} {t.dashboard.sessions}</span></div>}
+             {isLoading ? <Skeleton className="h-2 w-full mt-2" /> : <Progress value={dashboardStats.totalSessionsToday > 0 ? (dashboardStats.completedSessionsToday / dashboardStats.totalSessionsToday) * 100 : 0} className="h-2 mt-2" />}
           </CardContent>
         </Card>
         <Card>
@@ -106,7 +142,7 @@ export default function Dashboard() {
             <Landmark className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">2.450€</div>
+            {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">${dashboardStats.paidThisMonth.toFixed(2)}</div>}
             <p className="text-xs text-primary/80">
               +12%
             </p>
@@ -118,7 +154,7 @@ export default function Dashboard() {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">3</div>
+            {isLoading ? <Skeleton className="h-8 w-1/4" /> : <div className="text-2xl font-bold">{dashboardStats.pendingPayments}</div>}
             <p className="text-xs text-orange-600 dark:text-primary/90">
               {t.dashboard.actionRequired}
             </p>
