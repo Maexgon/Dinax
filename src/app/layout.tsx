@@ -31,8 +31,8 @@ export default function RootLayout({
           <LanguageProvider>
             <FirebaseClientProvider>
                 {children}
+                <Toaster />
             </FirebaseClientProvider>
-            <Toaster />
           </LanguageProvider>
         </ThemeProvider>
       </body>
