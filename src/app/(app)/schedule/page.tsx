@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -15,7 +16,6 @@ import {
   startOfWeek,
   endOfWeek,
   addWeeks,
-  subWeeks,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -411,3 +411,5 @@ export default function SchedulePage() {
     </div>
   );
 }
+
+    
