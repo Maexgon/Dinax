@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useMemo } from 'react';
 import Image from 'next/image';
@@ -356,7 +357,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
             <CardContent className="p-6">
               <Image src={client.avatarUrl || `https://i.pravatar.cc/128?u=${client.id}`} alt={`Avatar of ${clientName}`} data-ai-hint={client.avatarHint || 'person face'} width={128} height={128} className="rounded-full mx-auto mb-4 border-4 border-primary shadow-lg" />
               <h1 className="text-3xl font-bold font-headline">{clientName}</h1>
-              <p className="text-muted-foreground">{t.clientDetail.objective}: {client.objective}</p>
+              <p className="text-muted-foreground text-sm">{t.clientDetail.objective}: {client.objective}</p>
               <div className="mt-4 flex gap-2">
                 <Button asChild className="flex-1 bg-primary hover:bg-primary/90">
                     <Link href={`/clients/${client.id}/wall`}>
@@ -599,4 +600,5 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
   );
 }
 
+    
     
