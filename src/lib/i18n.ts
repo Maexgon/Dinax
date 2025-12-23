@@ -1,3 +1,4 @@
+
 export const translations = {
   es: {
     language: "Idioma",
@@ -75,7 +76,7 @@ export const translations = {
       cancelButton: "Cancelar",
     },
     dashboard: {
-      greeting: "Hola, Coach Sara! 👋",
+      greeting: "¡Hola, {name}! 👋",
       summary: "Aquí tienes el resumen de tu día. ¡A por todas!",
       activeStudents: "Clientes Activos",
       newStudents: "+2 Nuevos",
@@ -114,7 +115,7 @@ export const translations = {
         planDescription: "Enfoque en pecho y espalda. Incremento de carga progresiva.",
         phaseProgress: "Progreso de la fase",
         goToRoutine: "Ir a la Rutina de Hoy",
-        phase2: "Fase 2: Hipertrofia",
+        phase2: "Fase 2: Hypertrophy",
         performanceEvolution: "Evolución de Rendimiento",
         performanceDescription: "Peso levantado en ejercicios compuestos",
         weeklyAgenda: "Agenda Semanal",
@@ -672,7 +673,7 @@ export const translations = {
       cancelButton: "Cancel",
     },
     dashboard: {
-      greeting: "Hello, Coach Sara! 👋",
+      greeting: "Hello, {name}! 👋",
       summary: "Here is the summary of your day. Let's get to it!",
       activeStudents: "Active Clients",
       newStudents: "+2 New",
@@ -1198,3 +1199,5 @@ unilateralBalance: "Unilateral balance (s)",
 export type Language = keyof typeof translations;
 
 export const getTranslations = (lang: Language) => translations[lang];
+
+    

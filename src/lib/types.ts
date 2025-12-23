@@ -28,6 +28,48 @@ export type Client = {
   };
 };
 
+export type UserProfile = {
+    id: string;
+    tenantId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    secondaryEmail?: string;
+    phoneNumber?: string;
+    avatarUrl?: string;
+    avatarHint?: string;
+    joinDate?: string;
+    currentPlan?: string;
+    planType?: string;
+    progress?: number;
+    trainingDays?: string[];
+    objective?: string;
+    tags?: string[];
+    occupation?: string;
+    birthDate?: string;
+    address?: string;
+    cuit?: string;
+    linkedinUrl?: string;
+    instagramUrl?: string;
+    xUrl?: string;
+    whatsapp?: string;
+    careerExperience?: {
+        title: string;
+        company: string;
+        startDate?: string;
+        endDate?: string;
+        description?: string;
+    }[];
+    education?: {
+        institution: string;
+        degree: string;
+        fieldOfStudy?: string;
+        startDate?: string;
+        endDate?: string;
+    }[];
+}
+
+
 export type Note = {
   id: string;
   createdAt: string | Timestamp;
@@ -226,3 +268,5 @@ export type AppSettings = {
   endTime: string;
   googleCalendarSync: boolean;
 };
+
+    

@@ -9,6 +9,7 @@ import {
   Play,
   Check,
   RefreshCw,
+  Loader2
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,10 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useLanguage } from '@/context/language-context';
+import { useFirebase, useDoc, useMemoFirebase } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import type { UserProfile } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const paymentData = [
     { name: 'Pagado', value: 2450, color: 'hsl(var(--chart-1))' },
@@ -32,6 +37,15 @@ const paymentData = [
 
 export default function Dashboard() {
   const { t, language } = useLanguage();
+  const { firestore, user } = useFirebase();
+
+  const userProfileRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, `tenants/${user.uid}/user_profile`, user.uid) : null),
+    [firestore, user]
+  );
+  
+  const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
+
   const today = new Date();
   const formattedDate = new Intl.DateTimeFormat(language === 'es' ? 'es-ES' : 'en-US', {
     weekday: 'long',
@@ -44,8 +58,17 @@ export default function Dashboard() {
       <div>
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold font-headline">{t.dashboard.greeting}</h1>
-            <p className="text-muted-foreground">{t.dashboard.summary}</p>
+            {isProfileLoading ? (
+                <>
+                    <Skeleton className="h-9 w-64 mb-2"/>
+                    <Skeleton className="h-5 w-80"/>
+                </>
+            ) : (
+                <>
+                    <h1 className="text-3xl font-bold font-headline">¡Hola, {userProfile?.firstName || 'Coach'}! 👋</h1>
+                    <p className="text-muted-foreground">{t.dashboard.summary}</p>
+                </>
+            )}
           </div>
           <span className="text-sm text-muted-foreground capitalize">{formattedDate}</span>
         </div>
@@ -238,3 +261,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+    
