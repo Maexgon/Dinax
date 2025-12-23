@@ -446,7 +446,7 @@ export default function CreatePlanPage() {
             Object.keys(replicatedWeekPlan).forEach(dayId => {
                 replicatedWeekPlan[dayId].exercises = replicatedWeekPlan[dayId].exercises.map((ex: PlannedExercise) => ({
                     ...ex,
-                    planId: `${ex.id}-${Date.now()}-${Math.random()}`
+                    planId: `${ex.id}-${Date.now()}-${Math.floor(Math.random() * 1000000)}`
                 }));
             });
             newPlan[currentWeekIndex] = replicatedWeekPlan;
