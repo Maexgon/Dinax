@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
@@ -553,15 +552,15 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                             </CardHeader>
                             <CardContent className="space-y-6">
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <div className="space-y-2"><Label htmlFor="weight">{t.clientDetail.biomechanics.weight}</Label><Input id="weight" type="number" step="0.1" {...biomechanicsForm.register('weight')} placeholder="kg"/>{biomechanicsForm.formState.errors.weight && <p className="text-xs text-destructive">{biomechanicsForm.formState.errors.weight.message}</p>}</div>
-                                    <div className="space-y-2"><Label htmlFor="height">{t.clientDetail.biomechanics.height}</Label><Input id="height" type="number" step="1" {...biomechanicsForm.register('height')} placeholder="cm"/>{biomechanicsForm.formState.errors.height && <p className="text-xs text-destructive">{biomechanicsForm.formState.errors.height.message}</p>}</div>
-                                    <div className="space-y-2"><Label htmlFor="bmi">{t.clientDetail.biomechanics.bmi}</Label><Input id="bmi" value={calculatedBmi} disabled className="font-bold"/></div>
-                                    <div className="space-y-2"><Label htmlFor="bodyFat">Grasa Corporal (%)</Label><Input id="bodyFat" type="number" step="0.1" {...biomechanicsForm.register('bodyFat')} placeholder="%"/></div>
-                                    <div className="space-y-2"><Label htmlFor="fatFreeBodyWeight">Peso Libre Grasa (kg)</Label><Input id="fatFreeBodyWeight" type="number" step="0.1" {...biomechanicsForm.register('fatFreeBodyWeight')} placeholder="kg"/></div>
-                                    <div className="space-y-2"><Label htmlFor="subcutaneousFat">Grasa Subcutánea (%)</Label><Input id="subcutaneousFat" type="number" step="0.1" {...biomechanicsForm.register('subcutaneousFat')} placeholder="%"/></div>
-                                    <div className="space-y-2"><Label htmlFor="bodyWater">Agua Corporal (%)</Label><Input id="bodyWater" type="number" step="0.1" {...biomechanicsForm.register('bodyWater')} placeholder="%"/></div>
-                                    <div className="space-y-2"><Label htmlFor="skeletalMuscle">Músculo Esquelético (%)</Label><Input id="skeletalMuscle" type="number" step="0.1" {...biomechanicsForm.register('skeletalMuscle')} placeholder="%"/></div>
-                                    <div className="space-y-2"><Label htmlFor="boneMass">Masa Ósea (kg)</Label><Input id="boneMass" type="number" step="0.1" {...biomechanicsForm.register('boneMass')} placeholder="kg"/></div>
+                                    <div className="space-y-2"><Label htmlFor="weight">{t.clientDetail.biomechanics.weight_short}</Label><Input id="weight" type="number" step="0.1" {...biomechanicsForm.register('weight')} placeholder="kg"/>{biomechanicsForm.formState.errors.weight && <p className="text-xs text-destructive">{biomechanicsForm.formState.errors.weight.message}</p>}</div>
+                                    <div className="space-y-2"><Label htmlFor="height">{t.clientDetail.biomechanics.height_short}</Label><Input id="height" type="number" step="1" {...biomechanicsForm.register('height')} placeholder="cm"/>{biomechanicsForm.formState.errors.height && <p className="text-xs text-destructive">{biomechanicsForm.formState.errors.height.message}</p>}</div>
+                                    <div className="space-y-2"><Label htmlFor="bmi">{t.clientDetail.biomechanics.bmi_short}</Label><Input id="bmi" value={calculatedBmi} disabled className="font-bold"/></div>
+                                    <div className="space-y-2"><Label htmlFor="bodyFat">{t.clientDetail.biomechanics.bodyFat}</Label><Input id="bodyFat" type="number" step="0.1" {...biomechanicsForm.register('bodyFat')} placeholder="%"/></div>
+                                    <div className="space-y-2"><Label htmlFor="fatFreeBodyWeight">{t.clientDetail.biomechanics.fatFreeBodyWeight}</Label><Input id="fatFreeBodyWeight" type="number" step="0.1" {...biomechanicsForm.register('fatFreeBodyWeight')} placeholder="kg"/></div>
+                                    <div className="space-y-2"><Label htmlFor="subcutaneousFat">{t.clientDetail.biomechanics.subcutaneousFat}</Label><Input id="subcutaneousFat" type="number" step="0.1" {...biomechanicsForm.register('subcutaneousFat')} placeholder="%"/></div>
+                                    <div className="space-y-2"><Label htmlFor="bodyWater">{t.clientDetail.biomechanics.bodyWater}</Label><Input id="bodyWater" type="number" step="0.1" {...biomechanicsForm.register('bodyWater')} placeholder="%"/></div>
+                                    <div className="space-y-2"><Label htmlFor="skeletalMuscle">{t.clientDetail.biomechanics.skeletalMuscle}</Label><Input id="skeletalMuscle" type="number" step="0.1" {...biomechanicsForm.register('skeletalMuscle')} placeholder="%"/></div>
+                                    <div className="space-y-2"><Label htmlFor="boneMass">{t.clientDetail.biomechanics.boneMass}</Label><Input id="boneMass" type="number" step="0.1" {...biomechanicsForm.register('boneMass')} placeholder="kg"/></div>
                                 </div>
                                 <Separator />
 
