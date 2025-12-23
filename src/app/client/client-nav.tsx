@@ -56,7 +56,6 @@ export function ClientNav() {
             )}
           >
             <p className="font-bold text-lg font-headline">Dinax</p>
-            <p className="text-sm text-muted-foreground">Alex Morgan</p>
           </div>
         </div>
       </SidebarHeader>

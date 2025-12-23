@@ -9,7 +9,7 @@ import {
   ArrowDownToLine, PersonStanding, Hand, Timer, Repeat, ShieldCheck, Activity, Zap,
   Award, Heart, Droplet, TestTube, Bone, Disc3, Brain, Pill, FilePlus2,
   CalendarCheck, HeartHandshake, FlaskConical, CircleAlert, ShieldAlert, FileKey2,
-  UserCheck, Loader2, Footprints, StretchVertical, Wind as WindIcon, Scale as ScaleIcon, MoveVertical, GitCompare, Siren, Info, PlusCircle, Trash2, ShieldQuestion, HeartCrack
+  UserCheck, Loader2, Footprints, StretchVertical, Wind as WindIcon, Scale as ScaleIcon, MoveVertical, GitCompare, Siren, Info, PlusCircle, Trash2, ShieldQuestion, HeartCrack, Send
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -21,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/context/language-context';
 import type { Client, Note, Biomechanics, MedicalHistory } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useFirebase, useMemoFirebase, useDoc, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
 import { doc, collection, query, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
@@ -120,6 +120,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
   const { firestore, user } = useFirebase();
   const { toast } = useToast();
   const [showAdvancedBiomechanics, setShowAdvancedBiomechanics] = useState(false);
+  const [newNote, setNewNote] = useState('');
   
   const tenantId = user?.uid;
 
@@ -262,6 +263,30 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     await addDocumentNonBlocking(newMedicalRef, dataToSave);
     toast({ variant: 'success', title: 'Datos Médicos Guardados', description: 'El historial médico del cliente ha sido actualizado.' });
   }
+
+  const handleAddNote = async () => {
+    if (!newNote.trim() || !firestore || !tenantId || !user) return;
+
+    const coachName = user.displayName || user.email?.split('@')[0] || "Coach";
+    const coachAvatarUrl = user.photoURL || `https://i.pravatar.cc/40?u=${user.uid}`;
+    
+    const noteData = {
+        content: newNote,
+        createdAt: serverTimestamp(),
+        coachName,
+        coachAvatarUrl
+    };
+
+    try {
+        const notesRef = collection(firestore, `tenants/${tenantId}/user_profile/${clientId}/notes`);
+        await addDocumentNonBlocking(notesRef, noteData);
+        setNewNote('');
+        toast({ variant: 'success', title: 'Nota Publicada', description: 'Tu nota ha sido añadida.'});
+    } catch (error) {
+        console.error(error)
+        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo publicar la nota.'});
+    }
+  };
   
   const clientAge = useMemo(() => {
     if (!client?.birthDate) return null;
@@ -277,7 +302,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
   const getNoteDate = (note: Note) => {
       if (!note.createdAt) return '';
       const date = (note.createdAt as Timestamp)?.toDate ? (note.createdAt as Timestamp).toDate() : new Date(note.createdAt as string);
-      return format(date, "PPP", { locale: language === 'es' ? es : undefined });
+      return formatDistanceToNow(date, { addSuffix: true, locale: language === 'es' ? es : undefined });
   };
   
   const getFormattedDate = (date: string | Timestamp | undefined) => {
@@ -598,22 +623,46 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                 </TabsContent>
                  <TabsContent value="progress">
                      <div className="space-y-6">
-                        <div>
-                            <div className="flex justify-between items-center mb-4"><h3 className="text-lg font-semibold">{t.clientDetail.trackingNotes}</h3><Button variant="outline"><Plus className="mr-2 h-4 w-4"/> {t.clientDetail.addNote}</Button></div>
-                            <div className="space-y-6">
-                                {areNotesLoading && <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>}
-                                {!areNotesLoading && notes?.map((note) => (
-                                <div key={note.id} className="flex items-start gap-4">
-                                    <Avatar className="h-10 w-10 border"><AvatarImage src={note.coachAvatarUrl} alt={note.coachName} /><AvatarFallback>{note.coachName.charAt(0)}</AvatarFallback></Avatar>
-                                    <div className="flex-1">
-                                    <div className="flex items-center justify-between"><p className="font-semibold">{note.coachName}</p><p className="text-xs text-muted-foreground">{getNoteDate(note)}</p></div>
-                                    <p className="text-sm text-muted-foreground mt-1">{note.content}</p>
+                        <Card>
+                            <CardHeader>
+                                <h3 className="text-lg font-semibold">{t.clientDetail.trackingNotes}</h3>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex gap-4">
+                                     <Avatar className="h-10 w-10">
+                                        <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || 'Coach'} />
+                                        <AvatarFallback>{user?.displayName?.charAt(0) || 'C'}</AvatarFallback>
+                                    </Avatar>
+                                     <div className="flex-1">
+                                        <Textarea 
+                                            placeholder={`Añade una nota sobre ${client.name.split(' ')[0]}...`}
+                                            value={newNote}
+                                            onChange={(e) => setNewNote(e.target.value)}
+                                            rows={2}
+                                        />
+                                        <div className="flex justify-end mt-2">
+                                            <Button size="sm" onClick={handleAddNote} disabled={!newNote.trim()}>
+                                                <Send className="mr-2 h-4 w-4"/> Publicar Nota
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
-                                ))}
-                                {!areNotesLoading && notes?.length === 0 && (<p className="text-muted-foreground text-sm text-center py-4">No hay notas para este cliente.</p>)}
-                            </div>
-                        </div>
+                                <Separator />
+                                <div className="space-y-6">
+                                    {areNotesLoading && <div className="flex justify-center p-4"><Loader2 className="animate-spin" /></div>}
+                                    {!areNotesLoading && notes?.map((note) => (
+                                    <div key={note.id} className="flex items-start gap-4">
+                                        <Avatar className="h-10 w-10 border"><AvatarImage src={note.coachAvatarUrl} alt={note.coachName} /><AvatarFallback>{note.coachName.charAt(0)}</AvatarFallback></Avatar>
+                                        <div className="flex-1">
+                                        <div className="flex items-center justify-between"><p className="font-semibold">{note.coachName}</p><p className="text-xs text-muted-foreground">{getNoteDate(note)}</p></div>
+                                        <p className="text-sm text-muted-foreground mt-1">{note.content}</p>
+                                        </div>
+                                    </div>
+                                    ))}
+                                    {!areNotesLoading && notes?.length === 0 && (<p className="text-muted-foreground text-sm text-center py-4">No hay notas para este cliente.</p>)}
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </TabsContent>
             </Tabs>
