@@ -53,13 +53,13 @@ export default function Dashboard() {
   const startOfToday = startOfDay(now);
   const endOfToday = endOfDay(now);
 
-  const clientsRef = useMemoFirebase(() => tenantId ? collection(firestore, `tenants/${tenantId}/user_profile`) : null, [tenantId, firestore]);
+  const clientsRef = useMemoFirebase(() => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/user_profile`) : null), [tenantId, firestore]);
   const { data: clients, isLoading: areClientsLoading } = useCollection<Client>(clientsRef);
 
-  const paymentsThisMonthRef = useMemoFirebase(() => tenantId ? query(collection(firestore, `tenants/${tenantId}/payments`), where('paymentDate', '>=', startOfCurrentMonth), where('paymentDate', '<=', endOfCurrentMonth)) : null, [tenantId, firestore, startOfCurrentMonth, endOfCurrentMonth]);
+  const paymentsThisMonthRef = useMemoFirebase(() => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/payments`), where('paymentDate', '>=', startOfCurrentMonth), where('paymentDate', '<=', endOfCurrentMonth)) : null), [tenantId, firestore, startOfCurrentMonth, endOfCurrentMonth]);
   const { data: paymentsThisMonth, isLoading: arePaymentsLoading } = useCollection<Payment>(paymentsThisMonthRef);
 
-  const eventsTodayRef = useMemoFirebase(() => tenantId ? query(collection(firestore, `tenants/${tenantId}/events`), where('start', '>=', startOfToday), where('start', '<=', endOfToday)) : null, [tenantId, firestore, startOfToday, endOfToday]);
+  const eventsTodayRef = useMemoFirebase(() => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/events`), where('start', '>=', startOfToday), where('start', '<=', endOfToday)) : null), [tenantId, firestore, startOfToday, endOfToday]);
   const { data: eventsToday, isLoading: areEventsLoading } = useCollection<CalendarEvent>(eventsTodayRef);
 
   const dashboardStats = useMemo(() => {
