@@ -1,3 +1,4 @@
+
 import { Timestamp } from 'firebase/firestore';
 
 export type Client = {
@@ -60,6 +61,12 @@ export type Biomechanics = {
     weight: number;
     height: number;
     bmi?: number;
+    bodyFat?: number;
+    fatFreeBodyWeight?: number;
+    subcutaneousFat?: number;
+    bodyWater?: number;
+    skeletalMuscle?: number;
+    boneMass?: number;
     ankleDorsiflexion?: number;
     hipMobility?: number;
     shoulderMobility?: number;

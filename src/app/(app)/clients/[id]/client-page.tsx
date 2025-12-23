@@ -1,6 +1,6 @@
 
 'use client';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -54,6 +54,12 @@ type ClientFormData = z.infer<typeof clientSchema>;
 const biomechanicsSchema = z.object({
   weight: z.coerce.number().min(1, "El peso es obligatorio"),
   height: z.coerce.number().min(1, "La altura es obligatoria"),
+  bodyFat: z.coerce.number().optional(),
+  fatFreeBodyWeight: z.coerce.number().optional(),
+  subcutaneousFat: z.coerce.number().optional(),
+  bodyWater: z.coerce.number().optional(),
+  skeletalMuscle: z.coerce.number().optional(),
+  boneMass: z.coerce.number().optional(),
   ankleDorsiflexion: z.coerce.number().optional(),
   hipMobility: z.coerce.number().optional(),
   shoulderMobility: z.coerce.number().optional(),
@@ -114,6 +120,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
   const { t, language } = useLanguage();
   const { firestore, user } = useFirebase();
   const { toast } = useToast();
+  const [showAdvancedBiomechanics, setShowAdvancedBiomechanics] = useState(false);
   
   const tenantId = user?.uid;
 
@@ -545,26 +552,43 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                 </div>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div className="space-y-2"><Label htmlFor="weight">{t.clientDetail.biomechanics.weight}</Label><Input id="weight" type="number" step="0.1" {...biomechanicsForm.register('weight')} placeholder="kg"/>{biomechanicsForm.formState.errors.weight && <p className="text-xs text-destructive">{biomechanicsForm.formState.errors.weight.message}</p>}</div>
                                     <div className="space-y-2"><Label htmlFor="height">{t.clientDetail.biomechanics.height}</Label><Input id="height" type="number" step="1" {...biomechanicsForm.register('height')} placeholder="cm"/>{biomechanicsForm.formState.errors.height && <p className="text-xs text-destructive">{biomechanicsForm.formState.errors.height.message}</p>}</div>
                                     <div className="space-y-2"><Label htmlFor="bmi">{t.clientDetail.biomechanics.bmi}</Label><Input id="bmi" value={calculatedBmi} disabled className="font-bold"/></div>
+                                    <div className="space-y-2"><Label htmlFor="bodyFat">Grasa Corporal (%)</Label><Input id="bodyFat" type="number" step="0.1" {...biomechanicsForm.register('bodyFat')} placeholder="%"/></div>
+                                    <div className="space-y-2"><Label htmlFor="fatFreeBodyWeight">Peso Libre Grasa (kg)</Label><Input id="fatFreeBodyWeight" type="number" step="0.1" {...biomechanicsForm.register('fatFreeBodyWeight')} placeholder="kg"/></div>
+                                    <div className="space-y-2"><Label htmlFor="subcutaneousFat">Grasa Subcutánea (%)</Label><Input id="subcutaneousFat" type="number" step="0.1" {...biomechanicsForm.register('subcutaneousFat')} placeholder="%"/></div>
+                                    <div className="space-y-2"><Label htmlFor="bodyWater">Agua Corporal (%)</Label><Input id="bodyWater" type="number" step="0.1" {...biomechanicsForm.register('bodyWater')} placeholder="%"/></div>
+                                    <div className="space-y-2"><Label htmlFor="skeletalMuscle">Músculo Esquelético (%)</Label><Input id="skeletalMuscle" type="number" step="0.1" {...biomechanicsForm.register('skeletalMuscle')} placeholder="%"/></div>
+                                    <div className="space-y-2"><Label htmlFor="boneMass">Masa Ósea (kg)</Label><Input id="boneMass" type="number" step="0.1" {...biomechanicsForm.register('boneMass')} placeholder="kg"/></div>
                                 </div>
                                 <Separator />
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                     <div className="space-y-2"><Label htmlFor="ankleDorsiflexion">{t.clientDetail.biomechanics.ankleDorsiflexion}</Label><Input id="ankleDorsiflexion" type="number" {...biomechanicsForm.register('ankleDorsiflexion')} placeholder="°"/></div>
-                                     <div className="space-y-2"><Label htmlFor="hipMobility">{t.clientDetail.biomechanics.hipMobility}</Label><Input id="hipMobility" type="number" {...biomechanicsForm.register('hipMobility')} placeholder="°"/></div>
-                                     <div className="space-y-2"><Label htmlFor="shoulderMobility">{t.clientDetail.biomechanics.shoulderMobility}</Label><Input id="shoulderMobility" type="number" {...biomechanicsForm.register('shoulderMobility')} placeholder="°"/></div>
-                                     <div className="space-y-2"><Label htmlFor="coreStability">{t.clientDetail.biomechanics.coreStability}</Label><Input id="coreStability" type="number" {...biomechanicsForm.register('coreStability')} placeholder="s"/></div>
-                                     <div className="space-y-2"><Label htmlFor="hipStability">{t.clientDetail.biomechanics.hipStability}</Label><Input id="hipStability" type="number" {...biomechanicsForm.register('hipStability')} placeholder="score 0-5"/></div>
-                                    <div className="space-y-2"><Label htmlFor="squatPattern">{t.clientDetail.biomechanics.squatPattern}</Label><Input id="squatPattern" type="number" {...biomechanicsForm.register('squatPattern')} placeholder="score 0-5"/></div>
-                                     <div className="space-y-2"><Label htmlFor="hipHingePattern">{t.clientDetail.biomechanics.hipHingePattern}</Label><Input id="hipHingePattern" type="number" {...biomechanicsForm.register('hipHingePattern')} placeholder="score 0-5"/></div>
-                                     <div className="space-y-2"><Label htmlFor="relativeStrengthLower">{t.clientDetail.biomechanics.relativeStrengthLower}</Label><Input id="relativeStrengthLower" type="number" step="0.01" {...biomechanicsForm.register('relativeStrengthLower')} placeholder="kg/kg"/></div>
-                                     <div className="space-y-2"><Label htmlFor="relativeStrengthUpper">{t.clientDetail.biomechanics.relativeStrengthUpper}</Label><Input id="relativeStrengthUpper" type="number" step="0.01" {...biomechanicsForm.register('relativeStrengthUpper')} placeholder="kg/kg"/></div>
-                                    <div className="space-y-2"><Label htmlFor="unilateralBalance">{t.clientDetail.biomechanics.unilateralBalance}</Label><Input id="unilateralBalance" type="number" {...biomechanicsForm.register('unilateralBalance')} placeholder="s"/></div>
-                                    <div className="space-y-2"><Label htmlFor="asymmetries">{t.clientDetail.biomechanics.asymmetries}</Label><Input id="asymmetries" type="number" {...biomechanicsForm.register('asymmetries')} placeholder="%"/></div>
-                                    <div className="space-y-2"><Label htmlFor="movementPain">{t.clientDetail.biomechanics.movementPain}</Label><Input id="movementPain" type="number" {...biomechanicsForm.register('movementPain')} placeholder="escala 0-10"/></div>
+
+                                <div className="flex items-center justify-between rounded-lg border p-4">
+                                    <div className="space-y-0.5">
+                                        <Label htmlFor="advanced-metrics" className="text-base">Evaluación para Atletas de Alto Rendimiento</Label>
+                                        <p className="text-sm text-muted-foreground">Activa para ver métricas de movilidad y fuerza relativa.</p>
+                                    </div>
+                                    <Switch id="advanced-metrics" checked={showAdvancedBiomechanics} onCheckedChange={setShowAdvancedBiomechanics} />
                                 </div>
+
+                                {showAdvancedBiomechanics && (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 animate-in fade-in-0">
+                                        <div className="space-y-2"><Label htmlFor="ankleDorsiflexion">{t.clientDetail.biomechanics.ankleDorsiflexion}</Label><Input id="ankleDorsiflexion" type="number" {...biomechanicsForm.register('ankleDorsiflexion')} placeholder="°"/></div>
+                                        <div className="space-y-2"><Label htmlFor="hipMobility">{t.clientDetail.biomechanics.hipMobility}</Label><Input id="hipMobility" type="number" {...biomechanicsForm.register('hipMobility')} placeholder="°"/></div>
+                                        <div className="space-y-2"><Label htmlFor="shoulderMobility">{t.clientDetail.biomechanics.shoulderMobility}</Label><Input id="shoulderMobility" type="number" {...biomechanicsForm.register('shoulderMobility')} placeholder="°"/></div>
+                                        <div className="space-y-2"><Label htmlFor="coreStability">{t.clientDetail.biomechanics.coreStability}</Label><Input id="coreStability" type="number" {...biomechanicsForm.register('coreStability')} placeholder="s"/></div>
+                                        <div className="space-y-2"><Label htmlFor="hipStability">{t.clientDetail.biomechanics.hipStability}</Label><Input id="hipStability" type="number" {...biomechanicsForm.register('hipStability')} placeholder="score 0-5"/></div>
+                                        <div className="space-y-2"><Label htmlFor="squatPattern">{t.clientDetail.biomechanics.squatPattern}</Label><Input id="squatPattern" type="number" {...biomechanicsForm.register('squatPattern')} placeholder="score 0-5"/></div>
+                                        <div className="space-y-2"><Label htmlFor="hipHingePattern">{t.clientDetail.biomechanics.hipHingePattern}</Label><Input id="hipHingePattern" type="number" {...biomechanicsForm.register('hipHingePattern')} placeholder="score 0-5"/></div>
+                                        <div className="space-y-2"><Label htmlFor="relativeStrengthLower">{t.clientDetail.biomechanics.relativeStrengthLower}</Label><Input id="relativeStrengthLower" type="number" step="0.01" {...biomechanicsForm.register('relativeStrengthLower')} placeholder="kg/kg"/></div>
+                                        <div className="space-y-2"><Label htmlFor="relativeStrengthUpper">{t.clientDetail.biomechanics.relativeStrengthUpper}</Label><Input id="relativeStrengthUpper" type="number" step="0.01" {...biomechanicsForm.register('relativeStrengthUpper')} placeholder="kg/kg"/></div>
+                                        <div className="space-y-2"><Label htmlFor="unilateralBalance">{t.clientDetail.biomechanics.unilateralBalance}</Label><Input id="unilateralBalance" type="number" {...biomechanicsForm.register('unilateralBalance')} placeholder="s"/></div>
+                                        <div className="space-y-2"><Label htmlFor="asymmetries">{t.clientDetail.biomechanics.asymmetries}</Label><Input id="asymmetries" type="number" {...biomechanicsForm.register('asymmetries')} placeholder="%"/></div>
+                                        <div className="space-y-2"><Label htmlFor="movementPain">{t.clientDetail.biomechanics.movementPain}</Label><Input id="movementPain" type="number" {...biomechanicsForm.register('movementPain')} placeholder="escala 0-10"/></div>
+                                    </div>
+                                )}
                                 <div className="flex justify-end gap-2">
                                     <Button variant="ghost" type="button" onClick={() => biomechanicsForm.reset()}>{t.clientDetail.cancel}</Button>
                                     <Button type="submit" disabled={biomechanicsForm.formState.isSubmitting}>{biomechanicsForm.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} {t.clientDetail.biomechanics.saveEvaluation}</Button>
@@ -599,6 +623,3 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     </div>
   );
 }
-
-    
-    
