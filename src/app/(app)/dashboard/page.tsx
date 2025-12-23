@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import {
@@ -40,7 +39,7 @@ export default function Dashboard() {
   const { firestore, user } = useFirebase();
 
   const userProfileRef = useMemoFirebase(
-    () => (firestore && user ? doc(firestore, `tenants/${user.uid}/user_profile`, user.uid) : null),
+    () => (firestore && user ? doc(firestore, 'user_profile', user.uid) : null),
     [firestore, user]
   );
   
@@ -261,5 +260,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
-    
