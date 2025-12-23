@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useMemo, useState } from 'react';
 import Image from 'next/image';
@@ -9,7 +10,7 @@ import {
   ArrowDownToLine, PersonStanding, Hand, Timer, Repeat, ShieldCheck, Activity, Zap,
   Award, Heart, Droplet, TestTube, Bone, Disc3, Brain, Pill, FilePlus2,
   CalendarCheck, HeartHandshake, FlaskConical, CircleAlert, ShieldAlert, FileKey2,
-  UserCheck, Loader2, Footprints, StretchVertical, Wind as WindIcon, Scale as ScaleIcon, MoveVertical, GitCompare, Siren, Info, PlusCircle, Trash2, ShieldQuestion, HeartCrack, Send
+  UserCheck, Loader2, Footprints, StretchVertical, Wind as WindIcon, MoveVertical, GitCompare, Siren, Info, PlusCircle, Trash2, ShieldQuestion, HeartCrack, Send
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -377,9 +378,11 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
 
   return (
     <div className="space-y-6">
-       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>Inicio</span><ChevronRight className="h-4 w-4" />
-            <span>{t.nav.clients}</span><ChevronRight className="h-4 w-4" />
+       <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Link href="/dashboard" className="hover:text-foreground">Inicio</Link>
+            <ChevronRight className="h-4 w-4" />
+            <Link href="/clients" className="hover:text-foreground">{t.nav.clients}</Link>
+            <ChevronRight className="h-4 w-4" />
             <span className="text-foreground font-medium">{clientName}</span>
         </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
