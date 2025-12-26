@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -16,7 +17,7 @@ import { z } from 'zod';
 const ExerciseSchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: z.enum(["Cardio", "Fuerza", "Pylo", "Movilidad", "Core"]).optional(),
+  type: z.enum(["Cardio", "Fuerza", "Pylo", "Movilidad", "Core", "cardio", "fuerza", "pylo", "movilidad", "core"]).optional(),
   muscleGroups: z.array(z.string()).optional(),
   equipment: z.string().optional(),
   imageUrl: z.string().optional(),
