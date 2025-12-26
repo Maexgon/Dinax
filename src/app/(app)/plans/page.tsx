@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
@@ -46,7 +47,7 @@ export default function PlansPage() {
     const [filter, setFilter] = useState('all');
 
     const mesocyclesQuery = useMemoFirebase(
-        () => (firestore && tenantId ? query(collection(firestore, `mesocycles`), where('tenantId', '==', tenantId), orderBy('createdAt', 'desc')) : null),
+        () => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/mesocycles`), orderBy('createdAt', 'desc')) : null),
         [firestore, tenantId]
     );
     const { data: mesocycles, isLoading: areMesocyclesLoading } = useCollection<Mesocycle>(mesocyclesQuery);
@@ -77,8 +78,8 @@ export default function PlansPage() {
         newPlanData.clientId = null; 
 
         try {
-            const newPlanRef = doc(collection(firestore, `mesocycles`));
-            await addDocumentNonBlocking(newPlanRef, {...newPlanData, tenantId});
+            const newPlanRef = doc(collection(firestore, `tenants/${tenantId}/mesocycles`));
+            await addDocumentNonBlocking(newPlanRef, {...newPlanData});
             
             toast({ variant: 'success', title: 'Plan Duplicado', description: `Se creó una copia de "${plan.name}". Ahora puedes asignarlo.` });
             router.push(`/plans/create?planId=${newPlanRef.id}&assign=true`);
@@ -246,3 +247,5 @@ export default function PlansPage() {
         </div>
     );
 }
+
+    

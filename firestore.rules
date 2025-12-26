@@ -40,6 +40,9 @@ service cloud.firestore {
       match /exercises/{exerciseId} {
         allow read, write: if isTenantOwner(tenantId);
       }
+      match /mesocycles/{mesocycleId} {
+         allow read, write: if isTenantOwner(tenantId);
+      }
       match /services/{serviceId} {
          allow read, write: if isTenantOwner(tenantId);
       }
@@ -61,12 +64,7 @@ service cloud.firestore {
       // A user can read and write their own profile (the coach's profile).
       allow read, write: if isSelf(userId);
     }
-
-    match /mesocycles/{mesocycleId} {
-      // Allow a user to read/list their own plans by querying with their UID as tenantId
-      allow read: if isSignedIn() && resource.data.tenantId == request.auth.uid;
-      // Allow a user to create, update, delete their own plans
-      allow write: if isSignedIn() && request.resource.data.tenantId == request.auth.uid;
-    }
   }
 }
+
+    
