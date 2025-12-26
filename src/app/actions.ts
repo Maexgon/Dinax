@@ -2,6 +2,7 @@
 
 import { suggestGoals, type SuggestGoalsInput } from '@/ai/flows/ai-generated-goals';
 import { generateExerciseImage, type GenerateExerciseImageInput } from '@/ai/flows/generate-exercise-image';
+import { generateWeeklyPlan as generateWeeklyPlanFlow, type GenerateWeeklyPlanInput } from '@/ai/flows/generate-weekly-plan';
 
 // A mock for past performance data. In a real app, this would be fetched from a database.
 const pastPerformanceData = `
@@ -34,5 +35,15 @@ export async function getAIExerciseImage(input: GenerateExerciseImageInput) {
   } catch (error: any) {
     console.error('Error in getAIExerciseImage server action:', error);
     return { success: false, error: `Failed to generate AI image: ${error.message}` };
+  }
+}
+
+export async function generateWeeklyPlan(input: GenerateWeeklyPlanInput) {
+  try {
+    const result = await generateWeeklyPlanFlow(input);
+    return { success: true, data: result };
+  } catch (error: any) {
+    console.error('Error in generateWeeklyPlan:', error);
+    return { success: false, error: 'Failed to generate weekly plan.' };
   }
 }

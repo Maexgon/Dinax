@@ -1,0 +1,110 @@
+'use server';
+
+/**
+ * @fileOverview This file defines a Genkit flow for generating a full weekly training plan.
+ * 
+ * The flow acts as an expert personal trainer, creating a structured, day-by-day workout
+ * schedule based on a library of available exercises and specified daily focuses.
+ * It includes:
+ *  - `generateWeeklyPlan`: The main function to trigger the plan generation.
+ *  - `GenerateWeeklyPlanInput`: The Zod schema for the input.
+ *  - `GenerateWeeklyPlanOutput`: The Zod schema for the output.
+ */
+
+import { ai } from '@/ai/genkit';
+import { z } from 'zod';
+
+const ExerciseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.enum(["Cardio", "Fuerza", "Pylo", "Movilidad", "Core"]).optional(),
+  equipment: z.string().optional(),
+  difficulty: z.string().optional(),
+  instructions: z.string().optional(),
+  muscleGroups: z.array(z.string()).optional(),
+  videoUrl: z.string().optional(),
+  imageUrl: z.string().optional(),
+});
+
+const PlannedExerciseSchema = z.object({
+  id: z.string().describe("Reference to the exercise in the provided library."),
+  planId: z.string().describe("A unique ID for this exercise instance, e.g., using Date.now()."),
+  name: z.string(),
+  imageUrl: z.string().optional(),
+  muscleGroups: z.array(z.string()).optional(),
+  sets: z.string(),
+  reps: z.string(),
+  rpe: z.string(),
+  rest: z.string(),
+  duration: z.string(),
+});
+
+const DayPlanSchema = z.object({
+  focus: z.string(),
+  isRestDay: z.boolean(),
+  exercises: z.array(PlannedExerciseSchema),
+});
+
+export const GenerateWeeklyPlanInputSchema = z.object({
+  exercises: z.array(ExerciseSchema).describe("The library of available exercises to choose from."),
+  weekSchedule: z
+    .array(z.object({ day: z.string(), focus: z.string() }))
+    .describe("An array defining the focus for each day of the week."),
+  objective: z.string().describe("The main goal of the training plan, e.g., 'Hypertrophy', 'Fat Loss'.")
+});
+export type GenerateWeeklyPlanInput = z.infer<typeof GenerateWeeklyPlanInputSchema>;
+
+export const GenerateWeeklyPlanOutputSchema = z.record(z.string(), DayPlanSchema);
+export type GenerateWeeklyPlanOutput = z.infer<typeof GenerateWeeklyPlanOutputSchema>;
+
+export async function generateWeeklyPlan(input: GenerateWeeklyPlanInput): Promise<GenerateWeeklyPlanOutput> {
+  return generateWeeklyPlanFlow(input);
+}
+
+const generatePlanPrompt = ai.definePrompt({
+  name: 'generateWeeklyPlanPrompt',
+  input: { schema: GenerateWeeklyPlanInputSchema },
+  output: { schema: GenerateWeeklyPlanOutputSchema },
+  prompt: `
+    You are an expert personal trainer. Your task is to create a complete, structured, and coherent weekly training plan based on a provided library of exercises and a schedule with a specific focus for each day. The overall objective of the plan is '{{{objective}}}'.
+
+    Follow these instructions carefully:
+    1.  For each day in the 'weekSchedule', create a workout plan.
+    2.  If a day's focus is 'Descanso' (Rest), set 'isRestDay' to true and leave the 'exercises' array empty.
+    3.  For training days, select between 4 to 6 exercises from the 'exercises' library that are appropriate for the day's 'focus'.
+    4.  Ensure a logical progression and variety throughout the week. Avoid using the exact same exercise on multiple days if possible, unless it's a core compound lift.
+    5.  For each selected exercise, you MUST define appropriate values for 'sets', 'reps', 'rpe', 'rest' (in seconds), and 'duration' (in minutes) based on the day's focus and the overall plan objective.
+        - 'reps' can be a range (e.g., '8-12') or a specific number. For cardio, it might be 'N/A'.
+        - 'rpe' should be on a scale of 1-10.
+        - 'duration' is the estimated time in minutes for the exercise, including rest.
+        - 'planId' must be a unique identifier for each exercise instance. You can generate it by concatenating the exercise 'id' with a timestamp, like '{{id}}-{{Date.now()}}'.
+    6.  The output MUST be a JSON object where each key is the day's identifier (e.g., 'L' for Lunes, 'M' for Martes) and the value is the structured 'DayPlan'.
+
+    Available Exercises:
+    \`\`\`json
+    {{{json exercises}}}
+    \`\`\`
+
+    Weekly Schedule and Focuses:
+    \`\`\`json
+    {{{json weekSchedule}}}
+    \`\`\`
+
+    Generate the weekly plan.
+  `,
+});
+
+const generateWeeklyPlanFlow = ai.defineFlow(
+  {
+    name: 'generateWeeklyPlanFlow',
+    inputSchema: GenerateWeeklyPlanInputSchema,
+    outputSchema: GenerateWeeklyPlanOutputSchema,
+  },
+  async (input) => {
+    const { output } = await generatePlanPrompt(input);
+    if (!output) {
+      throw new Error("AI failed to generate a weekly plan.");
+    }
+    return output;
+  }
+);

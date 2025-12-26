@@ -1,9 +1,8 @@
-
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Trash2, Moon, ChevronLeft, ChevronRight, Bed, Loader2, Copy, BookCopy } from 'lucide-react';
+import { Search, Plus, MoreVertical, GripVertical, Forward, Save, PlusCircle, Trash2, Moon, ChevronLeft, ChevronRight, Bed, Loader2, Copy, BookCopy, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,7 +11,7 @@ import { useLanguage } from '@/context/language-context';
 import type { Client, ExerciseWithId, PlannedExercise, Mesocycle, AppSettings } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useFirebase, useCollection, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
-import { collection, query, orderBy, doc, serverTimestamp, getDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, orderBy, doc, serverTimestamp, getDoc, Timestamp, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Select,
@@ -25,6 +24,7 @@ import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { generateWeeklyPlan } from '@/app/actions';
 
 type WeeklyPlan = {
     [day: string]: {
@@ -173,11 +173,18 @@ export default function CreatePlanPage() {
     const [planState, setPlanState] = useState<PlanState>({});
     const [isPlanLoading, setIsPlanLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isAiGenerating, setIsAiGenerating] = useState(false);
+
     
     const planIdFromParams = searchParams.get('planId');
     const [currentPlanId, setCurrentPlanId] = useState<string | null>(planIdFromParams);
 
     const tenantId = user?.uid;
+
+    const mesocyclesQuery = useMemoFirebase(
+        () => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/mesocycles`), where('tenantId', '==', tenantId), orderBy('createdAt', 'desc')) : null),
+        [firestore, tenantId]
+    );
 
     const clientsCollectionRef = useMemoFirebase(
       () => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/user_profile`) : null),
@@ -370,6 +377,43 @@ export default function CreatePlanPage() {
         });
     }
 
+    const handleGenerateAiPlan = async () => {
+        if (!exercises || exercises.length === 0) {
+            toast({ variant: "destructive", title: "Biblioteca Vacía", description: "Necesitas ejercicios en tu biblioteca para usar el generador IA." });
+            return;
+        }
+
+        setIsAiGenerating(true);
+        try {
+            const currentWeekFocuses = weekSchedule.map(day => ({
+                day: day.id,
+                focus: planState[currentWeekIndex]?.[day.id]?.focus || day.focus,
+            }));
+            
+            const result = await generateWeeklyPlan({
+                exercises,
+                weekSchedule: currentWeekFocuses,
+                objective: planName,
+            });
+
+            if (result.success && result.data) {
+                setPlanState(prev => {
+                    const newPlan = { ...prev };
+                    newPlan[currentWeekIndex] = result.data as WeeklyPlan;
+                    return newPlan;
+                });
+                toast({ variant: 'success', title: "Plan Semanal Generado", description: "La IA ha creado una rutina para la semana actual." });
+            } else {
+                throw new Error(result.error || 'Error desconocido al generar el plan.');
+            }
+        } catch (error: any) {
+            toast({ variant: "destructive", title: "Error de IA", description: error.message || "No se pudo generar el plan semanal." });
+        } finally {
+            setIsAiGenerating(false);
+        }
+    };
+
+
     const handleSavePlan = async () => {
         if (!firestore || !tenantId) {
             toast({ variant: "destructive", title: "Error", description: "Faltan datos para guardar el plan." });
@@ -377,43 +421,25 @@ export default function CreatePlanPage() {
         }
         setIsSubmitting(true);
         try {
-            // Create a deep copy and clean the plan before saving
-            const cleanPlanState = JSON.parse(JSON.stringify(planState));
-            for (const week in cleanPlanState) {
-                for (const day in cleanPlanState[week]) {
-                    cleanPlanState[week][day].exercises = cleanPlanState[week][day].exercises.map((ex: PlannedExercise) => ({
-                        id: ex.id,
-                        planId: ex.planId,
-                        name: ex.name,
-                        imageUrl: ex.imageUrl,
-                        muscleGroups: ex.muscleGroups,
-                        sets: ex.sets || '',
-                        reps: ex.reps || '',
-                        rpe: ex.rpe || '',
-                        rest: ex.rest || '',
-                        duration: ex.duration || '',
-                    }));
-                }
-            }
-            
             const planRef = currentPlanId 
                 ? doc(firestore, `tenants/${tenantId}/mesocycles`, currentPlanId)
                 : doc(collection(firestore, `tenants/${tenantId}/mesocycles`));
             
-            const planData: Omit<Mesocycle, 'id' | 'createdAt'> & { createdAt?: any } = {
+            const planData: Omit<Mesocycle, 'id' | 'createdAt'> & { createdAt?: any, tenantId?: string } = {
                 clientId: selectedClientId === 'template' ? null : selectedClientId,
                 name: planName,
                 year: new Date().getFullYear(),
                 month: new Date().getMonth(),
-                weeks: cleanPlanState,
+                weeks: planState,
                 updatedAt: serverTimestamp(),
+                tenantId: tenantId,
             };
 
             if (!currentPlanId) {
                 planData.createdAt = serverTimestamp();
             }
             
-            await setDocumentNonBlocking(planRef, planData);
+            await setDocumentNonBlocking(planRef, planData, { merge: true });
 
             if(!currentPlanId) setCurrentPlanId(planRef.id);
 
@@ -644,6 +670,10 @@ export default function CreatePlanPage() {
                                 <Copy className="mr-2 h-4 w-4" />
                                 {t.plans.replicateWeek}
                             </Button>
+                             <Button variant="default" size="sm" onClick={handleGenerateAiPlan} disabled={isAiGenerating || areExercisesLoading}>
+                                {isAiGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4" />}
+                                Generar con IA
+                            </Button>
                             <div className="text-center">
                                 <p className="text-xs text-muted-foreground">{t.plans.estDuration}</p>
                                 <p className="font-bold">{totalDuration}m</p>
@@ -683,5 +713,3 @@ export default function CreatePlanPage() {
     </div>
   );
 }
-
-    

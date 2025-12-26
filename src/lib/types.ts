@@ -126,7 +126,7 @@ export type Biomechanics = {
 
 export type Exercise = {
     name: string;
-    type?: string;
+    type?: "Cardio" | "Fuerza" | "Pylo" | "Movilidad" | "Core";
     category?: string;
     image?: string;
     imageUrl?: string;
@@ -175,6 +175,7 @@ export type TrainingCycle = {
 export type Mesocycle = {
     id: string;
     clientId: string | null;
+    tenantId: string;
     name: string;
     year: number;
     month: number;
