@@ -20,6 +20,7 @@ const ExerciseSchema = z.object({
   type: z.enum(["Cardio", "Fuerza", "Pylo", "Movilidad", "Core", "cardio", "fuerza", "pylo", "movilidad", "core", "strength", "plyo", "mobility"]).optional(),
   muscleGroups: z.array(z.string()).optional(),
   equipment: z.string().optional(),
+  imageUrl: z.string().optional(),
 });
 
 const GenerateDayPlanInputSchema = z.object({
@@ -103,7 +104,7 @@ const generateDayPlanFlow = ai.defineFlow(
         return {
             ...ex,
             planId: `${ex.id}-${Date.now()}-${Math.random()}`,
-            imageUrl: originalExercise?.imageUrl || 'https://picsum.photos/seed/placeholder/100/100',
+            imageUrl: originalExercise?.imageUrl,
             muscleGroups: originalExercise?.muscleGroups || [],
         };
     });
