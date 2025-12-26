@@ -45,7 +45,7 @@ const DayPlanSchema = z.object({
   exercises: z.array(PlannedExerciseSchema),
 });
 
-export const GenerateWeeklyPlanInputSchema = z.object({
+const GenerateWeeklyPlanInputSchema = z.object({
   exercises: z.array(ExerciseSchema).describe("The library of available exercises to choose from."),
   weekSchedule: z
     .array(z.object({ day: z.string(), focus: z.string() }))
@@ -54,7 +54,7 @@ export const GenerateWeeklyPlanInputSchema = z.object({
 });
 export type GenerateWeeklyPlanInput = z.infer<typeof GenerateWeeklyPlanInputSchema>;
 
-export const GenerateWeeklyPlanOutputSchema = z.record(z.string(), DayPlanSchema);
+const GenerateWeeklyPlanOutputSchema = z.record(z.string(), DayPlanSchema);
 export type GenerateWeeklyPlanOutput = z.infer<typeof GenerateWeeklyPlanOutputSchema>;
 
 export async function generateWeeklyPlan(input: GenerateWeeklyPlanInput): Promise<GenerateWeeklyPlanOutput> {
