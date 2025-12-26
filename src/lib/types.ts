@@ -217,6 +217,8 @@ export type Payment = {
   amount: number;
   paymentDate: string | Timestamp;
   status: 'paid' | 'pending' | 'overdue';
+  paymentMethod?: 'cash' | 'card' | 'transfer';
+  notes?: string;
 };
 
 export type CalendarEvent = {

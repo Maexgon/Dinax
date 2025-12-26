@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Tenant": {
@@ -113,6 +114,12 @@
         "weight": { "type": "number", "description": "Body weight in kg." },
         "height": { "type": "number", "description": "Height in meters." },
         "bmi": { "type": "number", "description": "Body Mass Index (kg/m²)." },
+        "bodyFat": { "type": "number", "description": "Body fat percentage." },
+        "fatFreeBodyWeight": { "type": "number", "description": "Fat-free body weight in kg." },
+        "subcutaneousFat": { "type": "number", "description": "Subcutaneous fat percentage." },
+        "bodyWater": { "type": "number", "description": "Total body water percentage." },
+        "skeletalMuscle": { "type": "number", "description": "Skeletal muscle percentage." },
+        "boneMass": { "type": "number", "description": "Bone mass in kg." },
         "ankleDorsiflexion": { "type": "number", "description": "Ankle dorsiflexion mobility in degrees." },
         "hipMobility": { "type": "number", "description": "Hip mobility (flexion/rotation) in degrees." },
         "shoulderMobility": { "type": "number", "description": "Functional shoulder range of motion in degrees." },
@@ -281,7 +288,9 @@
         "servicePlanId": { "type": "string" },
         "amount": { "type": "number" },
         "paymentDate": { "type": "string", "format": "date-time" },
-        "status": { "type": "string", "enum": ["paid", "pending", "overdue"] }
+        "status": { "type": "string", "enum": ["paid", "pending", "overdue"] },
+        "paymentMethod": { "type": "string", "enum": ["cash", "card", "transfer"] },
+        "notes": { "type": "string" }
       },
       "required": ["id", "clientId", "clientPlanId", "amount", "paymentDate", "status"]
     },
@@ -378,3 +387,5 @@
     ]
   }
 }
+
+    

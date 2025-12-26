@@ -13,19 +13,39 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Edit2, CheckCircle, Search, DollarSign, Users, Activity, MessageSquare, Phone, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PlusCircle, Edit2, CheckCircle, Search, DollarSign, Users, Activity, MessageSquare, Phone, ChevronLeft, ChevronRight, Loader2, Calendar as CalendarIcon, StickyNote, Banknote } from 'lucide-react';
 import { useLanguage } from '@/context/language-context';
 import { Client, ClientPlan, ServicePlan, Payment } from '@/lib/types';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where } from 'firebase/firestore';
+import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
+import { collection, query, where, doc, Timestamp, serverTimestamp } from 'firebase/firestore';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { useToast } from '@/hooks/use-toast';
 
 const ITEMS_PER_PAGE = 8;
+
+const paymentSchema = z.object({
+    amount: z.coerce.number().min(0.01, "El monto debe ser mayor a 0."),
+    paymentDate: z.date({ required_error: "La fecha es obligatoria."}),
+    paymentMethod: z.enum(['cash', 'card', 'transfer'], { required_error: "El medio de pago es obligatorio." }),
+    status: z.enum(['paid', 'pending', 'overdue'], { required_error: "El estado es obligatorio." }),
+    notes: z.string().optional(),
+});
+
+type PaymentFormData = z.infer<typeof paymentSchema>;
 
 function Pagination({ currentPage, totalItems, itemsPerPage, onPageChange }: { currentPage: number, totalItems: number, itemsPerPage: number, onPageChange: (page: number) => void }) {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -61,15 +81,16 @@ function Pagination({ currentPage, totalItems, itemsPerPage, onPageChange }: { c
     );
 }
 
-
 export default function PaymentsPage() {
   const { t, language } = useLanguage();
   const { firestore, user } = useFirebase();
+  const { toast } = useToast();
   const tenantId = user?.uid;
 
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   // --- Data Fetching ---
   const clientsRef = useMemoFirebase(() => tenantId ? collection(firestore, `tenants/${tenantId}/user_profile`) : null, [tenantId, firestore]);
@@ -83,6 +104,14 @@ export default function PaymentsPage() {
   const { data: payments, isLoading: arePaymentsLoading } = useCollection<Payment>(paymentsRef);
   
   const isLoading = areClientsLoading || areClientPlansLoading || areServicePlansLoading || arePaymentsLoading;
+
+  const { control, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<PaymentFormData>({
+    resolver: zodResolver(paymentSchema),
+    defaultValues: {
+        paymentDate: new Date(),
+        status: 'paid',
+    }
+  });
   
   // --- Data Processing ---
   const enrichedClientData = useMemo(() => {
@@ -126,15 +155,27 @@ export default function PaymentsPage() {
     }
   }, [payments, enrichedClientData]);
 
-  // Set initial selected client
+  const selectedClientFullData = useMemo(() => enrichedClientData.find(c => c.id === selectedClient?.id), [enrichedClientData, selectedClient]);
+  const selectedClientPayments = useMemo(() => payments?.filter(p => p.clientId === selectedClient?.id).sort((a,b) => new Date(b.paymentDate as string).getTime() - new Date(a.paymentDate as string).getTime()), [payments, selectedClient]);
+
+  // Set initial selected client and reset form when selection changes
   useEffect(() => {
     if (!selectedClient && paginatedClients.length > 0) {
       setSelectedClient(paginatedClients[0]);
     } else if (selectedClient) {
         const updatedSelected = enrichedClientData.find(c => c.id === selectedClient.id);
-        if(updatedSelected) setSelectedClient(updatedSelected as Client);
+        if(updatedSelected) {
+            setSelectedClient(updatedSelected as Client);
+            reset({
+                amount: updatedSelected.paymentAmount,
+                paymentDate: new Date(),
+                status: 'paid',
+                paymentMethod: 'cash',
+                notes: ''
+            });
+        }
     }
-  }, [paginatedClients, selectedClient, enrichedClientData]);
+  }, [paginatedClients, selectedClient, enrichedClientData, reset]);
   
   const getStatusVariant = (status: 'paid' | 'pending' | 'overdue'): { variant: "default" | "secondary" | "destructive" | "outline" | null | undefined, text: string } => {
     switch (status) {
@@ -155,11 +196,109 @@ export default function PaymentsPage() {
     return new Intl.DateTimeFormat(language === 'es' ? 'es' : 'en', options).format(d);
   };
   
-  const selectedClientFullData = useMemo(() => enrichedClientData.find(c => c.id === selectedClient?.id), [enrichedClientData, selectedClient]);
-  const selectedClientPayments = useMemo(() => payments?.filter(p => p.clientId === selectedClient?.id).sort((a,b) => new Date(b.paymentDate as string).getTime() - new Date(a.paymentDate as string).getTime()), [payments, selectedClient]);
+  const onPaymentSubmit = async (data: PaymentFormData) => {
+    if (!firestore || !tenantId || !selectedClientFullData) return;
+    
+    const newPaymentRef = doc(collection(firestore, `tenants/${tenantId}/payments`));
+    const paymentData = {
+        ...data,
+        id: newPaymentRef.id,
+        clientId: selectedClientFullData.id,
+        clientPlanId: selectedClientFullData.clientPlan.id,
+        servicePlanId: selectedClientFullData.servicePlan.id,
+        paymentDate: Timestamp.fromDate(data.paymentDate),
+        createdAt: serverTimestamp(),
+    };
+    
+    try {
+        await addDocumentNonBlocking(newPaymentRef, paymentData);
+        toast({ variant: 'success', title: 'Pago Registrado', description: 'El nuevo pago ha sido guardado exitosamente.'});
+        setIsPaymentModalOpen(false);
+    } catch(e) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo registrar el pago.'});
+    }
+  }
 
 
   return (
+    <>
+    <Dialog open={isPaymentModalOpen} onOpenChange={setIsPaymentModalOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>{t.payments.recordPayment} para {selectedClientFullData?.name}</DialogTitle>
+                <DialogDescription>Completa los detalles de la transacción.</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit(onPaymentSubmit)} className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="amount">{t.payments.amount}</Label>
+                    <Controller name="amount" control={control} render={({ field }) => (
+                        <Input id="amount" type="number" step="0.01" {...field} />
+                    )} />
+                    {errors.amount && <p className="text-xs text-destructive">{errors.amount.message}</p>}
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="paymentDate">{t.payments.date}</Label>
+                    <Controller name="paymentDate" control={control} render={({ field }) => (
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {field.value ? format(field.value, "PPP", { locale: es }) : <span>Selecciona una fecha</span>}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                                <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                            </PopoverContent>
+                        </Popover>
+                    )} />
+                    {errors.paymentDate && <p className="text-xs text-destructive">{errors.paymentDate.message}</p>}
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="paymentMethod">{t.clients.paymentMethod}</Label>
+                    <Controller name="paymentMethod" control={control} render={({ field }) => (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="cash">Efectivo</SelectItem>
+                                <SelectItem value="card">Tarjeta</SelectItem>
+                                <SelectItem value="transfer">Transferencia</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    )} />
+                     {errors.paymentMethod && <p className="text-xs text-destructive">{errors.paymentMethod.message}</p>}
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="status">{t.payments.status}</Label>
+                    <Controller name="status" control={control} render={({ field }) => (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="paid">{t.payments.paid}</SelectItem>
+                                <SelectItem value="pending">{t.payments.pending}</SelectItem>
+                                <SelectItem value="overdue">{t.payments.overdue}</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    )} />
+                     {errors.status && <p className="text-xs text-destructive">{errors.status.message}</p>}
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="notes">Notas (Opcional)</Label>
+                    <Controller name="notes" control={control} render={({ field }) => (
+                        <Textarea id="notes" placeholder="Ej: Pago parcial, descuento aplicado..." {...field} />
+                    )} />
+                </div>
+                <DialogFooter>
+                    <Button type="button" variant="ghost" onClick={() => setIsPaymentModalOpen(false)}>Cancelar</Button>
+                    <Button type="submit" disabled={isSubmitting}>
+                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Guardar Pago
+                    </Button>
+                </DialogFooter>
+            </form>
+        </DialogContent>
+    </Dialog>
+
+
     <div className="space-y-6">
        <div>
             <h1 className="text-3xl font-bold font-headline">{t.payments.title}</h1>
@@ -340,7 +479,7 @@ export default function PaymentsPage() {
                     </div>
                 </div>
 
-                 <Button className="w-full">
+                 <Button className="w-full" onClick={() => setIsPaymentModalOpen(true)}>
                     <PlusCircle className="mr-2 h-4 w-4" /> {t.payments.recordNewPayment}
                 </Button>
             </CardContent>
@@ -348,6 +487,7 @@ export default function PaymentsPage() {
         )}
       </div>
     </div>
+    </>
   );
 }
 
