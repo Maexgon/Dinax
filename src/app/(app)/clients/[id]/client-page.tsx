@@ -20,11 +20,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/context/language-context';
-import type { Client, Note, Biomechanics, MedicalHistory } from '@/lib/types';
+import type { Client, Note, Biomechanics, MedicalHistory, Mesocycle } from '@/lib/types';
 import { format, formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useFirebase, useMemoFirebase, useDoc, useCollection, updateDocumentNonBlocking, addDocumentNonBlocking } from '@/firebase';
-import { doc, collection, query, orderBy, limit, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { doc, collection, query, orderBy, limit, serverTimestamp, Timestamp, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useForm, Controller, useFieldArray, UseFormRegister } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -148,6 +148,12 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     [firestore, tenantId, clientId]
   );
   const { data: medicalHistory, isLoading: areMedicalHistoryLoading } = useCollection<MedicalHistory>(medicalHistoryCollectionRef);
+  
+  const planTemplatesRef = useMemoFirebase(
+    () => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/mesocycles`), where('clientId', '==', null)) : null),
+    [firestore, tenantId]
+  );
+  const { data: planTemplates, isLoading: arePlanTemplatesLoading } = useCollection<Mesocycle>(planTemplatesRef);
 
   const latestBiomechanics = useMemo(() => biomechanicsHistory?.[0], [biomechanicsHistory]);
   const latestMedicalHistory = useMemo(() => medicalHistory?.[0], [medicalHistory]);
@@ -362,7 +368,9 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
               <Skeleton className="h-8 w-1/2" />
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                   <div className="lg:col-span-1 space-y-6">
-                      <Skeleton className="h-64 w-full" /><Skeleton className="h-48 w-full" /><Skeleton className="h-24 w-full" />
+                      <Skeleton className="h-64 w-full" />
+                      <Skeleton className="h-48 w-full" />
+                      <Skeleton className="h-24 w-full" />
                   </div>
                   <div className="lg:col-span-2"> <Skeleton className="h-[600px] w-full" /></div>
               </div>
@@ -373,7 +381,6 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
   if (!client) return <div>{t.clientDetail.notFound || "Client not found."}</div>;
   
   const clientName = client.name;
-  const planTypeOptions = t.clientDetail.planTypes;
 
   return (
     <div className="space-y-6">
@@ -462,14 +469,14 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                                 name="planType"
                                                 control={clientForm.control}
                                                 render={({ field }) => (
-                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={arePlanTemplatesLoading}>
                                                     <SelectTrigger id="planType">
                                                     <SelectValue placeholder={t.clientDetail.selectPlanType} />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                    {planTypeOptions.map((option) => (
-                                                        <SelectItem key={option.value} value={option.value}>
-                                                        {option.label}
+                                                    {planTemplates?.map((plan) => (
+                                                        <SelectItem key={plan.id} value={plan.name}>
+                                                        {plan.name}
                                                         </SelectItem>
                                                     ))}
                                                     </SelectContent>
@@ -673,5 +680,3 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     </div>
   );
 }
-
-    
