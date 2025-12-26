@@ -411,6 +411,7 @@ export default function CreatePlanPage() {
             toast({ variant: 'success', title: "Plan Semanal Generado", description: "La IA ha creado una rutina para la semana actual." });
             
         } catch (error: any) {
+            console.error("AI Generation Error:", error);
             toast({ variant: "destructive", title: "Error de IA", description: error.message || "No se pudo generar el plan semanal." });
         } finally {
             setIsAiGenerating(false);
