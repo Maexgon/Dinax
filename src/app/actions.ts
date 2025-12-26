@@ -1,8 +1,9 @@
+
 'use server';
 
 import { suggestGoals, type SuggestGoalsInput } from '@/ai/flows/ai-generated-goals';
 import { generateExerciseImage, type GenerateExerciseImageInput } from '@/ai/flows/generate-exercise-image';
-import { generateWeeklyPlan as generateWeeklyPlanFlow, type GenerateWeeklyPlanInput, type GenerateWeeklyPlanOutput } from '@/ai/flows/generate-weekly-plan';
+import { generateDayPlan as generateDayPlanFlow, type GenerateDayPlanInput, type GenerateDayPlanOutput } from '@/ai/flows/generate-weekly-plan';
 
 // A mock for past performance data. In a real app, this would be fetched from a database.
 const pastPerformanceData = `
@@ -38,12 +39,12 @@ export async function getAIExerciseImage(input: GenerateExerciseImageInput) {
   }
 }
 
-export async function generateWeeklyPlan(input: GenerateWeeklyPlanInput): Promise<{ success: boolean, data?: GenerateWeeklyPlanOutput, error?: string }> {
+export async function generateDayPlan(input: GenerateDayPlanInput): Promise<{ success: boolean, data?: GenerateDayPlanOutput, error?: string }> {
   try {
-    const result = await generateWeeklyPlanFlow(input);
-    return { success: true, data: result };
+    const result = await generateDayPlanFlow(input);
+    return result;
   } catch (error: any) {
-    console.error('Error in generateWeeklyPlan:', error);
-    return { success: false, error: error.message || 'Failed to generate weekly plan.' };
+    console.error('Error in generateDayPlan:', error);
+    return { success: false, error: error.message || 'Failed to generate day plan.' };
   }
 }
