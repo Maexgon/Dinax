@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
@@ -12,7 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/context/language-context';
 import type { Mesocycle, Client, PlanSummary } from '@/lib/types';
 import { useFirebase, useCollection, useMemoFirebase, addDocumentNonBlocking } from '@/firebase';
-import { collection, query, orderBy, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, orderBy, doc, serverTimestamp, where } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
