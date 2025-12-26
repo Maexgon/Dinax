@@ -63,10 +63,9 @@ service cloud.firestore {
     }
 
     match /mesocycles/{mesocycleId} {
-      // Allow a user to list only their own mesocycles.
-      allow list: if isSignedIn() && request.query.resource.data.tenantId == request.auth.uid;
-      // Allow read/write if the user is the owner of the tenantId specified in the document.
-      allow read, write: if isSignedIn() && request.auth.uid == resource.data.tenantId;
+      // Allow read/write/list if the user's UID matches the tenantId in the document.
+      // This covers creating plans for themselves (as templates) or for clients within their tenant.
+      allow read, list, write: if isSignedIn() && request.auth.uid == request.resource.data.tenantId;
     }
   }
 }
