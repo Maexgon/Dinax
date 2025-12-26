@@ -372,6 +372,7 @@ export const translations = {
         vsLastWeek: "+2 vs semana pasada",
         completedMonth: "Completadas Mes",
         attendance: "asistencia",
+        sessions: "Sesiones"
     },
 
     plans: {
@@ -969,6 +970,7 @@ unilateralBalance: "Unilateral balance (s)",
         vsLastWeek: "+2 vs last week",
         completedMonth: "Completed Month",
         attendance: "attendance",
+        sessions: "Sessions"
     },
 
     plans: {
@@ -1199,5 +1201,3 @@ unilateralBalance: "Unilateral balance (s)",
 export type Language = keyof typeof translations;
 
 export const getTranslations = (lang: Language) => translations[lang];
-
-    
