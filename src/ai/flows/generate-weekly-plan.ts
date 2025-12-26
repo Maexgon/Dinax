@@ -19,9 +19,10 @@ const ExerciseSchema = z.object({
   type: z.enum(["Cardio", "Fuerza", "Pylo", "Movilidad", "Core"]).optional(),
   muscleGroups: z.array(z.string()).optional(),
   equipment: z.string().optional(),
+  imageUrl: z.string().optional(),
 });
 
-export const GenerateWeeklyPlanInputSchema = z.object({
+const GenerateWeeklyPlanInputSchema = z.object({
   exercises: z.array(ExerciseSchema).describe("The library of available exercises to choose from."),
   weekSchedule: z
     .array(z.object({ day: z.string(), focus: z.string(), id: z.string() }))
@@ -29,6 +30,7 @@ export const GenerateWeeklyPlanInputSchema = z.object({
   objective: z.string().describe("The main goal of the training plan, e.g., 'Hypertrophy', 'Fat Loss'.")
 });
 export type GenerateWeeklyPlanInput = z.infer<typeof GenerateWeeklyPlanInputSchema>;
+
 
 // --- Output Schemas ---
 const PlannedExerciseSchema = z.object({
@@ -47,7 +49,7 @@ const DayPlanSchema = z.object({
   exercises: z.array(PlannedExerciseSchema),
 });
 
-export const GenerateWeeklyPlanOutputSchema = z.record(z.string(), DayPlanSchema);
+const GenerateWeeklyPlanOutputSchema = z.record(z.string(), DayPlanSchema);
 export type GenerateWeeklyPlanOutput = z.infer<typeof GenerateWeeklyPlanOutputSchema>;
 
 
@@ -75,7 +77,7 @@ const generatePlanPrompt = ai.definePrompt({
         - 'rpe' should be on a scale of 1-10.
         - 'duration' is the estimated time in minutes for the exercise, including rest.
     6.  The output MUST be a JSON object where each key is the day's identifier (e.g., 'L' for Lunes, 'M' for Martes) and the value is the structured 'DayPlan'.
-    7. Just return the 'id' of the exercise from the library. Do not create a 'planId'.
+    7.  Just return the 'id' of the exercise from the library. Do not create a 'planId'.
 
     Available Exercises:
     \`\`\`json
