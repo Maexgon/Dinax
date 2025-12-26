@@ -17,7 +17,7 @@ import { z } from 'zod';
 const ExerciseSchema = z.object({
   id: z.string(),
   name: z.string(),
-  type: z.enum(["Cardio", "Fuerza", "Pylo", "Movilidad", "Core", "cardio", "fuerza", "pylo", "movilidad", "core"]).optional(),
+  type: z.enum(["Cardio", "Fuerza", "Pylo", "Movilidad", "Core", "cardio", "fuerza", "pylo", "movilidad", "core", "strength", "plyo", "mobility"]).optional(),
   muscleGroups: z.array(z.string()).optional(),
   equipment: z.string().optional(),
   imageUrl: z.string().optional(),
@@ -55,8 +55,14 @@ export type GenerateWeeklyPlanOutput = z.infer<typeof GenerateWeeklyPlanOutputSc
 
 
 // --- Main Exported Function ---
-export async function generateWeeklyPlan(input: GenerateWeeklyPlanInput): Promise<GenerateWeeklyPlanOutput> {
-  return generateWeeklyPlanFlow(input);
+export async function generateWeeklyPlan(input: GenerateWeeklyPlanInput): Promise<{ success: boolean, data?: GenerateWeeklyPlanOutput, error?: string }> {
+    try {
+        const result = await generateWeeklyPlanFlow(input);
+        return { success: true, data: result };
+    } catch (error: any) {
+        console.error('Error in generateWeeklyPlan:', error);
+        return { success: false, error: error.message || 'Failed to generate weekly plan.' };
+    }
 }
 
 
