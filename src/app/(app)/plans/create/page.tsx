@@ -25,6 +25,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { generateWeeklyPlan } from '@/app/actions';
+import type { GenerateWeeklyPlanInput, GenerateWeeklyPlanOutput } from '@/ai/flows/generate-weekly-plan';
 
 type WeeklyPlan = {
     [day: string]: {
@@ -385,27 +386,30 @@ export default function CreatePlanPage() {
 
         setIsAiGenerating(true);
         try {
-            const currentWeekFocuses = weekSchedule.map(day => ({
-                day: day.id,
-                focus: planState[currentWeekIndex]?.[day.id]?.focus || day.focus,
-            }));
-            
-            const result = await generateWeeklyPlan({
-                exercises,
-                weekSchedule: currentWeekFocuses,
-                objective: planName,
-            });
-
-            if (result.success && result.data) {
-                setPlanState(prev => {
-                    const newPlan = { ...prev };
-                    newPlan[currentWeekIndex] = result.data as WeeklyPlan;
-                    return newPlan;
-                });
-                toast({ variant: 'success', title: "Plan Semanal Generado", description: "La IA ha creado una rutina para la semana actual." });
-            } else {
-                throw new Error(result.error || 'Error desconocido al generar el plan.');
+            const currentWeekData = planState[currentWeekIndex];
+            if (!currentWeekData) {
+              throw new Error("No schedule found for the current week.");
             }
+            
+            const input: GenerateWeeklyPlanInput = {
+                exercises: exercises.map(({ id, name, type, muscleGroups, equipment }) => ({ id, name, type, muscleGroups, equipment })),
+                weekSchedule: weekSchedule.map(day => ({
+                    id: day.id,
+                    day: day.day,
+                    focus: currentWeekData[day.id]?.focus || day.focus,
+                })),
+                objective: selectedClient?.objective || planName || 'General Fitness',
+            };
+            
+            const result = await generateWeeklyPlan(input);
+
+            setPlanState(prev => {
+                const newPlan = { ...prev };
+                newPlan[currentWeekIndex] = result;
+                return newPlan;
+            });
+            toast({ variant: 'success', title: "Plan Semanal Generado", description: "La IA ha creado una rutina para la semana actual." });
+            
         } catch (error: any) {
             toast({ variant: "destructive", title: "Error de IA", description: error.message || "No se pudo generar el plan semanal." });
         } finally {

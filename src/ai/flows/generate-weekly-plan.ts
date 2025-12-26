@@ -12,38 +12,16 @@
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
 
+// --- Input Schemas ---
 const ExerciseSchema = z.object({
   id: z.string(),
   name: z.string(),
   type: z.enum(["Cardio", "Fuerza", "Pylo", "Movilidad", "Core"]).optional(),
+  muscleGroups: z.array(z.string()).optional(),
   equipment: z.string().optional(),
-  difficulty: z.string().optional(),
-  instructions: z.string().optional(),
-  muscleGroups: z.array(z.string()).optional(),
-  videoUrl: z.string().optional(),
-  imageUrl: z.string().optional(),
 });
 
-const PlannedExerciseSchema = z.object({
-  id: z.string().describe("Reference to the exercise in the provided library."),
-  planId: z.string().describe("Unique ID for this instance in the plan. Should be generated as a random string."),
-  name: z.string(),
-  imageUrl: z.string().optional(),
-  muscleGroups: z.array(z.string()).optional(),
-  sets: z.string(),
-  reps: z.string(),
-  rpe: z.string(),
-  rest: z.string(),
-  duration: z.string(),
-});
-
-const DayPlanSchema = z.object({
-  focus: z.string(),
-  isRestDay: z.boolean(),
-  exercises: z.array(PlannedExerciseSchema),
-});
-
-const GenerateWeeklyPlanInputSchema = z.object({
+export const GenerateWeeklyPlanInputSchema = z.object({
   exercises: z.array(ExerciseSchema).describe("The library of available exercises to choose from."),
   weekSchedule: z
     .array(z.object({ day: z.string(), focus: z.string(), id: z.string() }))
@@ -52,15 +30,34 @@ const GenerateWeeklyPlanInputSchema = z.object({
 });
 export type GenerateWeeklyPlanInput = z.infer<typeof GenerateWeeklyPlanInputSchema>;
 
+// --- Output Schemas ---
+const PlannedExerciseSchema = z.object({
+  id: z.string().describe("The ID of the exercise from the provided library."),
+  name: z.string().describe("The name of the exercise."),
+  sets: z.string().describe("The number of sets, e.g., '3-4' or '3'."),
+  reps: z.string().describe("The repetition range, e.g., '8-12' or '15'."),
+  rpe: z.string().describe("The Rate of Perceived Exertion on a scale of 1-10."),
+  rest: z.string().describe("The rest time in seconds, e.g., '90'."),
+  duration: z.string().describe("The estimated duration for the exercise in minutes, e.g., '10'."),
+});
 
-const GenerateWeeklyPlanOutputSchema = z.record(z.string(), DayPlanSchema);
+const DayPlanSchema = z.object({
+  focus: z.string(),
+  isRestDay: z.boolean(),
+  exercises: z.array(PlannedExerciseSchema),
+});
+
+export const GenerateWeeklyPlanOutputSchema = z.record(z.string(), DayPlanSchema);
 export type GenerateWeeklyPlanOutput = z.infer<typeof GenerateWeeklyPlanOutputSchema>;
 
 
+// --- Main Exported Function ---
 export async function generateWeeklyPlan(input: GenerateWeeklyPlanInput): Promise<GenerateWeeklyPlanOutput> {
   return generateWeeklyPlanFlow(input);
 }
 
+
+// --- Genkit Flow Definition ---
 const generatePlanPrompt = ai.definePrompt({
   name: 'generateWeeklyPlanPrompt',
   input: { schema: GenerateWeeklyPlanInputSchema },
@@ -94,6 +91,7 @@ const generatePlanPrompt = ai.definePrompt({
   `,
 });
 
+
 const generateWeeklyPlanFlow = ai.defineFlow(
   {
     name: 'generateWeeklyPlanFlow',
@@ -106,13 +104,18 @@ const generateWeeklyPlanFlow = ai.defineFlow(
       throw new Error("AI failed to generate a weekly plan.");
     }
     
-    // Add unique planId to each exercise after generation
+    // Post-process to add unique planId and missing image/muscle groups
     Object.values(output).forEach(dayPlan => {
         if (dayPlan.exercises) {
-            dayPlan.exercises = dayPlan.exercises.map((ex: any) => ({
-                ...ex,
-                planId: `${ex.id}-${Date.now()}-${Math.random()}`
-            }));
+            dayPlan.exercises = dayPlan.exercises.map((ex: any) => {
+                const originalExercise = input.exercises.find(e => e.id === ex.id);
+                return {
+                    ...ex,
+                    planId: `${ex.id}-${Date.now()}-${Math.random()}`,
+                    imageUrl: originalExercise?.imageUrl || 'https://picsum.photos/seed/placeholder/100/100',
+                    muscleGroups: originalExercise?.muscleGroups || [],
+                };
+            });
         }
     });
 
