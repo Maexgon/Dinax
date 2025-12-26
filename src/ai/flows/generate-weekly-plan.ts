@@ -28,7 +28,6 @@ const ExerciseSchema = z.object({
 
 const PlannedExerciseSchema = z.object({
   id: z.string().describe("Reference to the exercise in the provided library."),
-  planId: z.string().describe("A unique ID for this exercise instance, e.g., using Date.now()."),
   name: z.string(),
   imageUrl: z.string().optional(),
   muscleGroups: z.array(z.string()).optional(),
@@ -48,14 +47,17 @@ const DayPlanSchema = z.object({
 const GenerateWeeklyPlanInputSchema = z.object({
   exercises: z.array(ExerciseSchema).describe("The library of available exercises to choose from."),
   weekSchedule: z
-    .array(z.object({ day: z.string(), focus: z.string() }))
+    .array(z.object({ day: z.string(), focus: z.string(), id: z.string() }))
     .describe("An array defining the focus for each day of the week."),
   objective: z.string().describe("The main goal of the training plan, e.g., 'Hypertrophy', 'Fat Loss'.")
 });
-export type GenerateWeeklyPlanInput = z.infer<typeof GenerateWeeklyPlanInputSchema>;
 
 const GenerateWeeklyPlanOutputSchema = z.record(z.string(), DayPlanSchema);
+
+// Export types
+export type GenerateWeeklyPlanInput = z.infer<typeof GenerateWeeklyPlanInputSchema>;
 export type GenerateWeeklyPlanOutput = z.infer<typeof GenerateWeeklyPlanOutputSchema>;
+
 
 export async function generateWeeklyPlan(input: GenerateWeeklyPlanInput): Promise<GenerateWeeklyPlanOutput> {
   return generateWeeklyPlanFlow(input);
@@ -69,7 +71,7 @@ const generatePlanPrompt = ai.definePrompt({
     You are an expert personal trainer. Your task is to create a complete, structured, and coherent weekly training plan based on a provided library of exercises and a schedule with a specific focus for each day. The overall objective of the plan is '{{{objective}}}'.
 
     Follow these instructions carefully:
-    1.  For each day in the 'weekSchedule', create a workout plan.
+    1.  For each day in the 'weekSchedule', create a workout plan. The key for each day in the output object must be the day's 'id' (e.g., 'L', 'M').
     2.  If a day's focus is 'Descanso' (Rest), set 'isRestDay' to true and leave the 'exercises' array empty.
     3.  For training days, select between 4 to 6 exercises from the 'exercises' library that are appropriate for the day's 'focus'.
     4.  Ensure a logical progression and variety throughout the week. Avoid using the exact same exercise on multiple days if possible, unless it's a core compound lift.
@@ -77,8 +79,8 @@ const generatePlanPrompt = ai.definePrompt({
         - 'reps' can be a range (e.g., '8-12') or a specific number. For cardio, it might be 'N/A'.
         - 'rpe' should be on a scale of 1-10.
         - 'duration' is the estimated time in minutes for the exercise, including rest.
-        - 'planId' must be a unique identifier for each exercise instance. You can generate it by concatenating the exercise 'id' with a timestamp, like '{{id}}-{{Date.now()}}'.
     6.  The output MUST be a JSON object where each key is the day's identifier (e.g., 'L' for Lunes, 'M' for Martes) and the value is the structured 'DayPlan'.
+    7. Just return the `id` of the exercise from the library. Do not create a 'planId'.
 
     Available Exercises:
     \`\`\`json
@@ -105,6 +107,17 @@ const generateWeeklyPlanFlow = ai.defineFlow(
     if (!output) {
       throw new Error("AI failed to generate a weekly plan.");
     }
+    
+    // Add unique planId to each exercise after generation
+    Object.values(output).forEach(dayPlan => {
+        if (dayPlan.exercises) {
+            dayPlan.exercises = dayPlan.exercises.map((ex: any) => ({
+                ...ex,
+                planId: `${ex.id}-${Date.now()}-${Math.random()}`
+            }));
+        }
+    });
+
     return output;
   }
 );
