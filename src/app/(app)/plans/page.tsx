@@ -127,11 +127,15 @@ export default function PlansPage() {
     }, [isLoading, mesocycles, clients]);
 
     const filteredPlans = useMemo(() => {
+        if (!planSummaries) return [];
         return planSummaries.filter(plan => {
-            const matchesSearch =
-              (plan.name && plan.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-              (plan.clientName && plan.clientName.toLowerCase().includes(searchQuery.toLowerCase()));
-            return matchesSearch;
+            const query = searchQuery.toLowerCase();
+            const matchesPlanName = plan.name && plan.name.toLowerCase().includes(query);
+            const matchesClientName = plan.clientName && plan.clientName.toLowerCase().includes(query);
+            
+            if (query === '') return true;
+
+            return matchesPlanName || matchesClientName;
         });
     }, [planSummaries, searchQuery]);
 
@@ -243,5 +247,3 @@ export default function PlansPage() {
         </div>
     );
 }
-
-    
