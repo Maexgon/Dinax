@@ -26,6 +26,7 @@ const ExerciseSchema = z.object({
 
 const PlannedExerciseSchema = z.object({
   id: z.string().describe("Reference to the exercise in the provided library."),
+  planId: z.string().describe("Unique ID for this instance in the plan. Should be generated as a random string."),
   name: z.string(),
   imageUrl: z.string().optional(),
   muscleGroups: z.array(z.string()).optional(),
@@ -49,11 +50,10 @@ const GenerateWeeklyPlanInputSchema = z.object({
     .describe("An array defining the focus for each day of the week."),
   objective: z.string().describe("The main goal of the training plan, e.g., 'Hypertrophy', 'Fat Loss'.")
 });
+export type GenerateWeeklyPlanInput = z.infer<typeof GenerateWeeklyPlanInputSchema>;
+
 
 const GenerateWeeklyPlanOutputSchema = z.record(z.string(), DayPlanSchema);
-
-// Export types
-export type GenerateWeeklyPlanInput = z.infer<typeof GenerateWeeklyPlanInputSchema>;
 export type GenerateWeeklyPlanOutput = z.infer<typeof GenerateWeeklyPlanOutputSchema>;
 
 
