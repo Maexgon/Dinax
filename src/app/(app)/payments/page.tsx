@@ -157,25 +157,26 @@ export default function PaymentsPage() {
 
   const selectedClientFullData = useMemo(() => enrichedClientData.find(c => c.id === selectedClient?.id), [enrichedClientData, selectedClient]);
   const selectedClientPayments = useMemo(() => payments?.filter(p => p.clientId === selectedClient?.id).sort((a,b) => new Date(b.paymentDate as string).getTime() - new Date(a.paymentDate as string).getTime()), [payments, selectedClient]);
-
-  // Set initial selected client and reset form when selection changes
+  
   useEffect(() => {
+    // If no client is selected but we have a list of clients, select the first one.
     if (!selectedClient && paginatedClients.length > 0) {
       setSelectedClient(paginatedClients[0]);
-    } else if (selectedClient) {
-        const updatedSelected = enrichedClientData.find(c => c.id === selectedClient.id);
-        if(updatedSelected) {
-            setSelectedClient(updatedSelected as Client);
-            reset({
-                amount: updatedSelected.paymentAmount,
-                paymentDate: new Date(),
-                status: 'paid',
-                paymentMethod: 'cash',
-                notes: ''
-            });
-        }
     }
-  }, [paginatedClients, selectedClient, enrichedClientData, reset]);
+  }, [selectedClient, paginatedClients]);
+
+  // When selectedClient changes, reset the payment form with the new client's data.
+  useEffect(() => {
+    if (selectedClientFullData) {
+      reset({
+        amount: selectedClientFullData.paymentAmount,
+        paymentDate: new Date(),
+        status: 'paid',
+        paymentMethod: 'cash',
+        notes: ''
+      });
+    }
+  }, [selectedClientFullData, reset]);
   
   const getStatusVariant = (status: 'paid' | 'pending' | 'overdue'): { variant: "default" | "secondary" | "destructive" | "outline" | null | undefined, text: string } => {
     switch (status) {
@@ -490,5 +491,3 @@ export default function PaymentsPage() {
     </>
   );
 }
-
-    
