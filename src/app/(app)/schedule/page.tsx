@@ -16,6 +16,8 @@ import {
   startOfWeek,
   endOfWeek,
   addWeeks,
+  isPast,
+  isFuture,
 } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -240,31 +242,44 @@ export default function SchedulePage() {
 
   const tenantId = user?.uid;
   
-  const {rangeStart, rangeEnd} = useMemo(() => {
-    const locale = { weekStartsOn: language === 'es' ? 1 : 0 };
-    if (view === 'month') return { rangeStart: startOfMonth(currentDate), rangeEnd: endOfMonth(currentDate) };
-    if (view === 'week') return { rangeStart: startOfWeek(currentDate, locale), rangeEnd: endOfWeek(currentDate, locale) };
-    // For day view, fetch for the whole day.
-    const startOfDay = new Date(currentDate);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(currentDate);
-    endOfDay.setHours(23, 59, 59, 999);
-    return { rangeStart: startOfDay, rangeEnd: endOfDay };
-  }, [currentDate, view, language]);
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
 
   const eventsRef = useMemoFirebase(
     () =>
       firestore && tenantId
         ? query(
             collection(firestore, `tenants/${tenantId}/events`),
-            where('start', '>=', rangeStart),
-            where('start', '<=', rangeEnd)
+            where('start', '>=', monthStart),
+            where('start', '<=', monthEnd)
           )
         : null,
-    [firestore, tenantId, rangeStart, rangeEnd]
+    [firestore, tenantId, monthStart, monthEnd]
   );
 
   const { data: events, isLoading } = useCollection<CalendarEvent>(eventsRef);
+  
+  const stats = useMemo(() => {
+    if (!events) return { sessionsToday: 0, completedToday: 0, pendingWeek: 0, completedMonth: 0, attendance: 0 };
+    
+    const now = new Date();
+    const weekStart = startOfWeek(now, { weekStartsOn: language === 'es' ? 1 : 0 });
+    const weekEnd = endOfWeek(now, { weekStartsOn: language === 'es' ? 1 : 0 });
+
+    const sessionsTodayArr = events.filter(e => isToday((e.start as Timestamp).toDate()));
+    const sessionsToday = sessionsTodayArr.length;
+    const completedToday = sessionsTodayArr.filter(e => isPast((e.end as Timestamp).toDate())).length;
+
+    const pendingWeek = events.filter(e => {
+        const startDate = (e.start as Timestamp).toDate();
+        return startDate >= weekStart && startDate <= weekEnd && isFuture(startDate);
+    }).length;
+    
+    const completedMonth = events.filter(e => isPast((e.end as Timestamp).toDate())).length;
+    const attendance = events.length > 0 ? Math.round((completedMonth / events.length) * 100) : 0;
+
+    return { sessionsToday, completedToday, pendingWeek, completedMonth, attendance };
+  }, [events, language]);
 
   const handlePrev = () => {
     if (view === 'month') setCurrentDate(subMonths(currentDate, 1));
@@ -293,6 +308,20 @@ export default function SchedulePage() {
     }
     return format(currentDate, 'd MMMM yyyy', { locale });
   }, [currentDate, view, language]);
+  
+  const eventsForView = useMemo(() => {
+    if (view === 'month' || !events) return events || [];
+    
+    const locale = { weekStartsOn: language === 'es' ? 1 : 0 };
+    const rangeStart = view === 'week' ? startOfWeek(currentDate, locale) : new Date(currentDate.setHours(0,0,0,0));
+    const rangeEnd = view === 'week' ? endOfWeek(currentDate, locale) : new Date(currentDate.setHours(23,59,59,999));
+    
+    return events.filter(event => {
+        const eventDate = (event.start as Timestamp).toDate();
+        return eventDate >= rangeStart && eventDate <= rangeEnd;
+    });
+
+  }, [events, view, currentDate, language]);
 
   return (
     <div className="space-y-6 flex flex-col h-full">
@@ -329,9 +358,11 @@ export default function SchedulePage() {
             </div>
             <div>
               <p className="text-muted-foreground">{t.schedule.sessionsToday}</p>
+              {isLoading ? <Skeleton className="h-8 w-24" /> :
               <p className="text-2xl font-bold">
-                4 <span className="text-base font-normal text-muted-foreground">de 6 {t.schedule.scheduled}</span>
+                {stats.completedToday} <span className="text-base font-normal text-muted-foreground">de {stats.sessionsToday} {t.schedule.scheduled}</span>
               </p>
+              }
             </div>
           </CardContent>
         </Card>
@@ -342,9 +373,11 @@ export default function SchedulePage() {
             </div>
             <div>
               <p className="text-muted-foreground">{t.schedule.pendingWeek}</p>
+              {isLoading ? <Skeleton className="h-8 w-16" /> :
               <p className="text-2xl font-bold">
-                12 <span className="text-sm text-primary/80">{t.schedule.vsLastWeek}</span>
+                {stats.pendingWeek} <span className="text-sm text-primary/80">{t.schedule.sessions.toLowerCase()}</span>
               </p>
+              }
             </div>
           </CardContent>
         </Card>
@@ -355,9 +388,11 @@ export default function SchedulePage() {
             </div>
             <div>
               <p className="text-muted-foreground">{t.schedule.completedMonth}</p>
+              {isLoading ? <Skeleton className="h-8 w-20" /> : 
               <p className="text-2xl font-bold">
-                45 <span className="text-sm text-green-600">92% {t.schedule.attendance}</span>
+                {stats.completedMonth} <span className="text-sm text-green-600">{stats.attendance}% {t.schedule.attendance}</span>
               </p>
+              }
             </div>
           </CardContent>
         </Card>
@@ -404,12 +439,10 @@ export default function SchedulePage() {
         </div>
       </div>
       
-      {view === 'month' && <MonthView events={events || []} currentDate={currentDate} t={t} isLoading={isLoading} />}
-      {view === 'week' && <WeekView events={events || []} currentDate={currentDate} t={t} isLoading={isLoading} />}
-      {view === 'day' && <DayView events={events || []} currentDate={currentDate} t={t} isLoading={isLoading} />}
+      {view === 'month' && <MonthView events={eventsForView} currentDate={currentDate} t={t} isLoading={isLoading} />}
+      {view === 'week' && <WeekView events={eventsForView} currentDate={currentDate} t={t} isLoading={isLoading} />}
+      {view === 'day' && <DayView events={eventsForView} currentDate={currentDate} t={t} isLoading={isLoading} />}
       
     </div>
   );
 }
-
-    
