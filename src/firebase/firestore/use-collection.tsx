@@ -86,7 +86,14 @@ export function useCollection<T = any>(
         snapshot.forEach(doc => {
           results.push({ ...(doc.data() as T), id: doc.id });
         });
-        setData(results);
+        
+        setData(currentData => {
+            if (isEqual(currentData, results)) {
+                return currentData;
+            }
+            return results;
+        });
+
         setError(null); // Clear any previous error
         setIsLoading(false);
       },
