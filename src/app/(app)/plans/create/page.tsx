@@ -182,11 +182,6 @@ export default function CreatePlanPage() {
 
     const tenantId = user?.uid;
 
-    const mesocyclesQuery = useMemoFirebase(
-        () => (firestore && tenantId ? query(collection(firestore, `tenants/${tenantId}/mesocycles`), where('tenantId', '==', tenantId), orderBy('createdAt', 'desc')) : null),
-        [firestore, tenantId]
-    );
-
     const clientsCollectionRef = useMemoFirebase(
       () => (firestore && tenantId ? collection(firestore, `tenants/${tenantId}/user_profile`) : null),
       [firestore, tenantId]
@@ -401,7 +396,12 @@ export default function CreatePlanPage() {
                 objective: selectedClient?.objective || planName || 'General Fitness',
             };
             
-            const result = await generateWeeklyPlan(input);
+            const response = await generateWeeklyPlan(input);
+            if (!response.success || !response.data) {
+              throw new Error(response.error || "AI response was empty.");
+            }
+            
+            const result = response.data;
 
             setPlanState(prev => {
                 const newPlan = { ...prev };
@@ -494,7 +494,7 @@ export default function CreatePlanPage() {
         const weekData = planState[currentWeekIndex];
         if (weekData) {
             Object.values(weekData).forEach(dayData => {
-                if (!dayData.isRestDay) {
+                if (!dayData.isRestDay && dayData.exercises) {
                     dayData.exercises.forEach(ex => {
                         const duration = parseInt(ex.duration, 10);
                         if (!isNaN(duration)) {
