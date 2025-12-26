@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
@@ -24,8 +25,7 @@ import { cn } from '@/lib/utils';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { generateWeeklyPlan } from '@/app/actions';
-import type { GenerateWeeklyPlanInput, GenerateWeeklyPlanOutput } from '@/ai/flows/generate-weekly-plan';
+import { generateWeeklyPlan, type GenerateWeeklyPlanInput, type GenerateWeeklyPlanOutput } from '@/ai/flows/generate-weekly-plan';
 
 type WeeklyPlan = {
     [day: string]: {
@@ -404,10 +404,19 @@ export default function CreatePlanPage() {
             const result = response.data;
 
             setPlanState(prev => {
-                const newPlan = { ...prev };
-                newPlan[currentWeekIndex] = result;
-                return newPlan;
+                const newPlanState = { ...prev };
+                const currentWeek = { ...newPlanState[currentWeekIndex] };
+                Object.keys(result).forEach(dayId => {
+                    if (currentWeek[dayId]) {
+                        currentWeek[dayId].exercises = result[dayId].exercises;
+                        currentWeek[dayId].isRestDay = result[dayId].isRestDay;
+                        currentWeek[dayId].focus = result[dayId].focus;
+                    }
+                });
+                newPlanState[currentWeekIndex] = currentWeek;
+                return newPlanState;
             });
+
             toast({ variant: 'success', title: "Plan Semanal Generado", description: "La IA ha creado una rutina para la semana actual." });
             
         } catch (error: any) {
