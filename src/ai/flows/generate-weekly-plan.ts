@@ -7,8 +7,6 @@
  * schedule based on a library of available exercises and specified daily focuses.
  * It includes:
  *  - `generateWeeklyPlan`: The main function to trigger the plan generation.
- *  - `GenerateWeeklyPlanInput`: The Zod schema for the input.
- *  - `GenerateWeeklyPlanOutput`: The Zod schema for the output.
  */
 
 import { ai } from '@/ai/genkit';
@@ -80,7 +78,7 @@ const generatePlanPrompt = ai.definePrompt({
         - 'rpe' should be on a scale of 1-10.
         - 'duration' is the estimated time in minutes for the exercise, including rest.
     6.  The output MUST be a JSON object where each key is the day's identifier (e.g., 'L' for Lunes, 'M' for Martes) and the value is the structured 'DayPlan'.
-    7. Just return the id of the exercise from the library. Do not create a 'planId'.
+    7. Just return the 'id' of the exercise from the library. Do not create a 'planId'.
 
     Available Exercises:
     \`\`\`json
