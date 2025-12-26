@@ -44,7 +44,7 @@ service cloud.firestore {
       }
       
       match /mesocycles/{mesocycleId} {
-         allow read, write: if isTenantOwner(tenantId);
+         allow read, write: if isTenantOwner(tenantId) || isSelf(tenantId);
       }
       
       match /services/{serviceId} {
