@@ -58,18 +58,18 @@ export default function RegisterPage() {
       });
       return;
     }
-    
+
     if (!Object.values(passwordValidation).every(Boolean)) {
-        toast({
-            variant: 'destructive',
-            title: 'Error',
-            description: 'Password does not meet the requirements.',
-        });
-        return;
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Password does not meet the requirements.',
+      });
+      return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // Step 1: Create user in Firebase Auth.
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -82,36 +82,36 @@ export default function RegisterPage() {
       // Document 1: Tenant document at /tenants/{coach-uid}
       const tenantRef = doc(firestore, 'tenants', tenantId);
       const tenantData = {
-          id: tenantId,
-          name: `${firstName}'s Gym`,
-          members: { [tenantId]: 'owner' },
-          createdAt: serverTimestamp(),
+        id: tenantId,
+        name: `${firstName}'s Gym`,
+        members: { [tenantId]: 'owner' },
+        createdAt: serverTimestamp(),
       };
       batch.set(tenantRef, tenantData);
 
       // Document 2: User profile document for the coach at /user_profile/{coach-uid}
       const userProfileRef = doc(firestore, 'user_profile', user.uid);
       const userProfileData = {
-          id: user.uid,
-          tenantId: tenantId,
-          firstName: firstName,
-          lastName: lastName,
-          name: `${firstName} ${lastName}`,
-          email: email,
-          isProfileComplete: false, 
-          joinDate: new Date().toISOString().split('T')[0],
-          createdAt: serverTimestamp(),
-          // Initialize other fields from profile page
-          secondaryEmail: '',
-          cuit: '',
-          phoneNumber: '',
-          linkedinUrl: '',
-          instagramUrl: '',
-          xUrl: '',
-          whatsapp: '',
-          address: '',
-          careerExperience: [],
-          education: [],
+        id: user.uid,
+        tenantId: tenantId,
+        firstName: firstName,
+        lastName: lastName,
+        name: `${firstName} ${lastName}`,
+        email: email,
+        isProfileComplete: false,
+        joinDate: new Date().toISOString().split('T')[0],
+        createdAt: serverTimestamp(),
+        // Initialize other fields from profile page
+        secondaryEmail: '',
+        cuit: '',
+        phoneNumber: '',
+        linkedinUrl: '',
+        instagramUrl: '',
+        xUrl: '',
+        whatsapp: '',
+        address: '',
+        careerExperience: [],
+        education: [],
       };
       batch.set(userProfileRef, userProfileData);
 
@@ -145,7 +145,7 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <Card className="w-full max-w-lg border-primary/20 shadow-lg">
         <CardHeader className="text-center">
-           <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={60} height={60} className="mx-auto rounded-sm" data-ai-hint="logo" />
+          <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={60} height={60} className="mx-auto rounded-sm" data-ai-hint="logo" />
           <CardTitle className="font-headline text-2xl">{t.register.title}</CardTitle>
           <CardDescription>
             {t.register.description}{' '}
@@ -208,7 +208,7 @@ export default function RegisterPage() {
                   name="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   required
-                   value={confirmPassword}
+                  value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
                 <Button
@@ -224,18 +224,18 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1 text-xs">
-                <p className={passwordValidation.minLength ? 'text-green-500' : 'text-destructive'}>
-                    {t.register.passLength}
-                </p>
-                <p className={passwordValidation.uppercase ? 'text-green-500' : 'text-destructive'}>
-                    {t.register.passUppercase}
-                </p>
-                <p className={passwordValidation.specialChar ? 'text-green-500' : 'text-destructive'}>
-                    {t.register.passSpecialChar}
-                </p>
-                <p className={passwordValidation.match ? 'text-green-500' : 'text-destructive'}>
-                    {t.register.passMatch}
-                </p>
+              <p className={passwordValidation.minLength ? 'text-green-500' : 'text-destructive'}>
+                {t.register.passLength}
+              </p>
+              <p className={passwordValidation.uppercase ? 'text-green-500' : 'text-destructive'}>
+                {t.register.passUppercase}
+              </p>
+              <p className={passwordValidation.specialChar ? 'text-green-500' : 'text-destructive'}>
+                {t.register.passSpecialChar}
+              </p>
+              <p className={passwordValidation.match ? 'text-green-500' : 'text-destructive'}>
+                {t.register.passMatch}
+              </p>
             </div>
 
             <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
@@ -244,9 +244,11 @@ export default function RegisterPage() {
             </Button>
           </form>
         </CardContent>
-         <CardFooter className="flex flex-col">
-          <Button variant="outline" className="w-full" onClick={() => router.push('/')}>
-            {t.login.cancelButton}
+        <CardFooter className="flex flex-col">
+          <Button variant="outline" className="w-full" asChild>
+            <Link href="/">
+              {t.login.cancelButton}
+            </Link>
           </Button>
         </CardFooter>
       </Card>

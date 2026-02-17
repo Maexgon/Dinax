@@ -19,54 +19,54 @@ export type Client = {
   birthDate?: string;
   address?: string;
   profile?: {
-      age: number;
-      gender: string;
-      weight: number;
-      height: number;
-      medicalConditions: string;
-      biomechanicalData: string;
+    age: number;
+    gender: string;
+    weight: number;
+    height: number;
+    medicalConditions: string;
+    biomechanicalData: string;
   };
 };
 
 export type UserProfile = {
-    id: string;
-    tenantId: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    secondaryEmail?: string;
-    phoneNumber?: string;
-    avatarUrl?: string;
-    avatarHint?: string;
-    joinDate?: string;
-    currentPlan?: string;
-    planType?: string;
-    progress?: number;
-    trainingDays?: string[];
-    objective?: string;
-    tags?: string[];
-    occupation?: string;
-    birthDate?: string;
-    address?: string;
-    cuit?: string;
-    linkedinUrl?: string;
-    instagramUrl?: string;
-    xUrl?: string;
-    whatsapp?: string;
-    careerExperience?: {
-        title: string;
-        company: string;
-        startDate?: string;
-        endDate?: string;
-        description?: string;
-    }[];
-    education?: {
-        institution: string;
-        degree: string;
-        fieldOfStudy?: string;
-        startDate?: string;
-        endDate?: string;
-    }[];
+  id: string;
+  tenantId: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  secondaryEmail?: string;
+  phoneNumber?: string;
+  avatarUrl?: string;
+  avatarHint?: string;
+  joinDate?: string;
+  currentPlan?: string;
+  planType?: string;
+  progress?: number;
+  trainingDays?: string[];
+  objective?: string;
+  tags?: string[];
+  occupation?: string;
+  birthDate?: string;
+  address?: string;
+  cuit?: string;
+  linkedinUrl?: string;
+  instagramUrl?: string;
+  xUrl?: string;
+  whatsapp?: string;
+  careerExperience?: {
+    title: string;
+    company: string;
+    startDate?: string;
+    endDate?: string;
+    description?: string;
+  }[];
+  education?: {
+    institution: string;
+    degree: string;
+    fieldOfStudy?: string;
+    startDate?: string;
+    endDate?: string;
+  }[];
 }
 
 
@@ -77,92 +77,93 @@ export type Note = {
   coachAvatarUrl: string;
   coachAvatarHint: string;
   content: string;
+  isPublic?: boolean;
 };
 
 export type MedicalHistory = {
-    id: string;
-    createdAt: string | Timestamp;
-    medicalClearance?: boolean;
-    bloodType?: string;
-    currentConditions?: string[];
-    underMedicalTreatment?: boolean;
-    currentMedications?: string[];
-    preexistingInjuries?: string[];
-    previousSurgeries?: string[];
-    chronicPain?: boolean;
-    medicalRestrictions?: string[];
-    emergencyContact?: {
-        name: string;
-        phone: string;
-    };
+  id: string;
+  createdAt: string | Timestamp;
+  medicalClearance?: boolean;
+  bloodType?: string;
+  currentConditions?: string[];
+  underMedicalTreatment?: boolean;
+  currentMedications?: string[];
+  preexistingInjuries?: string[];
+  previousSurgeries?: string[];
+  chronicPain?: boolean;
+  medicalRestrictions?: string[];
+  emergencyContact?: {
+    name: string;
+    phone: string;
+  };
 };
 
 export type Biomechanics = {
-    id: string;
-    createdAt: string | Timestamp;
-    weight: number;
-    height: number;
-    bmi?: number;
-    bodyFat?: number;
-    fatFreeBodyWeight?: number;
-    subcutaneousFat?: number;
-    bodyWater?: number;
-    skeletalMuscle?: number;
-    boneMass?: number;
-    ankleDorsiflexion?: number;
-    hipMobility?: number;
-    shoulderMobility?: number;
-    coreStability?: number;
-    hipStability?: number;
-    squatPattern?: number;
-    hipHingePattern?: number;
-    relativeStrengthLower?: number;
-    relativeStrengthUpper?: number;
-    unilateralBalance?: number;
-    asymmetries?: number;
-    movementPain?: number;
+  id: string;
+  createdAt: string | Timestamp;
+  weight: number;
+  height: number;
+  bmi?: number;
+  bodyFat?: number;
+  fatFreeBodyWeight?: number;
+  subcutaneousFat?: number;
+  bodyWater?: number;
+  skeletalMuscle?: number;
+  boneMass?: number;
+  ankleDorsiflexion?: number;
+  hipMobility?: number;
+  shoulderMobility?: number;
+  coreStability?: number;
+  hipStability?: number;
+  squatPattern?: number;
+  hipHingePattern?: number;
+  relativeStrengthLower?: number;
+  relativeStrengthUpper?: number;
+  unilateralBalance?: number;
+  asymmetries?: number;
+  movementPain?: number;
 };
 
 
 export type Exercise = {
-    name: string;
-    type?: "Cardio" | "Fuerza" | "Pylo" | "Movilidad" | "Core";
-    category?: string;
-    image?: string;
-    imageUrl?: string;
-    equipment?: string;
-    difficulty?: string;
-    instructions?: string;
-    muscleGroups?: string[];
-    videoUrl?: string;
-    warmup?: string;
-    sets?: number | string;
-    reps?: number | string;
-    rpe?: number | string;
-    rest?: string;
-    duration?: string;
+  name: string;
+  type?: "Cardio" | "Fuerza" | "Pylo" | "Movilidad" | "Core";
+  category?: string;
+  image?: string;
+  imageUrl?: string;
+  equipment?: string;
+  difficulty?: string;
+  instructions?: string;
+  muscleGroups?: string[];
+  videoUrl?: string;
+  warmup?: string;
+  sets?: number | string;
+  reps?: number | string;
+  rpe?: number | string;
+  rest?: string;
+  duration?: string;
 };
 
 export type ExerciseWithId = Exercise & { id: string; };
 
 export type PlannedExercise = {
-    id: string; // Reference to the exercise in the /exercises collection
-    planId: string; // Unique ID for this specific instance in the plan
-    name: string;
-    imageUrl?: string;
-    muscleGroups?: string[];
-    sets: string;
-    reps: string;
-    rpe: string;
-    rest: string;
-    duration: string;
+  id: string; // Reference to the exercise in the /exercises collection
+  planId: string; // Unique ID for this specific instance in the plan
+  name: string;
+  imageUrl?: string;
+  muscleGroups?: string[];
+  sets: string;
+  reps: string;
+  rpe: string;
+  rest: string;
+  duration: string;
 };
 
 
 export type Workout = {
-    day: string;
-    description: string;
-    exercises?: PlannedExercise[];
+  day: string;
+  description: string;
+  exercises?: PlannedExercise[];
 };
 
 export type TrainingCycle = {
@@ -173,34 +174,34 @@ export type TrainingCycle = {
 };
 
 export type Mesocycle = {
-    id: string;
-    clientId: string | null;
-    tenantId: string;
-    name: string;
-    year: number;
-    month: number;
-    weeks: {
-        [week: number]: {
-            [day: string]: {
-                focus: string;
-                isRestDay: boolean;
-                exercises: PlannedExercise[];
-            }
-        }
-    };
-    createdAt?: Timestamp;
-    updatedAt?: Timestamp;
+  id: string;
+  clientId: string | null;
+  tenantId: string;
+  name: string;
+  year: number;
+  month: number;
+  weeks: {
+    [week: number]: {
+      [day: string]: {
+        focus: string;
+        isRestDay: boolean;
+        exercises: PlannedExercise[];
+      }
+    }
+  };
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
 };
 
 export type PlanSummary = {
-    id: string;
-    name: string;
-    focus: string;
-    clientId: string | null;
-    clientName?: string;
-    clientAvatar?: string;
-    trainingDays: number;
-    duration: number; // in minutes
+  id: string;
+  name: string;
+  focus: string;
+  clientId: string | null;
+  clientName?: string;
+  clientAvatar?: string;
+  trainingDays: number;
+  duration: number; // in minutes
 }
 
 
@@ -232,6 +233,18 @@ export type CalendarEvent = {
   workPlan?: string;
   instructions?: string;
   clients?: string[];
+  completed?: boolean;
+  outcomeNote?: string;
+  isOutcomeNotePublic?: boolean;
+};
+
+export type Attendance = {
+  id: string;
+  clientId: string;
+  eventId: string;
+  date: Timestamp;
+  status: 'present' | 'absent' | 'excused';
+  notes?: string;
 };
 
 export type ServicePlan = {
@@ -250,14 +263,14 @@ export type ServicePlan = {
 };
 
 export type ClientPlan = {
-    id: string;
-    clientId: string;
-    servicePlanId: string;
-    trainingDays: string[];
-    hoursPerClass: number;
-    monthlyCost: number;
-    paymentMethod: 'cash' | 'card' | 'transfer';
-    createdAt: Timestamp;
+  id: string;
+  clientId: string;
+  servicePlanId: string;
+  trainingDays: string[];
+  hoursPerClass: number;
+  monthlyCost: number;
+  paymentMethod: 'cash' | 'card' | 'transfer';
+  createdAt: Timestamp;
 };
 
 export type AppSettings = {
@@ -272,4 +285,3 @@ export type AppSettings = {
   googleCalendarSync: boolean;
 };
 
-    

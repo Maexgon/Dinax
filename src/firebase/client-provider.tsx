@@ -8,6 +8,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { FirebaseProvider } from '@/firebase/provider';
 import { initializeFirebase } from '@/firebase';
 import { Loader2 } from 'lucide-react';
+import { AutoLogout } from '@/components/auth/auto-logout';
 
 interface FirebaseClientProviderProps {
   children: ReactNode;
@@ -29,8 +30,24 @@ export function FirebaseClientProvider({
   const pathname = usePathname();
 
   useEffect(() => {
+    const { auth } = firebaseServices;
+    // Set persistence to session (clears when tab/window is closed)
+    // Note: This must be done before other auth operations if possible, 
+    // but doing it here ensures it applies.
+    // We import specific functions to avoid loading all auth code if tree-shaking works,
+    // but here we use the instance.
+    import('firebase/auth').then(({ setPersistence, browserSessionPersistence }) => {
+      setPersistence(auth, browserSessionPersistence)
+        .then(() => {
+          console.log("Auth persistence set to SESSION");
+        })
+        .catch((error) => {
+          console.error("Error setting persistence:", error);
+        });
+    });
+
     const unsubscribe = onAuthStateChanged(
-      firebaseServices.auth,
+      auth,
       (user) => {
         setUser(user);
         setIsAuthLoading(false);
@@ -52,22 +69,42 @@ export function FirebaseClientProvider({
       setIsProfileLoading(true); // Start profile check
       const profileRef = doc(firebaseServices.firestore, `user_profile`, user.uid);
       getDoc(profileRef).then(profileSnap => {
-        const isProfileComplete = profileSnap.exists() && profileSnap.data().isProfileComplete;
+        const data = profileSnap.data();
+        const isProfileComplete = data?.isProfileComplete;
+        const role = data?.role;
 
-        if (!isProfileComplete) {
-          // Profile is incomplete, force redirect to onboarding
-          if (!isOnboardingRoute) {
-            router.push(ONBOARDING_ROUTE);
+        if (role === 'client') {
+          // Client Logic
+          if (!isProfileComplete) {
+            // If client profile is incomplete, redirect to CLIENT onboarding
+            // Assuming /clients/profile is the client onboarding equivalent
+            const CLIENT_ONBOARDING = '/clients/profile';
+            if (pathname !== CLIENT_ONBOARDING) {
+              router.push(CLIENT_ONBOARDING);
+            }
+          } else {
+            // If profile is complete and on public route, go to client dashboard
+            if (isPublicRoute) {
+              router.push('/clients/dashboard');
+            }
           }
         } else {
-          // Profile is complete, if they are on a public route, redirect to dashboard
-          if (isPublicRoute) {
-            router.push('/dashboard');
+          // Coach/Default Logic
+          if (!isProfileComplete) {
+            // Force redirect to coach onboarding
+            if (!isOnboardingRoute) {
+              router.push(ONBOARDING_ROUTE);
+            }
+          } else {
+            // Profile is complete, if on public route, redirect to coach dashboard
+            if (isPublicRoute) {
+              router.push('/dashboard');
+            }
           }
         }
       }).catch(error => {
         console.error("Error checking user profile, proceeding with default navigation.", error);
-        // If there's an error, just redirect to dashboard if on a public route
+        // If error, try to guess based on context or just fallback to dashboard
         if (isPublicRoute) {
           router.push('/dashboard');
         }
@@ -82,7 +119,7 @@ export function FirebaseClientProvider({
       }
     }
   }, [user, isAuthLoading, pathname, router, firebaseServices.firestore]);
-  
+
   // Show a loader while we are determining auth state OR checking the profile.
   const isLoading = isAuthLoading || (user && isProfileLoading && !PUBLIC_ROUTES.includes(pathname));
 
@@ -100,7 +137,9 @@ export function FirebaseClientProvider({
       firebaseApp={firebaseServices.firebaseApp}
       auth={firebaseServices.auth}
       firestore={firebaseServices.firestore}
+      storage={firebaseServices.storage}
     >
+      {user && <AutoLogout />}
       {children}
     </FirebaseProvider>
   );

@@ -1,6 +1,6 @@
 
 'use client';
-    
+
 import { useState, useEffect } from 'react';
 import {
   DocumentReference,
@@ -73,17 +73,23 @@ export function useDoc<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
-        const contextualError = new FirestorePermissionError({
-          operation: 'get',
-          path: docRef.path,
-        })
+        // Stop loading immediately
+        setIsLoading(false);
+        setData(null);
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
+        try {
+          const contextualError = new FirestorePermissionError({
+            operation: 'get',
+            path: docRef.path,
+          })
 
-        // trigger global error propagation
-        errorEmitter.emit('permission-error', contextualError);
+          setError(contextualError)
+          // trigger global error propagation
+          errorEmitter.emit('permission-error', contextualError);
+        } catch (e) {
+          console.error("Error creating contextual error:", e);
+          setError(error);
+        }
       }
     );
 

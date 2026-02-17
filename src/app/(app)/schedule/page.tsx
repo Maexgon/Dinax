@@ -52,186 +52,186 @@ const eventColors = [
 ];
 
 const DayView = ({ events, currentDate, t, isLoading }: { events: CalendarEvent[], currentDate: Date, t: any, isLoading: boolean }) => {
-    const hours = Array.from({ length: 15 }, (_, i) => i + 7); // 7 AM to 9 PM
-    const router = useRouter();
-    
-    const dayEvents = useMemo(() => events?.filter(event => {
-        const eventDate = (event.start as Timestamp).toDate();
-        return format(eventDate, 'yyyy-MM-dd') === format(currentDate, 'yyyy-MM-dd');
-    }).sort((a,b) => (a.start as Timestamp).toDate().getTime() - (b.start as Timestamp).toDate().getTime()) || [], [events, currentDate]);
+  const hours = Array.from({ length: 15 }, (_, i) => i + 7); // 7 AM to 9 PM
+  const router = useRouter();
 
-    return (
-        <Card className="flex-1">
-            <CardContent className="p-0 h-full">
-                 <div className="relative h-full">
-                    {hours.map(hour => (
-                        <div key={hour} className="flex h-20 border-b last:border-b-0">
-                            <div className="w-20 text-center text-sm text-muted-foreground pt-2 border-r">
-                                {format(new Date(0, 0, 0, hour), 'p', { locale: t.lang === 'es' ? es : undefined })}
-                            </div>
-                            <div className="flex-1"></div>
-                        </div>
-                    ))}
-                    {isLoading ? <Skeleton className="absolute inset-0" /> : dayEvents.map((event, index) => {
-                         const start = (event.start as Timestamp).toDate();
-                         const end = (event.end as Timestamp).toDate();
-                         const top = (start.getHours() - 7 + start.getMinutes() / 60) * 80;
-                         const height = ((end.getTime() - start.getTime()) / (1000 * 60 * 60)) * 80 - 2;
+  const dayEvents = useMemo(() => events?.filter(event => {
+    const eventDate = (event.start as Timestamp).toDate();
+    return format(eventDate, 'yyyy-MM-dd') === format(currentDate, 'yyyy-MM-dd');
+  }).sort((a, b) => (a.start as Timestamp).toDate().getTime() - (b.start as Timestamp).toDate().getTime()) || [], [events, currentDate]);
 
-                        return (
-                             <Link href={`/schedule/${event.id}/edit`} key={event.id} style={{ top: `${top}px`, height: `${height}px` }} className={cn("absolute left-24 right-4 p-2 rounded-lg text-xs cursor-pointer hover:opacity-80 transition-opacity", eventColors[index % eventColors.length])}>
-                                 <p className="font-semibold truncate">{event.title}</p>
-                                <p>{format(start, 'p')} - {format(end, 'p')}</p>
-                            </Link>
-                        )
-                    })}
-                </div>
-            </CardContent>
-        </Card>
-    )
+  return (
+    <Card className="flex-1">
+      <CardContent className="p-0 h-full">
+        <div className="relative h-full">
+          {hours.map(hour => (
+            <div key={hour} className="flex h-20 border-b last:border-b-0">
+              <div className="w-20 text-center text-sm text-muted-foreground pt-2 border-r">
+                {format(new Date(0, 0, 0, hour), 'p', { locale: t.lang === 'es' ? es : undefined })}
+              </div>
+              <div className="flex-1"></div>
+            </div>
+          ))}
+          {isLoading ? <Skeleton className="absolute inset-0" /> : dayEvents.map((event, index) => {
+            const start = (event.start as Timestamp).toDate();
+            const end = (event.end as Timestamp).toDate();
+            const top = (start.getHours() - 7 + start.getMinutes() / 60) * 80;
+            const height = ((end.getTime() - start.getTime()) / (1000 * 60 * 60)) * 80 - 2;
+
+            return (
+              <Link href={`/schedule/${event.id}/edit`} key={event.id} style={{ top: `${top}px`, height: `${height}px` }} className={cn("absolute left-24 right-4 p-2 rounded-lg text-xs cursor-pointer hover:opacity-80 transition-opacity", eventColors[index % eventColors.length])}>
+                <p className="font-semibold truncate">{event.title}</p>
+                <p>{format(start, 'p')} - {format(end, 'p')}</p>
+              </Link>
+            )
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 const WeekView = ({ events, currentDate, t, isLoading }: { events: CalendarEvent[], currentDate: Date, t: any, isLoading: boolean }) => {
-    const { language } = useLanguage();
-    const weekStartsOn = language === 'es' ? 1 : 0;
-    const weekStart = startOfWeek(currentDate, { weekStartsOn });
-    const weekDays = eachDayOfInterval({ start: weekStart, end: endOfWeek(currentDate, { weekStartsOn }) });
+  const { language } = useLanguage();
+  const weekStartsOn = language === 'es' ? 1 : 0;
+  const weekStart = startOfWeek(currentDate, { weekStartsOn });
+  const weekDays = eachDayOfInterval({ start: weekStart, end: endOfWeek(currentDate, { weekStartsOn }) });
 
-     return (
-        <Card className="flex-1">
-            <CardContent className="p-0 h-full">
-                <div className="grid grid-cols-7 h-full">
-                    {weekDays.map((day, dayIndex) => {
-                        const dayEvents = events?.filter(event => {
-                             const eventDate = (event.start as Timestamp).toDate();
-                             return format(eventDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
-                        }).sort((a,b) => (a.start as Timestamp).toDate().getTime() - (b.start as Timestamp).toDate().getTime()) || [];
+  return (
+    <Card className="flex-1">
+      <CardContent className="p-0 h-full">
+        <div className="grid grid-cols-7 h-full">
+          {weekDays.map((day, dayIndex) => {
+            const dayEvents = events?.filter(event => {
+              const eventDate = (event.start as Timestamp).toDate();
+              return format(eventDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
+            }).sort((a, b) => (a.start as Timestamp).toDate().getTime() - (b.start as Timestamp).toDate().getTime()) || [];
 
-                        return (
-                            <div key={day.toString()} className={cn('border-t p-2 overflow-y-auto relative h-[70vh]', dayIndex < 6 ? 'border-r' : '')}>
-                                <div className="text-center mb-2">
-                                     <p className="text-xs text-muted-foreground">{format(day, 'EEE', { locale: language === 'es' ? es : undefined })}</p>
-                                    <span className={cn('font-semibold text-lg', isToday(day) && 'bg-primary text-primary-foreground rounded-full flex items-center justify-center h-8 w-8 mx-auto')}>
-                                        {format(day, 'd')}
-                                    </span>
-                                </div>
-                                <div className="flex flex-col gap-2 mt-1">
-                                    {isLoading ? <Skeleton className="h-10 w-full" /> : dayEvents.map((event, eventIndex) => (
-                                        <Link href={`/schedule/${event.id}/edit`} key={event.id} className={cn('p-1.5 rounded-md text-[11px] block cursor-pointer hover:opacity-80 transition-opacity', eventColors[eventIndex % eventColors.length])}>
-                                            <p className="font-semibold truncate">{format((event.start as Timestamp).toDate(), 'HH:mm')} {event.title}</p>
-                                        </Link>
-                                    ))}
-                                </div>
-                            </div>
-                        )
-                    })}
+            return (
+              <div key={day.toString()} className={cn('border-t p-2 overflow-y-auto relative h-[70vh]', dayIndex < 6 ? 'border-r' : '')}>
+                <div className="text-center mb-2">
+                  <p className="text-xs text-muted-foreground">{format(day, 'EEE', { locale: language === 'es' ? es : undefined })}</p>
+                  <span className={cn('font-semibold text-lg', isToday(day) && 'bg-primary text-primary-foreground rounded-full flex items-center justify-center h-8 w-8 mx-auto')}>
+                    {format(day, 'd')}
+                  </span>
                 </div>
-            </CardContent>
-        </Card>
-    )
+                <div className="flex flex-col gap-2 mt-1">
+                  {isLoading ? <Skeleton className="h-10 w-full" /> : dayEvents.map((event, eventIndex) => (
+                    <Link href={`/schedule/${event.id}/edit`} key={event.id} className={cn('p-1.5 rounded-md text-[11px] block cursor-pointer hover:opacity-80 transition-opacity', eventColors[eventIndex % eventColors.length])}>
+                      <p className="font-semibold truncate">{format((event.start as Timestamp).toDate(), 'HH:mm')} {event.title}</p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 
 const MonthView = ({ events, currentDate, t, isLoading }: { events: CalendarEvent[], currentDate: Date, t: any, isLoading: boolean }) => {
-    const { language } = useLanguage();
-    const monthStart = startOfMonth(currentDate);
-    const monthEnd = endOfMonth(currentDate);
-    const daysInMonth = useMemo(() => eachDayOfInterval({ start: monthStart, end: monthEnd }), [monthStart, monthEnd]);
+  const { language } = useLanguage();
+  const monthStart = startOfMonth(currentDate);
+  const monthEnd = endOfMonth(currentDate);
+  const daysInMonth = useMemo(() => eachDayOfInterval({ start: monthStart, end: monthEnd }), [monthStart, monthEnd]);
 
-    const startingDay = useMemo(() => {
-        const day = getDay(monthStart);
-        return day === 0 ? 6 : day - 1; // Adjust so Monday is 0
-    }, [monthStart]);
+  const startingDay = useMemo(() => {
+    const day = getDay(monthStart);
+    return day === 0 ? 6 : day - 1; // Adjust so Monday is 0
+  }, [monthStart]);
 
-    const weekdays = useMemo(
-        () => language === 'es' ? ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        [language]
-    );
+  const weekdays = useMemo(
+    () => language === 'es' ? ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    [language]
+  );
 
-    return (
-        <Card className="flex-1">
-            <CardContent className="p-0 h-full">
-            <div className="grid grid-cols-7 h-full">
-                {weekdays.map((day) => (
-                <div key={day} className="text-center font-semibold py-2 border-b text-muted-foreground text-sm border-r last:border-r-0">
-                    {day}
-                </div>
-                ))}
-
-                {Array.from({ length: startingDay }).map((_, index) => (
-                <div key={`empty-${index}`} className="border-r border-t bg-muted/50"></div>
-                ))}
-
-                {daysInMonth.map((day, dayIndex) => {
-                const dayEvents =
-                    events?.filter(
-                    (event) => {
-                        const eventDate = (event.start as Timestamp).toDate();
-                        return format(eventDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
-                    }
-                    ).sort((a, b) => (a.start as Timestamp).toDate().getTime() - (b.start as Timestamp).toDate().getTime()) || [];
-
-                return (
-                    <div
-                    key={day.toString()}
-                    className={cn(
-                        'border-t p-2 h-40 overflow-y-auto relative',
-                        (dayIndex + startingDay) % 7 === 6 ? '' : 'border-r'
-                    )}
-                    >
-                    <span
-                        className={cn(
-                        'font-semibold',
-                        isToday(day)
-                            ? 'bg-primary text-primary-foreground rounded-full flex items-center justify-center h-6 w-6'
-                            : 'text-muted-foreground'
-                        )}
-                    >
-                        {format(day, 'd')}
-                    </span>
-                    <div className="flex flex-col gap-1 mt-1">
-                        {isLoading ? (
-                        <Skeleton className="h-10 w-full" />
-                        ) : (
-                        dayEvents.map((event, eventIndex) => {
-                            return (
-                            <Link
-                                href={`/schedule/${event.id}/edit`}
-                                key={event.id}
-                                className={cn(
-                                'p-1.5 rounded-md text-[11px] block cursor-pointer hover:opacity-80 transition-opacity',
-                                eventColors[eventIndex % eventColors.length]
-                                )}
-                            >
-                                <p className="font-semibold truncate">
-                                {format((event.start as Timestamp).toDate(), 'HH:mm')} {event.title}
-                                </p>
-                            </Link>
-                            );
-                        })
-                        )}
-                    </div>
-                    </div>
-                );
-                })}
-
-                {Array.from({
-                length: 42 - daysInMonth.length - startingDay,
-                }).map((_, index) => (
-                <div
-                    key={`empty-end-${index}`}
-                    className={cn(
-                    'border-t bg-muted/50',
-                    (daysInMonth.length + startingDay + index) % 7 === 6
-                        ? ''
-                        : 'border-r'
-                    )}
-                ></div>
-                ))}
+  return (
+    <Card className="flex-1">
+      <CardContent className="p-0 h-full">
+        <div className="grid grid-cols-7 h-full">
+          {weekdays.map((day) => (
+            <div key={day} className="text-center font-semibold py-2 border-b text-muted-foreground text-sm border-r last:border-r-0">
+              {day}
             </div>
-            </CardContent>
-        </Card>
-    )
+          ))}
+
+          {Array.from({ length: startingDay }).map((_, index) => (
+            <div key={`empty-${index}`} className="border-r border-t bg-muted/50"></div>
+          ))}
+
+          {daysInMonth.map((day, dayIndex) => {
+            const dayEvents =
+              events?.filter(
+                (event) => {
+                  const eventDate = (event.start as Timestamp).toDate();
+                  return format(eventDate, 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd')
+                }
+              ).sort((a, b) => (a.start as Timestamp).toDate().getTime() - (b.start as Timestamp).toDate().getTime()) || [];
+
+            return (
+              <div
+                key={day.toString()}
+                className={cn(
+                  'border-t p-2 h-40 overflow-y-auto relative',
+                  (dayIndex + startingDay) % 7 === 6 ? '' : 'border-r'
+                )}
+              >
+                <span
+                  className={cn(
+                    'font-semibold',
+                    isToday(day)
+                      ? 'bg-primary text-primary-foreground rounded-full flex items-center justify-center h-6 w-6'
+                      : 'text-muted-foreground'
+                  )}
+                >
+                  {format(day, 'd')}
+                </span>
+                <div className="flex flex-col gap-1 mt-1">
+                  {isLoading ? (
+                    <Skeleton className="h-10 w-full" />
+                  ) : (
+                    dayEvents.map((event, eventIndex) => {
+                      return (
+                        <Link
+                          href={`/schedule/${event.id}/edit`}
+                          key={event.id}
+                          className={cn(
+                            'p-1.5 rounded-md text-[11px] block cursor-pointer hover:opacity-80 transition-opacity',
+                            eventColors[eventIndex % eventColors.length]
+                          )}
+                        >
+                          <p className="font-semibold truncate">
+                            {format((event.start as Timestamp).toDate(), 'HH:mm')} {event.title}
+                          </p>
+                        </Link>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            );
+          })}
+
+          {Array.from({
+            length: 42 - daysInMonth.length - startingDay,
+          }).map((_, index) => (
+            <div
+              key={`empty-end-${index}`}
+              className={cn(
+                'border-t bg-muted/50',
+                (daysInMonth.length + startingDay + index) % 7 === 6
+                  ? ''
+                  : 'border-r'
+              )}
+            ></div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  )
 }
 
 export default function SchedulePage() {
@@ -241,27 +241,31 @@ export default function SchedulePage() {
   const { firestore, user } = useFirebase();
 
   const tenantId = user?.uid;
-  
-  const monthStart = startOfMonth(currentDate);
-  const monthEnd = endOfMonth(currentDate);
+
+  const { monthStart, monthEnd } = useMemo(() => {
+    return {
+      monthStart: startOfMonth(currentDate),
+      monthEnd: endOfMonth(currentDate)
+    };
+  }, [currentDate]);
 
   const eventsRef = useMemoFirebase(
     () =>
       firestore && tenantId
         ? query(
-            collection(firestore, `tenants/${tenantId}/events`),
-            where('start', '>=', monthStart),
-            where('start', '<=', monthEnd)
-          )
+          collection(firestore, `tenants/${tenantId}/events`),
+          where('start', '>=', monthStart),
+          where('start', '<=', monthEnd)
+        )
         : null,
     [firestore, tenantId, monthStart, monthEnd]
   );
 
   const { data: events, isLoading } = useCollection<CalendarEvent>(eventsRef);
-  
+
   const stats = useMemo(() => {
     if (!events) return { sessionsToday: 0, completedToday: 0, pendingWeek: 0, completedMonth: 0, attendance: 0 };
-    
+
     const now = new Date();
     const weekStart = startOfWeek(now, { weekStartsOn: language === 'es' ? 1 : 0 });
     const weekEnd = endOfWeek(now, { weekStartsOn: language === 'es' ? 1 : 0 });
@@ -271,10 +275,10 @@ export default function SchedulePage() {
     const completedToday = sessionsTodayArr.filter(e => isPast((e.end as Timestamp).toDate())).length;
 
     const pendingWeek = events.filter(e => {
-        const startDate = (e.start as Timestamp).toDate();
-        return startDate >= weekStart && startDate <= weekEnd && isFuture(startDate);
+      const startDate = (e.start as Timestamp).toDate();
+      return startDate >= weekStart && startDate <= weekEnd && isFuture(startDate);
     }).length;
-    
+
     const completedMonth = events.filter(e => isPast((e.end as Timestamp).toDate())).length;
     const attendance = events.length > 0 ? Math.round((completedMonth / events.length) * 100) : 0;
 
@@ -296,7 +300,7 @@ export default function SchedulePage() {
   const handleToday = () => {
     setCurrentDate(new Date());
   };
-  
+
   const headerTitle = useMemo(() => {
     const locale = language === 'es' ? es : undefined;
     const weekOptions = { weekStartsOn: language === 'es' ? 1 : 0 };
@@ -308,17 +312,17 @@ export default function SchedulePage() {
     }
     return format(currentDate, 'd MMMM yyyy', { locale });
   }, [currentDate, view, language]);
-  
+
   const eventsForView = useMemo(() => {
     if (view === 'month' || !events) return events || [];
-    
+
     const locale = { weekStartsOn: language === 'es' ? 1 : 0 };
-    const rangeStart = view === 'week' ? startOfWeek(currentDate, locale) : new Date(currentDate.setHours(0,0,0,0));
-    const rangeEnd = view === 'week' ? endOfWeek(currentDate, locale) : new Date(currentDate.setHours(23,59,59,999));
-    
+    const rangeStart = view === 'week' ? startOfWeek(currentDate, locale) : new Date(currentDate.setHours(0, 0, 0, 0));
+    const rangeEnd = view === 'week' ? endOfWeek(currentDate, locale) : new Date(currentDate.setHours(23, 59, 59, 999));
+
     return events.filter(event => {
-        const eventDate = (event.start as Timestamp).toDate();
-        return eventDate >= rangeStart && eventDate <= rangeEnd;
+      const eventDate = (event.start as Timestamp).toDate();
+      return eventDate >= rangeStart && eventDate <= rangeEnd;
     });
 
   }, [events, view, currentDate, language]);
@@ -359,9 +363,9 @@ export default function SchedulePage() {
             <div>
               <p className="text-muted-foreground">{t.schedule.sessionsToday}</p>
               {isLoading ? <Skeleton className="h-8 w-24" /> :
-              <p className="text-2xl font-bold">
-                {stats.completedToday} <span className="text-base font-normal text-muted-foreground">de {stats.sessionsToday} {t.schedule.scheduled}</span>
-              </p>
+                <p className="text-2xl font-bold">
+                  {stats.completedToday} <span className="text-base font-normal text-muted-foreground">de {stats.sessionsToday} {t.schedule.scheduled}</span>
+                </p>
               }
             </div>
           </CardContent>
@@ -374,9 +378,9 @@ export default function SchedulePage() {
             <div>
               <p className="text-muted-foreground">{t.schedule.pendingWeek}</p>
               {isLoading ? <Skeleton className="h-8 w-16" /> :
-              <p className="text-2xl font-bold">
-                {stats.pendingWeek} <span className="text-sm text-primary/80">{t.schedule.sessions.toLowerCase()}</span>
-              </p>
+                <p className="text-2xl font-bold">
+                  {stats.pendingWeek} <span className="text-sm text-primary/80">{t.schedule.sessions.toLowerCase()}</span>
+                </p>
               }
             </div>
           </CardContent>
@@ -388,10 +392,10 @@ export default function SchedulePage() {
             </div>
             <div>
               <p className="text-muted-foreground">{t.schedule.completedMonth}</p>
-              {isLoading ? <Skeleton className="h-8 w-20" /> : 
-              <p className="text-2xl font-bold">
-                {stats.completedMonth} <span className="text-sm text-green-600">{stats.attendance}% {t.schedule.attendance}</span>
-              </p>
+              {isLoading ? <Skeleton className="h-8 w-20" /> :
+                <p className="text-2xl font-bold">
+                  {stats.completedMonth} <span className="text-sm text-green-600">{stats.attendance}% {t.schedule.attendance}</span>
+                </p>
               }
             </div>
           </CardContent>
@@ -438,11 +442,11 @@ export default function SchedulePage() {
           </Button>
         </div>
       </div>
-      
+
       {view === 'month' && <MonthView events={eventsForView} currentDate={currentDate} t={t} isLoading={isLoading} />}
       {view === 'week' && <WeekView events={eventsForView} currentDate={currentDate} t={t} isLoading={isLoading} />}
       {view === 'day' && <DayView events={eventsForView} currentDate={currentDate} t={t} isLoading={isLoading} />}
-      
+
     </div>
   );
 }

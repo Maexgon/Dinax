@@ -1,6 +1,6 @@
 
 'use client';
-    
+
 import {
   setDoc,
   addDoc,
@@ -11,7 +11,7 @@ import {
   SetOptions,
 } from 'firebase/firestore';
 import { errorEmitter } from '@/firebase/error-emitter';
-import {FirestorePermissionError} from '@/firebase/errors';
+import { FirestorePermissionError } from '@/firebase/errors';
 
 /**
  * Initiates a setDoc operation for a document reference.
@@ -52,15 +52,15 @@ export function addDocumentNonBlocking(colRefOrDocRef: CollectionReference | Doc
   }
 
   promise.catch(error => {
-      errorEmitter.emit(
-        'permission-error',
-        new FirestorePermissionError({
-          path: path,
-          operation: operation,
-          requestResourceData: data,
-        })
-      )
-    });
+    errorEmitter.emit(
+      'permission-error',
+      new FirestorePermissionError({
+        path: path,
+        operation: operation,
+        requestResourceData: data,
+      })
+    )
+  });
   return promise;
 }
 
@@ -89,7 +89,7 @@ export function updateDocumentNonBlocking(docRef: DocumentReference, data: any) 
  * Does NOT await the write operation internally.
  */
 export function deleteDocumentNonBlocking(docRef: DocumentReference) {
-  deleteDoc(docRef)
+  return deleteDoc(docRef)
     .catch(error => {
       errorEmitter.emit(
         'permission-error',
@@ -101,4 +101,3 @@ export function deleteDocumentNonBlocking(docRef: DocumentReference) {
     });
 }
 
-    

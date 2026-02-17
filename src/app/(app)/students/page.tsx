@@ -20,25 +20,25 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { mockClients } from '@/lib/data'; // Import mock data
 
 function ClientCardSkeleton() {
-    return (
-        <Card className="flex flex-col">
-            <CardHeader className="items-center">
-                <Skeleton className="h-20 w-20 rounded-full" />
-            </CardHeader>
-            <CardContent className="flex-grow text-center space-y-2">
-                <Skeleton className="h-6 w-3/4 mx-auto" />
-                <Skeleton className="h-4 w-full mx-auto" />
-                <div className="mt-4 pt-4">
-                    <Skeleton className="h-2 w-1/2 mx-auto mb-1" />
-                    <Skeleton className="h-2 w-full mx-auto" />
-                    <Skeleton className="h-3 w-1/4 mx-auto mt-1" />
-                </div>
-            </CardContent>
-            <CardFooter>
-                <Skeleton className="h-10 w-full" />
-            </CardFooter>
-        </Card>
-    );
+  return (
+    <Card className="flex flex-col">
+      <CardHeader className="items-center">
+        <Skeleton className="h-20 w-20 rounded-full" />
+      </CardHeader>
+      <CardContent className="flex-grow text-center space-y-2">
+        <Skeleton className="h-6 w-3/4 mx-auto" />
+        <Skeleton className="h-4 w-full mx-auto" />
+        <div className="mt-4 pt-4">
+          <Skeleton className="h-2 w-1/2 mx-auto mb-1" />
+          <Skeleton className="h-2 w-full mx-auto" />
+          <Skeleton className="h-3 w-1/4 mx-auto mt-1" />
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Skeleton className="h-10 w-full" />
+      </CardFooter>
+    </Card>
+  );
 }
 
 
@@ -55,8 +55,8 @@ export default function ClientsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-            <h1 className="text-3xl font-bold font-headline">{t.students.title}</h1>
-            <p className="text-muted-foreground">{t.students.description}</p>
+          <h1 className="text-3xl font-bold font-headline">{t.students.title}</h1>
+          <p className="text-muted-foreground">{t.students.description}</p>
         </div>
         <Button asChild>
           <Link href="/students/new">
@@ -67,7 +67,7 @@ export default function ClientsPage() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {isLoading && !clients && Array.from({ length: 4 }).map((_, i) => <ClientCardSkeleton key={i} />)}
-        
+
         {!isLoading && clients?.map((client) => (
           <Card key={client.id} className="flex flex-col">
             <CardHeader className="items-center">

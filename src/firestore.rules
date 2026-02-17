@@ -21,7 +21,8 @@ service cloud.firestore {
 
     match /tenants/{tenantId} {
       // Allow a user to read their own tenant document if they are the owner.
-      allow get: if isTenantOwner(tenantId);
+      // Also allow authenticated users to read tenant basic info (needed for clients)
+      allow get: if isSignedIn();
       
       // Disallow listing all tenants for security.
       allow list: if false;
@@ -35,25 +36,29 @@ service cloud.firestore {
 
       // Explicitly grant access to all subcollections for the tenant owner.
       match /user_profile/{userId}/{subcollection=**} {
-        allow read, write: if isTenantOwner(tenantId);
+        allow read, write: if isTenantOwner(tenantId) || isSelf(userId);
       }
       match /exercises/{exerciseId} {
         allow read, write: if isTenantOwner(tenantId);
       }
       match /mesocycles/{mesocycleId} {
-         allow read, write: if isTenantOwner(tenantId);
+         allow read: if isTenantOwner(tenantId) || (isSignedIn() && resource.data.clientId == request.auth.uid);
+         allow write: if isTenantOwner(tenantId);
       }
       match /services/{serviceId} {
          allow read, write: if isTenantOwner(tenantId);
       }
       match /client_plans/{planId} {
-         allow read, write: if isTenantOwner(tenantId);
+         allow read: if isTenantOwner(tenantId) || (isSignedIn() && resource.data.clientId == request.auth.uid);
+         allow write: if isTenantOwner(tenantId);
       }
       match /payments/{paymentId} {
-         allow read, write: if isTenantOwner(tenantId);
+         allow read: if isTenantOwner(tenantId) || (isSignedIn() && resource.data.clientId == request.auth.uid);
+         allow write: if isTenantOwner(tenantId);
       }
       match /events/{eventId} {
-         allow read, write: if isTenantOwner(tenantId);
+         allow read: if isTenantOwner(tenantId) || (isSignedIn() && request.auth.uid in resource.data.clients);
+         allow write: if isTenantOwner(tenantId);
       }
        match /settings/preferences {
          allow read, write: if isTenantOwner(tenantId);

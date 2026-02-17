@@ -55,7 +55,7 @@ export interface InternalQuery extends Query<DocumentData> {
  * @returns {UseCollectionResult<T>} Object with data, isLoading, error.
  */
 export function useCollection<T = any>(
-    targetRefOrQuery: CollectionReference<DocumentData> | Query<DocumentData> | null | undefined,
+  targetRefOrQuery: CollectionReference<DocumentData> | Query<DocumentData> | null | undefined,
 ): UseCollectionResult<T> {
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
@@ -63,7 +63,7 @@ export function useCollection<T = any>(
   const [data, setData] = useState<StateDataType>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true); // Start loading true
   const [error, setError] = useState<FirestoreError | Error | null>(null);
-  
+
   const queryRef = useRef(targetRefOrQuery);
 
   useEffect(() => {
@@ -74,7 +74,7 @@ export function useCollection<T = any>(
       setError(null);
       return;
     }
-    
+
     // It is ready, set loading state.
     setIsLoading(true);
     setError(null);
@@ -86,35 +86,42 @@ export function useCollection<T = any>(
         snapshot.forEach(doc => {
           results.push({ ...(doc.data() as T), id: doc.id });
         });
-        
+
         setData(currentData => {
-            if (isEqual(currentData, results)) {
-                return currentData;
-            }
-            return results;
+          if (isEqual(currentData, results)) {
+            return currentData;
+          }
+          return results;
         });
 
         setError(null); // Clear any previous error
         setIsLoading(false);
       },
       (error: FirestoreError) => {
+        // Stop loading immediately regardless of subsequent errors
+        setIsLoading(false);
+        setData(null);
+
         // This logic extracts the path from either a ref or a query
-        const path: string =
-          targetRefOrQuery.type === 'collection'
-            ? (targetRefOrQuery as CollectionReference).path
-            : (targetRefOrQuery as unknown as InternalQuery)._query.path.canonicalString()
+        try {
+          const path: string =
+            targetRefOrQuery.type === 'collection'
+              ? (targetRefOrQuery as CollectionReference).path
+              // @ts-ignore
+              : (targetRefOrQuery as unknown as InternalQuery)._query?.path?.canonicalString?.() || 'unknown-query-path'
 
-        const contextualError = new FirestorePermissionError({
-          operation: 'list',
-          path,
-        })
+          const contextualError = new FirestorePermissionError({
+            operation: 'list',
+            path,
+          })
 
-        setError(contextualError)
-        setData(null)
-        setIsLoading(false)
-
-        // trigger global error propagation
-        errorEmitter.emit('permission-error', contextualError);
+          setError(contextualError)
+          // trigger global error propagation
+          errorEmitter.emit('permission-error', contextualError);
+        } catch (e) {
+          console.error("Error creating contextual error:", e);
+          setError(error);
+        }
       }
     );
 
@@ -124,4 +131,3 @@ export function useCollection<T = any>(
   return { data, isLoading, error };
 }
 
-    

@@ -58,7 +58,7 @@ export function Nav() {
     { href: '/services', icon: Package, label: t.nav.services },
     { href: '/ai-goals', icon: Bot, label: t.aiGoals.title },
   ], [t]);
-  
+
   const handleLogout = async () => {
     await signOut(auth);
     router.push('/login');
@@ -73,15 +73,15 @@ export function Nav() {
       <SidebarRail />
       <SidebarHeader className="flex items-center justify-between">
         <div className={cn("flex items-center gap-2", state === 'collapsed' && 'justify-center')}>
-            <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={50} height={50} data-ai-hint="logo" />
-            <span
-                className={cn(
-                  'text-xl font-bold font-headline',
-                  'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
-                )}
-              >
-                Dinax
-              </span>
+          <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={50} height={50} data-ai-hint="logo" />
+          <span
+            className={cn(
+              'text-xl font-bold font-headline',
+              'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
+            )}
+          >
+            Dinax
+          </span>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -111,32 +111,32 @@ export function Nav() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-             <SidebarMenuButton asChild tooltip={t.nav.settings} isActive={pathname.startsWith('/settings')}>
-                <Link href="/settings">
-                  <Settings />
-                  <span className={cn(
-                      'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
-                    )}>
-                    {t.nav.settings}
-                  </span>
-                </Link>
-              </SidebarMenuButton>
+            <SidebarMenuButton asChild tooltip={t.nav.settings} isActive={pathname.startsWith('/settings')}>
+              <Link href="/settings">
+                <Settings />
+                <span className={cn(
+                  'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
+                )}>
+                  {t.nav.settings}
+                </span>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
-           <SidebarMenuItem>
+          <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className={cn("flex items-center w-full gap-3 p-2 rounded-md hover:bg-sidebar-accent", state === 'collapsed' && 'justify-center')}>
-                    <Avatar className="h-10 w-10">
-                        <AvatarImage src={user?.photoURL || ''} alt={userDisplayName} />
-                        <AvatarFallback>{userInitials}</AvatarFallback>
-                    </Avatar>
-                    <div className={cn(
-                          'text-left',
-                          'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
-                        )}>
-                        <p className="font-semibold text-sm text-sidebar-foreground truncate">{userDisplayName}</p>
-                        <p className="text-xs text-sidebar-foreground/80">{t.nav.proAccount}</p>
-                    </div>
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={user?.photoURL || ''} alt={userDisplayName} />
+                    <AvatarFallback>{userInitials}</AvatarFallback>
+                  </Avatar>
+                  <div className={cn(
+                    'text-left',
+                    'group-data-[state=collapsed]:opacity-0 group-data-[state=collapsed]:w-0 transition-all duration-200'
+                  )}>
+                    <p className="font-semibold text-sm text-sidebar-foreground truncate">{userDisplayName}</p>
+                    <p className="text-xs text-sidebar-foreground/80">{t.nav.proAccount}</p>
+                  </div>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="right" align="end" className="w-56">
@@ -155,7 +155,7 @@ export function Nav() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-           </SidebarMenuItem>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

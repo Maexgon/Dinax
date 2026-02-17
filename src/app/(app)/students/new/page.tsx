@@ -53,7 +53,7 @@ export default function NewClientPage() {
     try {
       // Generate a new ID for the client document
       const newClientRef = doc(collection(firestore, `tenants/${tenantId}/users`));
-      
+
       const newClientData = {
         ...data,
         id: newClientRef.id, // Add the generated ID to the data
@@ -113,23 +113,23 @@ export default function NewClientPage() {
               <Label htmlFor="phoneNumber">{t.register.phone}</Label>
               <Input id="phoneNumber" type="tel" {...register('phoneNumber')} />
             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="birthDate">{t.studentDetail.birthDate}</Label>
-                    <Input id="birthDate" type="date" {...register('birthDate')} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="occupation">{t.studentDetail.occupation}</Label>
-                    <Input id="occupation" {...register('occupation')} />
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="birthDate">{t.studentDetail.birthDate}</Label>
+                <Input id="birthDate" type="date" {...register('birthDate')} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="occupation">{t.studentDetail.occupation}</Label>
+                <Input id="occupation" {...register('occupation')} />
+              </div>
             </div>
-             <div className="space-y-2">
-                <Label htmlFor="address">{t.studentDetail.address}</Label>
-                <Input id="address" {...register('address')} />
+            <div className="space-y-2">
+              <Label htmlFor="address">{t.studentDetail.address}</Label>
+              <Input id="address" {...register('address')} />
             </div>
-             <div className="space-y-2">
-                <Label htmlFor="objective">{t.studentDetail.objective}</Label>
-                <Textarea id="objective" {...register('objective')} placeholder="Ej: Ganar masa muscular, perder peso..."/>
+            <div className="space-y-2">
+              <Label htmlFor="objective">{t.studentDetail.objective}</Label>
+              <Textarea id="objective" {...register('objective')} placeholder="Ej: Ganar masa muscular, perder peso..." />
             </div>
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
