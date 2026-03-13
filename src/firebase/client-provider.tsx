@@ -10,6 +10,20 @@ import { initializeFirebase } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import { AutoLogout } from '@/components/auth/auto-logout';
 
+interface UserProfileContextType {
+  role: string | null;
+  isProfileComplete: boolean;
+  profileData: any | null;
+}
+
+const UserProfileContext = React.createContext<UserProfileContextType>({
+  role: null,
+  isProfileComplete: false,
+  profileData: null,
+});
+
+export const useUserProfile = () => React.useContext(UserProfileContext);
+
 interface FirebaseClientProviderProps {
   children: ReactNode;
 }
@@ -24,6 +38,9 @@ export function FirebaseClientProvider({
 }: FirebaseClientProviderProps) {
   const firebaseServices = useMemo(() => initializeFirebase(), []);
   const [user, setUser] = useState<User | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [profileData, setProfileData] = useState<any | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
   const router = useRouter();
@@ -67,36 +84,53 @@ export function FirebaseClientProvider({
     if (user) {
       // User is logged in, check profile status
       setIsProfileLoading(true); // Start profile check
-      const profileRef = doc(firebaseServices.firestore, `user_profile`, user.uid);
+      const profileRef = doc(firebaseServices.firestore, `users`, user.uid);
       getDoc(profileRef).then(profileSnap => {
         const data = profileSnap.data();
-        const isProfileComplete = data?.isProfileComplete;
-        const role = data?.role;
+        const profileRole = data?.role;
+        const profileComplete = data?.isProfileComplete || false;
+        
+        setRole(profileRole || null);
+        setIsProfileComplete(profileComplete);
+        setProfileData(data || null);
 
-        if (role === 'client') {
-          // Client Logic
-          if (!isProfileComplete) {
-            // If client profile is incomplete, redirect to CLIENT onboarding
-            // Assuming /clients/profile is the client onboarding equivalent
+        const isClientRoute = pathname.startsWith('/clients');
+        const isCoachRoute = !isClientRoute && !isPublicRoute && !pathname.startsWith('/admin');
+
+        if (profileRole === 'admin') {
+          // Admin Logic
+          if (isPublicRoute) {
+            router.push('/admin');
+          }
+        } else if (profileRole === 'client') {
+          // Client Logic: Redirect away from Coach routes
+          if (isCoachRoute) {
+            router.push('/clients/dashboard');
+            return;
+          }
+
+          if (!profileComplete) {
             const CLIENT_ONBOARDING = '/clients/profile';
             if (pathname !== CLIENT_ONBOARDING) {
               router.push(CLIENT_ONBOARDING);
             }
           } else {
-            // If profile is complete and on public route, go to client dashboard
             if (isPublicRoute) {
               router.push('/clients/dashboard');
             }
           }
         } else {
-          // Coach/Default Logic
-          if (!isProfileComplete) {
-            // Force redirect to coach onboarding
+          // Coach Logic: Redirect away from Client routes
+          if (isClientRoute) {
+            router.push('/dashboard');
+            return;
+          }
+
+          if (!profileComplete) {
             if (!isOnboardingRoute) {
               router.push(ONBOARDING_ROUTE);
             }
           } else {
-            // Profile is complete, if on public route, redirect to coach dashboard
             if (isPublicRoute) {
               router.push('/dashboard');
             }
@@ -139,8 +173,10 @@ export function FirebaseClientProvider({
       firestore={firebaseServices.firestore}
       storage={firebaseServices.storage}
     >
-      {user && <AutoLogout />}
-      {children}
+      <UserProfileContext.Provider value={{ role, isProfileComplete, profileData }}>
+        {user && <AutoLogout />}
+        {children}
+      </UserProfileContext.Provider>
     </FirebaseProvider>
   );
 }

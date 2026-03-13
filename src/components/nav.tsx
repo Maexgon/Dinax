@@ -32,6 +32,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { useLanguage } from '@/context/language-context';
 import { cn } from '@/lib/utils';
 import { useFirebase } from '@/firebase';
+import { useUserProfile } from '@/firebase/client-provider';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { signOut } from 'firebase/auth';
+import { ShieldCheck } from 'lucide-react';
 
 export function Nav() {
   const pathname = usePathname();
@@ -48,6 +50,7 @@ export function Nav() {
   const { t } = useLanguage();
   const { state } = useSidebar();
   const { user, auth } = useFirebase();
+  const { role } = useUserProfile();
 
   const navItems = React.useMemo(() => [
     { href: '/dashboard', icon: LayoutDashboard, label: t.nav.dashboard },
@@ -148,6 +151,14 @@ export function Nav() {
                     <span>Editar Perfil</span>
                   </Link>
                 </DropdownMenuItem>
+                {role === 'admin' && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin" className="text-orange-500 focus:text-orange-400">
+                      <ShieldCheck className="mr-2 h-4 w-4" />
+                      <span>Administración</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
