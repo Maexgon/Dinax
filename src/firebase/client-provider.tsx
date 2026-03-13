@@ -94,17 +94,23 @@ export function FirebaseClientProvider({
         setIsProfileComplete(profileComplete);
         setProfileData(data || null);
 
-        const isClientRoute = pathname.startsWith('/clients');
-        const isCoachRoute = !isClientRoute && !isPublicRoute && !pathname.startsWith('/admin');
+        // Distinguish between /clients (coach list) and /clients/dashboard (client portal)
+        const isClientPortal = pathname.startsWith('/clients/dashboard') || 
+                               pathname.startsWith('/clients/profile') || 
+                               pathname.startsWith('/clients/calendar');
+        
+        const isAdminRoute = pathname.startsWith('/admin');
+        const isCoachRoute = !isClientPortal && !isPublicRoute && !isAdminRoute;
 
         if (profileRole === 'admin') {
-          // Admin Logic
+          // Admin Logic: Admins can access everything, but redirect from public routes
           if (isPublicRoute) {
             router.push('/admin');
           }
+          // Admins are NOT restricted from coach or client routes
         } else if (profileRole === 'client') {
-          // Client Logic: Redirect away from Coach routes
-          if (isCoachRoute) {
+          // Client Logic: Redirect away from Coach or Admin routes
+          if (isCoachRoute || isAdminRoute) {
             router.push('/clients/dashboard');
             return;
           }
@@ -120,8 +126,8 @@ export function FirebaseClientProvider({
             }
           }
         } else {
-          // Coach Logic: Redirect away from Client routes
-          if (isClientRoute) {
+          // Coach Logic: Redirect away from Client Portal or Admin routes
+          if (isClientPortal || isAdminRoute) {
             router.push('/dashboard');
             return;
           }
