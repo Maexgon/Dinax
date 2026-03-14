@@ -34,12 +34,15 @@ export type GenerateDayPlanInput = z.infer<typeof GenerateDayPlanInputSchema>;
 // --- Output Schemas ---
 const PlannedExerciseSchema = z.object({
   id: z.string().describe("The ID of the exercise from the provided library."),
+  planId: z.string().optional().describe("A unique ID for this instance in the plan."),
   name: z.string().describe("The name of the exercise."),
   sets: z.string().describe("The number of sets, e.g., '3-4' or '3'."),
   reps: z.string().describe("The repetition range, e.g., '8-12' or '15'."),
   rpe: z.string().describe("The Rate of Perceived Exertion on a scale of 1-10."),
   rest: z.string().describe("The rest time in seconds, e.g., '90'."),
   duration: z.string().describe("The estimated duration for the exercise in minutes, e.g., '10'."),
+  muscleGroups: z.array(z.string()).optional(),
+  imageUrl: z.string().optional(),
 });
 
 const GenerateDayPlanOutputSchema = z.object({
@@ -109,6 +112,6 @@ const generateDayPlanFlow = ai.defineFlow(
         };
     });
 
-    return output;
+    return output as GenerateDayPlanOutput;
   }
 );

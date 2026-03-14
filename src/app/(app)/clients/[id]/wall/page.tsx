@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   MessageSquare,
   CalendarDays,
@@ -95,9 +96,9 @@ export default function ClientWallPage() {
             <div className="flex items-center gap-4">
                 <div>
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                        <a onClick={() => router.push('/clients')} className="hover:text-primary transition-colors cursor-pointer">{t.nav.clients}</a>
+                        <Link href="/clients" className="hover:text-primary transition-colors cursor-pointer">{t.nav.clients}</Link>
                         <ChevronRight className="h-4 w-4" />
-                        <a onClick={() => router.push(`/clients/${clientId}`)} className="hover:text-primary transition-colors cursor-pointer">{client.name}</a>
+                        <Link href={`/clients/${clientId}`} className="hover:text-primary transition-colors cursor-pointer">{client.name}</Link>
                         <ChevronRight className="h-4 w-4" />
                         <span className="text-foreground font-medium">Muro de Seguimiento</span>
                     </div>
@@ -110,10 +111,10 @@ export default function ClientWallPage() {
                     <span className="hidden lg:inline">Reporte</span>
                 </Button>
                 <Button asChild>
-                    <a href="/schedule/new">
+                    <Link href="/schedule/new">
                         <CalendarDays className="mr-2 h-4 w-4" />
                         <span>Nueva Sesión</span>
-                    </a>
+                    </Link>
                 </Button>
             </div>
         </header>

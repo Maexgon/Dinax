@@ -180,15 +180,17 @@ export default function NewClientPage() {
     try {
       const newClientRef = doc(collection(firestore, `tenants/${tenantId}/user_profile`));
       
-      const newClientData = {
-        ...data,
-        id: newClientRef.id,
-        name: `${data.firstName} ${data.lastName}`,
-        tenantId,
-        joinDate: new Date().toISOString().split('T')[0],
-        progress: 0,
-        createdAt: serverTimestamp(),
-      };
+      const newClientData = Object.fromEntries(
+        Object.entries({
+          ...data,
+          id: newClientRef.id,
+          name: `${data.firstName} ${data.lastName}`,
+          tenantId,
+          joinDate: new Date().toISOString().split('T')[0],
+          progress: 0,
+          createdAt: serverTimestamp(),
+        }).filter(([_, v]) => v !== undefined)
+      );
 
       await addDocumentNonBlocking(newClientRef, newClientData);
 

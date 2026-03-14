@@ -14,6 +14,7 @@ import {
   LogOut,
   User,
   Package,
+  Library,
 } from 'lucide-react';
 import React from 'react';
 
@@ -58,6 +59,7 @@ export function Nav() {
     { href: '/schedule', icon: Calendar, label: t.nav.schedule },
     { href: '/payments', icon: Wallet, label: t.nav.finances },
     { href: '/plans', icon: Dumbbell, label: t.plans.title },
+    { href: '/plans/exercises', icon: Library, label: t.nav.exerciseLibrary },
     { href: '/services', icon: Package, label: t.nav.services },
     { href: '/ai-goals', icon: Bot, label: t.aiGoals.title },
   ], [t]);
@@ -75,7 +77,7 @@ export function Nav() {
     <Sidebar>
       <SidebarRail />
       <SidebarHeader className="flex items-center justify-between">
-        <div className={cn("flex items-center gap-2", state === 'collapsed' && 'justify-center')}>
+        <Link href="/dashboard" className={cn("flex items-center gap-2", state === 'collapsed' && 'justify-center')}>
           <Image src="https://i.ibb.co/yFR9LGPD/dinax.png" alt="Dinax Logo" width={50} height={50} data-ai-hint="logo" />
           <span
             className={cn(
@@ -85,17 +87,24 @@ export function Nav() {
           >
             Dinax
           </span>
-        </div>
+        </Link>
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {navItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname.startsWith(item.href)}
-                tooltip={item.label}
-              >
+          {navItems.map((item) => {
+            // Prioritize the most specific (longest) match
+            const isActive = pathname === item.href || 
+              (item.href !== '/dashboard' && 
+               pathname.startsWith(item.href + '/') && 
+               !navItems.some(other => other.href.length > item.href.length && pathname.startsWith(other.href)));
+
+            return (
+              <SidebarMenuItem key={item.href}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  tooltip={item.label}
+                >
                 <Link href={item.href}>
                   <item.icon />
                   <span
@@ -106,9 +115,10 @@ export function Nav() {
                     {item.label}
                   </span>
                 </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>

@@ -404,7 +404,7 @@ export default function CreatePlanPage() {
                     if (response.success && response.data) {
                         newWeekData[dayId] = {
                             ...newWeekData[dayId],
-                            exercises: response.data.exercises,
+                            exercises: response.data.exercises as PlannedExercise[],
                         };
                     } else {
                         throw new Error(`Failed to generate plan for ${day.day}: ${response.error}`);
@@ -538,7 +538,7 @@ export default function CreatePlanPage() {
         <div className="flex flex-col h-full">
             <header className="flex flex-wrap items-center justify-between gap-4 mb-6">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                    <a onClick={() => router.push('/plans')} className="hover:text-primary transition-colors cursor-pointer">{t.plans.title}</a>
+                    <Link href="/plans" className="hover:text-primary transition-colors cursor-pointer">{t.plans.title}</Link>
                     <span>/</span>
                     <span>{planIdFromParams ? 'Editar Plan' : t.plans.createNewPlan}</span>
                 </div>

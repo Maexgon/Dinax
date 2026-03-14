@@ -148,6 +148,7 @@ export const translations = {
       finances: "Finanzas",
       settings: "Ajustes",
       services: "Planes de Servicios",
+      exerciseLibrary: "Biblioteca de Ejercicios",
       coachSara: "Coach Sara",
       proAccount: "Pro Account"
     },
@@ -383,6 +384,7 @@ export const translations = {
     plans: {
       title: "Planes de Entrenamiento",
       description: "Crea y gestiona planes de entrenamiento personalizados para tus clientes.",
+      viewDetail: "Ver Detalle",
       createNewPlan: "Crear Nuevo Plan",
       addNewExercise: "Añadir Nuevo Ejercicio",
       newExerciseDescription: "Completa la ficha técnica para añadir un nuevo movimiento a la biblioteca.",
@@ -751,6 +753,7 @@ export const translations = {
       finances: "Finances",
       settings: "Settings",
       services: "Service Plans",
+      exerciseLibrary: "Exercise Library",
       coachSara: "Coach Sara",
       proAccount: "Pro Account"
     },
@@ -986,6 +989,7 @@ export const translations = {
     plans: {
       title: "Training Plans",
       description: "Create and manage customized workout plans for your clients.",
+      viewDetail: "View Details",
       createNewPlan: "Create New Plan",
       addNewExercise: "Add New Exercise",
       newExerciseDescription: "Fill out the data sheet to add a new movement to the library.",

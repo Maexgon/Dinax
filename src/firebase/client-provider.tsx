@@ -76,106 +76,82 @@ export function FirebaseClientProvider({
     return () => unsubscribe();
   }, [firebaseServices.auth]);
 
+  // Fetch profile data only when user changes
   useEffect(() => {
-    if (isAuthLoading) {
-      return; // Wait until auth state is determined
+    if (isAuthLoading || !user) {
+      setIsProfileLoading(false);
+      return;
     }
+
+    setIsProfileLoading(true);
+    const profileRef = doc(firebaseServices.firestore, `user_profile`, user.uid);
+    getDoc(profileRef)
+      .then((profileSnap) => {
+        const data = profileSnap.data();
+        setRole(data?.role || null);
+        setIsProfileComplete(data?.isProfileComplete || false);
+        setForcePasswordChange(data?.forcePasswordChange || false);
+        setProfileData(data || null);
+      })
+      .catch((error) => {
+        console.error('Error fetching user profile:', error);
+      })
+      .finally(() => {
+        setIsProfileLoading(false);
+      });
+  }, [user, isAuthLoading, firebaseServices.firestore]);
+
+  // Handle redirects when pathname, user, or profile data changes
+  useEffect(() => {
+    if (isAuthLoading || isProfileLoading) return;
 
     const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
     const isOnboardingRoute = pathname === ONBOARDING_ROUTE;
 
-    if (user) {
-      // User is logged in, check profile status
-      setIsProfileLoading(true); // Start profile check
-      const profileRef = doc(firebaseServices.firestore, `user_profile`, user.uid);
-      getDoc(profileRef).then(profileSnap => {
-        const data = profileSnap.data();
-        const profileRole = data?.role;
-        const profileComplete = data?.isProfileComplete || false;
-        const forceReset = data?.forcePasswordChange || false;
-        
-        setRole(profileRole || null);
-        setIsProfileComplete(profileComplete);
-        setForcePasswordChange(forceReset);
-        setProfileData(data || null);
-
-        const isClientPortal = pathname.startsWith('/clients/dashboard') || 
-                               pathname.startsWith('/clients/profile') || 
-                               pathname.startsWith('/clients/calendar');
-
-        const isAdminRoute = pathname.startsWith('/admin');
-        const isAuthRoute = pathname.startsWith('/auth');
-        const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
-        const isCoachRoute = !isClientPortal && !isPublicRoute && !isAdminRoute && !isAuthRoute;
-
-        // Force password change redirect - highest priority
-        if (forceReset) {
-          if (pathname !== '/auth/change-password' && !isPublicRoute) {
-            router.push('/auth/change-password');
-            return;
-          }
-          if (pathname === '/auth/change-password') {
-            return; // Stay here, don't execute onboarding or other redirects
-          }
-        }
-
-        if (profileRole === 'admin') {
-          // Admin Logic: Admins can access everything, but redirect from public routes
-          if (isPublicRoute) {
-            router.push('/admin');
-          }
-          // Admins are NOT restricted from coach or client routes
-        } else if (profileRole === 'client') {
-          // Client Logic: Redirect away from Coach or Admin routes
-          if (isCoachRoute || isAdminRoute) {
-            router.push('/clients/dashboard');
-            return;
-          }
-
-          if (!profileComplete) {
-            const CLIENT_ONBOARDING = '/clients/profile';
-            if (pathname !== CLIENT_ONBOARDING) {
-              router.push(CLIENT_ONBOARDING);
-            }
-          } else {
-            if (isPublicRoute) {
-              router.push('/clients/dashboard');
-            }
-          }
-        } else {
-          // Coach Logic: Redirect away from Client Portal or Admin routes
-          if (isClientPortal || isAdminRoute) {
-            router.push('/dashboard');
-            return;
-          }
-
-          if (!profileComplete) {
-            if (!isOnboardingRoute) {
-              router.push(ONBOARDING_ROUTE);
-            }
-          } else {
-            if (isPublicRoute) {
-              router.push('/dashboard');
-            }
-          }
-        }
-      }).catch(error => {
-        console.error("Error checking user profile, proceeding with default navigation.", error);
-        // If error, try to guess based on context or just fallback to dashboard
-        if (isPublicRoute) {
-          router.push('/dashboard');
-        }
-      }).finally(() => {
-        setIsProfileLoading(false); // Finish profile check
-      });
-    } else {
-      // User is not logged in
-      setIsProfileLoading(false); // No profile to load
+    if (!user) {
       if (!isPublicRoute) {
         router.push('/login');
       }
+      return;
     }
-  }, [user, isAuthLoading, pathname, router, firebaseServices.firestore]);
+
+    // Role-based redirection logic
+    const isClientPortal = pathname.startsWith('/clients/dashboard') || 
+                           pathname.startsWith('/clients/profile') || 
+                           pathname.startsWith('/clients/calendar');
+
+    const isAdminRoute = pathname.startsWith('/admin');
+    const isAuthRoute = pathname.startsWith('/auth');
+    const isCoachRoute = !isClientPortal && !isPublicRoute && !isAdminRoute && !isAuthRoute;
+
+    if (forcePasswordChange) {
+      if (pathname !== '/auth/change-password' && !isPublicRoute) {
+        router.push('/auth/change-password');
+        return;
+      }
+    }
+
+    if (role === 'admin') {
+      if (isPublicRoute) router.push('/admin');
+    } else if (role === 'client') {
+      if (isCoachRoute || isAdminRoute) {
+        router.push('/clients/dashboard');
+      } else if (!isProfileComplete && pathname !== '/clients/profile') {
+        router.push('/clients/profile');
+      } else if (isPublicRoute) {
+        router.push('/clients/dashboard');
+      }
+    } else {
+      // Coach
+      if (isClientPortal || isAdminRoute) {
+        router.push('/dashboard');
+      } else if (!isProfileComplete && !isOnboardingRoute) {
+        router.push(ONBOARDING_ROUTE);
+      } else if (isPublicRoute) {
+        router.push('/dashboard');
+      }
+    }
+  }, [user, isAuthLoading, isProfileLoading, pathname, router, role, isProfileComplete, forcePasswordChange]);
 
   // Show a loader while we are determining auth state OR checking the profile.
   const isLoading = isAuthLoading || (user && isProfileLoading && !PUBLIC_ROUTES.includes(pathname));

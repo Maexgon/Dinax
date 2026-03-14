@@ -1,5 +1,5 @@
 
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp, FieldValue } from 'firebase/firestore';
 
 export type Client = {
   id: string;
@@ -189,8 +189,8 @@ export type Mesocycle = {
       }
     }
   };
-  createdAt?: Timestamp;
-  updatedAt?: Timestamp;
+  createdAt?: Timestamp | FieldValue;
+  updatedAt?: Timestamp | FieldValue;
 };
 
 export type PlanSummary = {

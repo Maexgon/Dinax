@@ -257,9 +257,13 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
         }
     }, [latestMedicalHistory, medicalForm]);
 
+    const cleanData = (obj: any) => {
+        return Object.fromEntries(Object.entries(obj).filter(([_, v]) => v !== undefined));
+    };
+
     const onClientSubmit = async (data: ClientFormData) => {
         if (!clientDocRef) return;
-        const dataToSave = { name: `${data.firstName} ${data.lastName}`, ...data };
+        const dataToSave = cleanData({ name: `${data.firstName} ${data.lastName}`, ...data });
         await updateDocumentNonBlocking(clientDocRef, dataToSave);
         toast({ variant: 'success', title: 'Perfil Actualizado', description: 'Los datos del cliente han sido guardados.' });
     };
@@ -267,7 +271,13 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     const onBiomechanicsSubmit = async (data: BiomechanicsFormData) => {
         if (!firestore || !tenantId || !clientId) return;
         const newBiomechanicsRef = doc(collection(firestore, `tenants/${tenantId}/user_profile/${clientId}/biomechanics`));
-        const dataToSave = { ...data, id: newBiomechanicsRef.id, createdAt: serverTimestamp(), bmi: parseFloat(calculatedBmi), height: data.height ? data.height / 100 : 0 };
+        const dataToSave = cleanData({ 
+            ...data, 
+            id: newBiomechanicsRef.id, 
+            createdAt: serverTimestamp(), 
+            bmi: parseFloat(calculatedBmi), 
+            height: data.height ? data.height / 100 : 0 
+        });
         await addDocumentNonBlocking(newBiomechanicsRef, dataToSave);
         toast({ variant: 'success', title: 'Evaluación Guardada', description: 'La nueva evaluación biomecánica ha sido guardada.' });
     }
@@ -275,7 +285,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     const onMedicalSubmit = async (data: MedicalHistoryFormData) => {
         if (!firestore || !tenantId || !clientId) return;
         const newMedicalRef = doc(collection(firestore, `tenants/${tenantId}/user_profile/${clientId}/medicalHistory`));
-        const dataToSave = {
+        const dataToSave = cleanData({
             ...data,
             id: newMedicalRef.id,
             createdAt: serverTimestamp(),
@@ -284,7 +294,7 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
             preexistingInjuries: data.preexistingInjuries?.map(i => i.value),
             previousSurgeries: data.previousSurgeries?.map(i => i.value),
             medicalRestrictions: data.medicalRestrictions?.map(i => i.value),
-        };
+        });
         await addDocumentNonBlocking(newMedicalRef, dataToSave);
         toast({ variant: 'success', title: 'Datos Médicos Guardados', description: 'El historial médico del cliente ha sido actualizado.' });
     }
@@ -341,6 +351,19 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
     const filteredTemplates = useMemo(() => {
         return planTemplates?.filter(t => t.name.toLowerCase().includes(searchTerm.toLowerCase())) || [];
     }, [planTemplates, searchTerm]);
+
+    const handleAddTag = () => {
+        const currentTags = clientForm.getValues('tags') || [];
+        const newTag = prompt(t.clientDetail.addTag || "Nueva etiqueta");
+        if (newTag && newTag.trim() !== '') {
+            clientForm.setValue('tags', [...currentTags, newTag.trim()], { shouldDirty: true });
+        }
+    };
+
+    const handleRemoveTag = (tagToRemove: string) => {
+        const currentTags = clientForm.getValues('tags') || [];
+        clientForm.setValue('tags', currentTags.filter(t => t !== tagToRemove), { shouldDirty: true });
+    };
 
     const handleAssignPlan = async () => {
         if (!selectedTemplateId || !firestore || !tenantId || !clientId) return;
@@ -728,8 +751,16 @@ export default function ClientDetailClientPage({ clientId }: { clientId: string 
                                                 <div className="space-y-2">
                                                     <Label>{t.clientDetail.tags}</Label>
                                                     <div className="flex flex-wrap gap-2">
-                                                        {client.trainingDays?.map(tag => (<Badge key={tag} variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 dark:bg-primary/20 dark:text-primary/90 dark:border-primary/30">{tag} <X className="ml-1 h-3 w-3 cursor-pointer" /></Badge>))}
-                                                        <Button variant="outline" size="sm" className="text-muted-foreground"><Plus className="mr-1 h-3 w-3" />{t.clientDetail.addTag}</Button>
+                                                        {(clientValues.tags || []).map(tag => (
+                                                            <Badge key={tag} variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200 dark:bg-primary/20 dark:text-primary/90 dark:border-primary/30">
+                                                                {tag}
+                                                                <X className="ml-1 h-3 w-3 cursor-pointer" onClick={() => handleRemoveTag(tag)} />
+                                                            </Badge>
+                                                        ))}
+                                                        <Button type="button" variant="outline" size="sm" className="text-muted-foreground" onClick={handleAddTag}>
+                                                            <Plus className="mr-1 h-3 w-3" />
+                                                            {t.clientDetail.addTag}
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             </div>
