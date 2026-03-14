@@ -45,7 +45,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getTenantsList, createUser, updateUserRole, resetUserPassword, suspendUser } from '../actions';
+import { 
+  getTenantsList, 
+  createUser, 
+  updateUserRole, 
+  resetUserPassword, 
+  suspendUser,
+  setUserPassword 
+} from '../actions';
 import { useToast } from "@/hooks/use-toast";
 
 export default function TenantManagement() {
@@ -64,6 +71,11 @@ export default function TenantManagement() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [newRole, setNewRole] = useState('');
   const [isUpdatingRole, setIsUpdatingRole] = useState(false);
+
+  // Set Password State
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [tempPassword, setTempPassword] = useState('');
+  const [isSettingPassword, setIsSettingPassword] = useState(false);
 
   const fetchTenants = async () => {
     setLoading(true);
@@ -103,6 +115,23 @@ export default function TenantManagement() {
       toast({ title: "Error", description: result.error, variant: "destructive" });
     }
     setIsUpdatingRole(false);
+  };
+
+  const handleSetPassword = async () => {
+    if (!selectedUser || !tempPassword) return;
+    setIsSettingPassword(true);
+    const result = await setUserPassword(selectedUser.id, tempPassword, true);
+    if (result.success) {
+      toast({ 
+        title: "Password Updated", 
+        description: `A provisional password was set for ${selectedUser.name}. They will be forced to change it on next login.` 
+      });
+      setIsPasswordModalOpen(false);
+      setTempPassword('');
+    } else {
+      toast({ title: "Error", description: result.error, variant: "destructive" });
+    }
+    setIsSettingPassword(false);
   };
 
   const handleSuspend = async (uid: string, currentStatus: string) => {
@@ -307,10 +336,20 @@ export default function TenantManagement() {
                                <UserCog className="mr-2 h-4 w-4" /> Change Role
                             </DropdownMenuItem>
                             <DropdownMenuItem 
+                              onClick={() => {
+                                setSelectedUser(tenant);
+                                setTempPassword('');
+                                setIsPasswordModalOpen(true);
+                              }}
+                              className="focus:bg-zinc-800 focus:text-white cursor-pointer px-3 py-2"
+                            >
+                               <Key className="mr-2 h-4 w-4" /> Set Provisory Password
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
                               onClick={() => handlePasswordReset(tenant.email)}
                               className="focus:bg-zinc-800 focus:text-white cursor-pointer px-3 py-2"
                             >
-                               <Key className="mr-2 h-4 w-4" /> Reset Password
+                               <Mail className="mr-2 h-4 w-4" /> Send Reset Email
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-zinc-800" />
                             <DropdownMenuItem 
@@ -370,6 +409,41 @@ export default function TenantManagement() {
               className="bg-orange-500 hover:bg-orange-600 text-zinc-950"
             >
               {isUpdatingRole ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Set Password Modal */}
+      <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
+        <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+          <DialogHeader>
+            <DialogTitle>Set Provisory Password</DialogTitle>
+            <DialogDescription className="text-zinc-400">
+              This will update the password for {selectedUser?.name}. 
+              The user will be required to change it upon their next login.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">New Provisory Password</label>
+              <Input 
+                type="password"
+                value={tempPassword} 
+                onChange={e => setTempPassword(e.target.value)}
+                placeholder="Enter temporary password" 
+                className="bg-zinc-950 border-zinc-800"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsPasswordModalOpen(false)}>Cancel</Button>
+            <Button 
+              onClick={handleSetPassword} 
+              disabled={isSettingPassword || !tempPassword}
+              className="bg-orange-500 hover:bg-orange-600 text-zinc-950"
+            >
+              {isSettingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update Password"}
             </Button>
           </DialogFooter>
         </DialogContent>

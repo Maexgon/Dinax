@@ -13,12 +13,14 @@ import { AutoLogout } from '@/components/auth/auto-logout';
 interface UserProfileContextType {
   role: string | null;
   isProfileComplete: boolean;
+  forcePasswordChange: boolean;
   profileData: any | null;
 }
 
 const UserProfileContext = React.createContext<UserProfileContextType>({
   role: null,
   isProfileComplete: false,
+  forcePasswordChange: false,
   profileData: null,
 });
 
@@ -40,6 +42,7 @@ export function FirebaseClientProvider({
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [forcePasswordChange, setForcePasswordChange] = useState(false);
   const [profileData, setProfileData] = useState<any | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
@@ -89,18 +92,27 @@ export function FirebaseClientProvider({
         const data = profileSnap.data();
         const profileRole = data?.role;
         const profileComplete = data?.isProfileComplete || false;
+        const forceReset = data?.forcePasswordChange || false;
         
         setRole(profileRole || null);
         setIsProfileComplete(profileComplete);
+        setForcePasswordChange(forceReset);
         setProfileData(data || null);
 
-        // Distinguish between /clients (coach list) and /clients/dashboard (client portal)
         const isClientPortal = pathname.startsWith('/clients/dashboard') || 
                                pathname.startsWith('/clients/profile') || 
                                pathname.startsWith('/clients/calendar');
         
         const isAdminRoute = pathname.startsWith('/admin');
+        const isAuthRoute = pathname.startsWith('/auth');
+        const isPublicRoute = PUBLIC_ROUTES.includes(pathname) || isAuthRoute;
         const isCoachRoute = !isClientPortal && !isPublicRoute && !isAdminRoute;
+
+        // Force password change redirect
+        if (forceReset && pathname !== '/auth/change-password' && !isPublicRoute) {
+          router.push('/auth/change-password');
+          return;
+        }
 
         if (profileRole === 'admin') {
           // Admin Logic: Admins can access everything, but redirect from public routes
@@ -179,7 +191,7 @@ export function FirebaseClientProvider({
       firestore={firebaseServices.firestore}
       storage={firebaseServices.storage}
     >
-      <UserProfileContext.Provider value={{ role, isProfileComplete, profileData }}>
+      <UserProfileContext.Provider value={{ role, isProfileComplete, forcePasswordChange, profileData }}>
         {user && <AutoLogout />}
         {children}
       </UserProfileContext.Provider>

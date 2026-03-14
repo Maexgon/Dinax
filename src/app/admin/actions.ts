@@ -217,6 +217,25 @@ export async function resetUserPassword(email: string) {
     }
 }
 
+export async function setUserPassword(uid: string, password: string, forceReset: boolean = true) {
+    const auth = getAdminAuth();
+    const db = getAdminFirestore();
+    try {
+        await auth.updateUser(uid, { password });
+        
+        if (forceReset) {
+            await db.collection('users').doc(uid).update({ 
+                forcePasswordChange: true 
+            });
+        }
+        
+        return { success: true };
+    } catch (error: any) {
+        console.error('Error setting user password:', error);
+        return { success: false, error: error.message };
+    }
+}
+
 export async function suspendUser(uid: string, suspend: boolean = true) {
     const auth = getAdminAuth();
     const db = getAdminFirestore();
