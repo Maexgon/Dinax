@@ -57,7 +57,7 @@ export default function TenantManagement() {
   // Create User State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [newUser, setNewUser] = useState({ name: '', email: '', role: 'coach' });
+  const [newUser, setNewUser] = useState({ name: '', email: '', role: 'coach', password: '' });
 
   // Role Change State
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
@@ -83,7 +83,7 @@ export default function TenantManagement() {
     if (result.success) {
       toast({ title: "User created", description: `${newUser.name} has been added.` });
       setIsAddModalOpen(false);
-      setNewUser({ name: '', email: '', role: 'coach' });
+      setNewUser({ name: '', email: '', role: 'coach', password: '' });
       fetchTenants();
     } else {
       toast({ title: "Error", description: result.error, variant: "destructive" });
@@ -179,6 +179,17 @@ export default function TenantManagement() {
                     placeholder="john@example.com" 
                     className="bg-zinc-950 border-zinc-800"
                   />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Password</label>
+                  <Input 
+                    type="password"
+                    value={newUser.password} 
+                    onChange={e => setNewUser({...newUser, password: e.target.value})}
+                    placeholder="Min. 6 characters" 
+                    className="bg-zinc-950 border-zinc-800"
+                  />
+                  <p className="text-[10px] text-zinc-500">If left blank, a random password will be generated.</p>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Initial Role</label>

@@ -135,19 +135,20 @@ export async function getAuthEvents() {
     }
 }
 
-export async function createUser(data: { email: string; name: string; role: string }) {
+export async function createUser(data: { email: string; name: string; role: string; password?: string }) {
     const auth = getAdminAuth();
     const db = getAdminFirestore();
     try {
-        // Create in Firebase Auth
+        // 1. Create in Firebase Auth
         const userRecord = await auth.createUser({
             email: data.email,
             displayName: data.name,
+            password: data.password || Math.random().toString(36).slice(-10), // Random if not provided
         });
 
         const [firstName, ...lastName] = data.name.split(' ');
 
-        // Create in Firestore 'users' collection
+        // 2. Create in Firestore 'users' collection
         await db.collection('users').doc(userRecord.uid).set({
             id: userRecord.uid,
             email: data.email,
@@ -157,7 +158,29 @@ export async function createUser(data: { email: string; name: string; role: stri
             role: data.role,
             isProfileComplete: false,
             createdAt: new Date(),
+            status: 'active'
         });
+
+        // 3. If it's a coach, create a tenant record
+        if (data.role === 'coach') {
+            await db.collection('tenants').doc(userRecord.uid).set({
+                id: userRecord.uid,
+                name: `${data.name}'s Gym`,
+                ownerId: userRecord.uid,
+                ownerEmail: data.email,
+                createdAt: new Date(),
+                status: 'active',
+                settings: {
+                    theme: 'orange',
+                    language: 'es'
+                }
+            });
+            
+            // Also update the user to link the tenantId
+            await db.collection('users').doc(userRecord.uid).update({
+                tenantId: userRecord.uid
+            });
+        }
 
         return { success: true, uid: userRecord.uid };
     } catch (error: any) {
