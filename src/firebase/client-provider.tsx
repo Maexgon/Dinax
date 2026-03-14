@@ -102,16 +102,21 @@ export function FirebaseClientProvider({
         const isClientPortal = pathname.startsWith('/clients/dashboard') || 
                                pathname.startsWith('/clients/profile') || 
                                pathname.startsWith('/clients/calendar');
-        
+
         const isAdminRoute = pathname.startsWith('/admin');
         const isAuthRoute = pathname.startsWith('/auth');
-        const isPublicRoute = PUBLIC_ROUTES.includes(pathname) || isAuthRoute;
-        const isCoachRoute = !isClientPortal && !isPublicRoute && !isAdminRoute;
+        const isPublicRoute = PUBLIC_ROUTES.includes(pathname);
+        const isCoachRoute = !isClientPortal && !isPublicRoute && !isAdminRoute && !isAuthRoute;
 
-        // Force password change redirect
-        if (forceReset && pathname !== '/auth/change-password' && !isPublicRoute) {
-          router.push('/auth/change-password');
-          return;
+        // Force password change redirect - highest priority
+        if (forceReset) {
+          if (pathname !== '/auth/change-password' && !isPublicRoute) {
+            router.push('/auth/change-password');
+            return;
+          }
+          if (pathname === '/auth/change-password') {
+            return; // Stay here, don't execute onboarding or other redirects
+          }
         }
 
         if (profileRole === 'admin') {
