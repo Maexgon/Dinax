@@ -87,7 +87,7 @@ export function FirebaseClientProvider({
     if (user) {
       // User is logged in, check profile status
       setIsProfileLoading(true); // Start profile check
-      const profileRef = doc(firebaseServices.firestore, `users`, user.uid);
+      const profileRef = doc(firebaseServices.firestore, `user_profile`, user.uid);
       getDoc(profileRef).then(profileSnap => {
         const data = profileSnap.data();
         const profileRole = data?.role;
