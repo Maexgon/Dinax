@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useFirebase, useDoc, useMemoFirebase, setDocumentNonBlocking } from '@/firebase';
 import { doc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/context/language-context';
 
@@ -92,6 +93,7 @@ export default function ProfilePage() {
   const { t } = useLanguage();
   const { firestore, user } = useFirebase();
   const { toast } = useToast();
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   
@@ -173,7 +175,8 @@ export default function ProfilePage() {
         delete (dataToSave as { email?: string }).email;
       }
       
-      if (userData && !userData.isProfileComplete) {
+      const isFirstTimeComplete = userData && !userData.isProfileComplete;
+      if (isFirstTimeComplete) {
         dataToSave.isProfileComplete = true;
       }
 
@@ -184,6 +187,10 @@ export default function ProfilePage() {
         title: 'Perfil Actualizado',
         description: 'Tus datos han sido guardados correctamente.',
       });
+
+      if (isFirstTimeComplete) {
+        router.push('/dashboard');
+      }
     } catch (error: any) {
         toast({
             variant: 'destructive',

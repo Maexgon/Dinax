@@ -136,8 +136,6 @@ export function FirebaseClientProvider({
     } else if (role === 'client') {
       if (isCoachRoute || isAdminRoute) {
         router.push('/clients/dashboard');
-      } else if (!isProfileComplete && pathname !== '/clients/profile') {
-        router.push('/clients/profile');
       } else if (isPublicRoute) {
         router.push('/clients/dashboard');
       }

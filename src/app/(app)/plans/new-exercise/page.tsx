@@ -226,7 +226,7 @@ export default function NewExercisePage() {
       await addDocumentNonBlocking(newExerciseRef, newExerciseData);
 
       toast({ variant: 'success', title: 'Ejercicio Creado', description: `El ejercicio ${data.name} ha sido añadido a tu biblioteca.` });
-      router.push('/plans');
+      router.push('/plans/exercises');
 
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error al crear ejercicio', description: error.message || 'Ocurrió un error inesperado.' });
