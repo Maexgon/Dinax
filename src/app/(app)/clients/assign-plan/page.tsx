@@ -112,8 +112,8 @@ export default function AssignPlanPage() {
         await addDocumentNonBlocking(newAssignmentRef, assignmentData);
         toast({
             variant: 'success',
-            title: "Plan Asignado",
-            description: `El plan ${selectedPlan?.name} ha sido asignado a ${selectedClient?.name}.`
+            title: "Servicio Asignado",
+            description: `El servicio comercial ${selectedPlan?.name} ha sido asignado a ${selectedClient?.name}.`
         });
         router.push('/clients');
     } catch(e: any) {

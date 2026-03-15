@@ -237,7 +237,7 @@ export default function EditExercisePage() {
     try {
       await updateDocumentNonBlocking(exerciseDocRef, data);
       toast({ variant: 'success', title: 'Ejercicio Actualizado', description: `El ejercicio ${data.name} ha sido guardado.` });
-      router.push('/plans');
+      router.push('/plans/exercises');
 
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Error al actualizar', description: error.message || 'Ocurrió un error inesperado.' });

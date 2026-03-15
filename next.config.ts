@@ -3,6 +3,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  serverExternalPackages: ['firebase', 'firebase-admin', '@firebase/firestore'],
   typescript: {
     ignoreBuildErrors: true,
   },

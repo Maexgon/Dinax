@@ -51,7 +51,7 @@ export function Nav() {
   const { t } = useLanguage();
   const { state } = useSidebar();
   const { user, auth } = useFirebase();
-  const { role } = useUserProfile();
+  const { role, profileData } = useUserProfile();
 
   const navItems = React.useMemo(() => [
     { href: '/dashboard', icon: LayoutDashboard, label: t.nav.dashboard },
@@ -69,8 +69,12 @@ export function Nav() {
     router.push('/login');
   };
 
-  const userDisplayName = user?.displayName || user?.email?.split('@')[0] || "User";
-  const userInitials = (user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U').toUpperCase();
+  const userDisplayName = (profileData?.firstName && profileData?.lastName) 
+    ? `${profileData.firstName} ${profileData.lastName}` 
+    : user?.displayName || user?.email?.split('@')[0] || "User";
+  const userInitials = profileData?.firstName 
+    ? profileData.firstName.charAt(0).toUpperCase() 
+    : (user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U').toUpperCase();
 
 
   return (
@@ -140,7 +144,7 @@ export function Nav() {
               <DropdownMenuTrigger asChild>
                 <button className={cn("flex items-center w-full gap-3 p-2 rounded-md hover:bg-sidebar-accent", state === 'collapsed' && 'justify-center')}>
                   <Avatar className="h-10 w-10">
-                    <AvatarImage src={user?.photoURL || ''} alt={userDisplayName} />
+                    <AvatarImage src={profileData?.avatarUrl || user?.photoURL || ''} alt={userDisplayName} />
                     <AvatarFallback>{userInitials}</AvatarFallback>
                   </Avatar>
                   <div className={cn(
