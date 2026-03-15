@@ -42,8 +42,8 @@ export async function POST(req: Request) {
       if (text.startsWith('/start ')) {
         const pairingCode = text.split(' ')[1].toUpperCase();
 
-        // Find the user with this auth code using collection group query
-        const usersSnapshot = await db.collectionGroup('user_profile')
+        // Find the user with this auth code
+        const usersSnapshot = await db.collection('user_profile')
             .where('telegramAuthCode', '==', pairingCode)
             .limit(1)
             .get();
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
       }
 
       // Check if this Telegram Chat ID is linked to any Dinax user
-      const linkedUsers = await db.collectionGroup('user_profile')
+      const linkedUsers = await db.collection('user_profile')
         .where('telegramChatId', '==', chatId)
         .limit(1)
         .get();
