@@ -63,7 +63,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isAdmin === null) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-zinc-950">
+      <div className="flex h-screen w-full items-center justify-center bg-background">
         <Activity className="h-8 w-8 animate-spin text-orange-500" />
       </div>
     );
@@ -77,18 +77,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   ];
 
   return (
-    <div className="flex h-screen w-full bg-zinc-950 text-zinc-100 overflow-hidden font-sans">
+    <div className="flex h-screen w-full bg-background text-foreground overflow-hidden font-sans">
       {/* Sidebar */}
       <aside 
         className={cn(
-          "relative flex flex-col border-r border-zinc-800 bg-zinc-900/50 backdrop-blur-xl transition-all duration-300",
+          "relative flex flex-col border-r border-border bg-card/50 backdrop-blur-xl transition-all duration-300",
           isSidebarOpen ? "w-64" : "w-20"
         )}
       >
-        <div className="flex h-16 items-center justify-between px-6 border-b border-zinc-800">
+        <div className="flex h-16 items-center justify-between px-6 border-b border-border">
           <div className={cn("flex items-center gap-3", !isSidebarOpen && "justify-center w-full")}>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500">
-              <ShieldCheck className="h-5 w-5 text-zinc-950" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-500 shadow-lg shadow-orange-500/20">
+              <ShieldCheck className="h-5 w-5 text-white" />
             </div>
             {isSidebarOpen && <span className="font-bold tracking-tight text-lg">Dinax Admin</span>}
           </div>
@@ -100,23 +100,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-zinc-800 hover:text-white group",
-                pathname === item.href ? "bg-orange-500/10 text-orange-500 shadow-[inset_0_0_10px_rgba(249,115,22,0.1)]" : "text-zinc-400"
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-muted hover:text-foreground group",
+                pathname === item.href ? "bg-orange-500/10 text-orange-500 shadow-[inset_0_0_10px_rgba(249,115,22,0.05)]" : "text-muted-foreground"
               )}
             >
-              <item.icon className={cn("h-5 w-5 shrink-0", pathname === item.href ? "text-orange-500" : "group-hover:text-zinc-100")} />
+              <item.icon className={cn("h-5 w-5 shrink-0", pathname === item.href ? "text-orange-500" : "group-hover:text-foreground")} />
               {isSidebarOpen && <span>{item.name}</span>}
               {isSidebarOpen && pathname === item.href && <div className="ml-auto h-1.5 w-1.5 rounded-full bg-orange-500" />}
             </Link>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-zinc-800 space-y-2">
+        <div className="p-4 border-t border-border space-y-2">
           <Link href="/dashboard">
             <Button 
                 variant="ghost" 
                 className={cn(
-                    "w-full justify-start gap-3 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 p-2 h-10 transition-all",
+                    "w-full justify-start gap-3 hover:bg-muted text-muted-foreground hover:text-foreground p-2 h-10 transition-all",
                     !isSidebarOpen && "justify-center"
                 )}
             >
@@ -128,7 +128,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             variant="ghost" 
             onClick={() => auth.signOut()}
             className={cn(
-                "w-full justify-start gap-3 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-100 p-2 h-10 transition-all",
+                "w-full justify-start gap-3 hover:bg-muted text-muted-foreground hover:text-foreground p-2 h-10 transition-all",
                 !isSidebarOpen && "justify-center"
             )}
           >
@@ -139,14 +139,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="absolute -right-3 top-20 flex h-6 w-6 items-center justify-center rounded-full border border-zinc-800 bg-zinc-900 text-zinc-400 transition-colors hover:text-zinc-100"
+          className="absolute -right-3 top-20 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-muted-foreground transition-colors hover:text-foreground shadow-sm"
         >
           {isSidebarOpen ? <X className="h-3 w-3" /> : <Menu className="h-3 w-3" />}
         </button>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto bg-zinc-950">
+      <main className="flex-1 overflow-y-auto bg-background/95">
         <div className="px-8 py-8 max-w-7xl mx-auto">
           {children}
         </div>

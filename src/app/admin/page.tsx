@@ -74,24 +74,24 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-white to-zinc-500 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
           System Overview
         </h1>
-        <p className="text-zinc-400 mt-2">
+        <p className="text-muted-foreground mt-2">
           Monitor your platform's health and tenant activity.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Card key={stat.name} className="border-zinc-800 bg-zinc-900/50 backdrop-blur-sm hover:border-zinc-700 transition-all duration-300 group overflow-hidden">
+          <Card key={stat.name} className="border-border bg-card/50 backdrop-blur-sm hover:border-border/80 transition-all duration-300 group overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-zinc-400">{stat.name}</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{stat.name}</CardTitle>
               <stat.icon className={`h-4 w-4 ${stat.color} group-hover:scale-110 transition-transform`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-zinc-500 mt-1 flex items-center gap-1">
+              <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                 {stat.trend === 'up' ? (
                   <ArrowUpRight className="h-3 w-3 text-emerald-500" />
                 ) : (
@@ -110,56 +110,56 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-7">
-        <Card className="lg:col-span-4 border-zinc-800 bg-zinc-900/50">
+        <Card className="lg:col-span-4 border-border bg-card/50">
           <CardHeader>
-            <CardTitle>Recent Tenant Connections</CardTitle>
-            <CardDescription>Last active owners in the past 24 hours.</CardDescription>
+            <CardTitle className="text-foreground">Recent Tenant Connections</CardTitle>
+            <CardDescription className="text-muted-foreground">Last active owners in the past 24 hours.</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
               {loading ? (
                 Array(4).fill(0).map((_, i) => (
-                  <div key={i} className="h-12 w-full animate-pulse bg-zinc-800/50 rounded-lg" />
+                  <div key={i} className="h-12 w-full animate-pulse bg-muted rounded-lg" />
                 ))
               ) : recentUsers.length > 0 ? (
                 recentUsers.map((user, i) => (
                   <div key={i} className="flex items-center justify-between group">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-800 border border-zinc-700 text-sm font-semibold group-hover:border-orange-500 transition-colors">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted border border-border text-sm font-semibold group-hover:border-orange-500 transition-colors text-foreground">
                         {user.name?.charAt(0) || '?'}
                       </div>
                       <div>
-                        <div className="text-sm font-medium">{user.name || 'Anonymous'}</div>
-                        <div className="text-xs text-zinc-400">{user.email}</div>
+                        <div className="text-sm font-medium text-foreground">{user.name || 'Anonymous'}</div>
+                        <div className="text-xs text-muted-foreground">{user.email}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs font-medium text-zinc-300">{user.time}</div>
+                      <div className="text-xs font-medium text-muted-foreground">{user.time}</div>
                       <div className="flex items-center gap-1.5 justify-end mt-0.5">
                         <div className={cn(
                           "h-1.5 w-1.5 rounded-full",
                           user.status === 'Online' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 
-                          'bg-zinc-600'
+                          'bg-muted-foreground/30'
                         )} />
-                        <span className="text-[10px] uppercase tracking-wider text-zinc-500 font-bold">{user.status}</span>
+                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">{user.status}</span>
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-zinc-500 py-4 text-center">No recent activity found.</p>
+                <p className="text-sm text-muted-foreground py-4 text-center">No recent activity found.</p>
               )}
             </div>
-            <Button variant="outline" className="w-full mt-6 border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800">
+            <Button variant="outline" className="w-full mt-6 border-border bg-card hover:bg-muted text-foreground">
               View All Activity
             </Button>
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-3 border-zinc-800 bg-zinc-900/50 overflow-hidden">
+        <Card className="lg:col-span-3 border-border bg-card/50 overflow-hidden">
           <CardHeader>
-            <CardTitle>Usage Distribution</CardTitle>
-            <CardDescription>Top collections by document count.</CardDescription>
+            <CardTitle className="text-foreground">Usage Distribution</CardTitle>
+            <CardDescription className="text-muted-foreground">Top collections by document count.</CardDescription>
           </CardHeader>
           <CardContent>
              <div className="space-y-4">
@@ -170,10 +170,10 @@ export default function AdminDashboard() {
                ].map((item, i) => (
                  <div key={i} className="space-y-1.5">
                    <div className="flex items-center justify-between text-xs">
-                     <span className="text-zinc-400">{item.label}</span>
-                     <span className="font-mono text-zinc-200">{item.count}</span>
+                     <span className="text-muted-foreground">{item.label}</span>
+                     <span className="font-mono text-foreground">{item.count}</span>
                    </div>
-                   <div className="h-1.5 w-full rounded-full bg-zinc-800 overflow-hidden">
+                   <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
                      <div 
                         className={`h-full rounded-full ${item.color} opacity-80 group-hover:opacity-100 transition-all duration-1000`} 
                         style={{ width: `${Math.min(item.percent, 100)}%` }}
@@ -188,8 +188,8 @@ export default function AdminDashboard() {
                   <Server className="h-5 w-5 text-orange-500" />
                 </div>
                 <div>
-                  <div className="text-sm font-semibold">Cloud Health</div>
-                  <div className="text-xs text-zinc-500">All regions operating normally.</div>
+                  <div className="text-sm font-semibold text-foreground">Cloud Health</div>
+                  <div className="text-xs text-muted-foreground">All regions operating normally.</div>
                 </div>
              </div>
           </CardContent>

@@ -14,8 +14,9 @@ import {
   Key,
   Database,
   Loader2,
-  CheckCircle2,
-  UserPlus
+  UserPlus,
+  AlertTriangle,
+  CheckCircle2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -172,22 +173,22 @@ export default function TenantManagement() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
              <UserPlus className="h-8 w-8 text-orange-500" /> Tenant Owners
           </h1>
-          <p className="text-zinc-400 mt-1">Manage platform administrators and their permissions.</p>
+          <p className="text-muted-foreground mt-1">Manage platform administrators and their permissions.</p>
         </div>
         <div className="flex gap-2">
           <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-orange-500 hover:bg-orange-600 text-zinc-950 font-bold">
+              <Button className="bg-orange-500 hover:bg-orange-600 text-white font-bold">
                 <Plus className="mr-2 h-4 w-4" /> Add Owner
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+            <DialogContent className="bg-card border-border text-card-foreground">
               <DialogHeader>
                 <DialogTitle>Create New User</DialogTitle>
-                <DialogDescription className="text-zinc-400">Add a new coach or tenant owner to the platform.</DialogDescription>
+                <DialogDescription className="text-muted-foreground font-medium">Add a new coach or tenant owner to the platform.</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
@@ -196,7 +197,7 @@ export default function TenantManagement() {
                     value={newUser.name} 
                     onChange={e => setNewUser({...newUser, name: e.target.value})}
                     placeholder="John Doe" 
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-background border-input"
                   />
                 </div>
                 <div className="space-y-2">
@@ -206,7 +207,7 @@ export default function TenantManagement() {
                     value={newUser.email} 
                     onChange={e => setNewUser({...newUser, email: e.target.value})}
                     placeholder="john@example.com" 
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-background border-input"
                   />
                 </div>
                 <div className="space-y-2">
@@ -216,17 +217,17 @@ export default function TenantManagement() {
                     value={newUser.password} 
                     onChange={e => setNewUser({...newUser, password: e.target.value})}
                     placeholder="Min. 6 characters" 
-                    className="bg-zinc-950 border-zinc-800"
+                    className="bg-background border-input"
                   />
-                  <p className="text-[10px] text-zinc-500">If left blank, a random password will be generated.</p>
+                  <p className="text-[10px] text-muted-foreground">If left blank, a random password will be generated.</p>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Initial Role</label>
                   <Select value={newUser.role} onValueChange={v => setNewUser({...newUser, role: v})}>
-                    <SelectTrigger className="bg-zinc-950 border-zinc-800">
+                    <SelectTrigger className="bg-background border-input">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+                    <SelectContent className="bg-card border-border text-card-foreground">
                       <SelectItem value="coach">Coach</SelectItem>
                       <SelectItem value="client">Client</SelectItem>
                       <SelectItem value="admin">Administrator</SelectItem>
@@ -239,7 +240,7 @@ export default function TenantManagement() {
                 <Button 
                   onClick={handleCreateUser} 
                   disabled={isCreating}
-                  className="bg-orange-500 hover:bg-orange-600 text-zinc-950"
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-bold"
                 >
                   {isCreating ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create User"}
                 </Button>
@@ -249,14 +250,14 @@ export default function TenantManagement() {
         </div>
       </div>
 
-      <Card className="border-zinc-800 bg-zinc-900/50">
+      <Card className="border-border bg-card/50">
         <CardHeader className="pb-3 px-6">
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input 
                 placeholder="Search owners by name or email..." 
-                className="pl-10 bg-zinc-950 border-zinc-800 focus-visible:ring-orange-500/20 focus-visible:border-orange-500/50 transition-all"
+                className="pl-10 bg-background border-input focus-visible:ring-orange-500/20 focus-visible:border-orange-500/50 transition-all"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -267,7 +268,7 @@ export default function TenantManagement() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead>
-                <tr className="border-b border-zinc-800 text-zinc-400 font-medium bg-zinc-950/50">
+                <tr className="border-b border-border text-muted-foreground font-medium bg-muted/30">
                   <th className="px-6 py-4">Owner</th>
                   <th className="px-6 py-4">Role</th>
                   <th className="px-6 py-4">Status</th>
@@ -275,63 +276,66 @@ export default function TenantManagement() {
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-800/50">
+              <tbody className="divide-y divide-border/50">
                 {loading ? (
                    Array(5).fill(0).map((_, i) => (
                     <tr key={i}>
                       <td colSpan={5} className="px-6 py-4">
-                        <div className="h-10 w-full animate-pulse bg-zinc-800/50 rounded-lg" />
+                        <div className="h-10 w-full animate-pulse bg-muted rounded-lg" />
                       </td>
                     </tr>
                   ))
                 ) : filteredTenants.length > 0 ? (
                   filteredTenants.map((tenant) => (
-                    <tr key={tenant.id} className="group hover:bg-zinc-800/30 transition-colors">
+                    <tr key={tenant.id} className="group hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-800 border border-zinc-700 font-bold text-zinc-300 uppercase">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted border border-border font-bold text-muted-foreground uppercase">
                             {tenant.name?.charAt(0) || '?'}
                           </div>
                           <div>
-                            <div className="font-semibold text-zinc-100">{tenant.name}</div>
-                            <div className="text-xs text-zinc-500">{tenant.email}</div>
+                            <div className="font-semibold text-foreground">{tenant.name}</div>
+                            <div className="text-xs text-muted-foreground lowercase">{tenant.email}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-zinc-800 text-[10px] font-bold uppercase tracking-wider text-zinc-300 w-fit border border-zinc-700">
-                          {tenant.role === 'admin' ? <ShieldCheck className="h-3 w-3 text-orange-500" /> : <UserCog className="h-3 w-3 text-blue-500" />}
-                          {tenant.role || 'Coach'}
+                        <div className="flex flex-col gap-1">
+                          <span className="font-medium text-foreground">{tenant.role}</span>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-widest px-1.5 py-0.5 rounded-md bg-muted/50 w-fit">PID: {tenant.project}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                           <div className={cn(
-                             "h-1.5 w-1.5 rounded-full",
-                             tenant.status === 'suspended' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' : 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]'
-                           )} />
-                           <span className='text-zinc-200 capitalize'>{tenant.status || 'active'}</span>
+                        <div className={cn(
+                          "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border",
+                          tenant.status === 'active' 
+                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" 
+                            : "bg-red-500/10 text-red-500 border-red-500/20"
+                        )}>
+                          {tenant.status === 'active' ? <CheckCircle2 className="mr-1 h-3 w-3" /> : <AlertTriangle className="mr-1 h-3 w-3" />}
+                          {tenant.status}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-zinc-400">
+                      <td className="px-6 py-4 text-muted-foreground">
                         {tenant.joined}
                       </td>
                       <td className="px-6 py-4 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="hover:bg-zinc-700/50 rounded-full h-8 w-8 text-zinc-500 hover:text-zinc-100">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-muted text-muted-foreground">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800 text-zinc-300">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuContent align="end" className="bg-card border-border text-foreground">
+                            <DropdownMenuLabel className="text-xs text-muted-foreground font-medium px-3 py-2">Account Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-border" />
                             <DropdownMenuItem 
                               onClick={() => {
                                 setSelectedUser(tenant);
                                 setNewRole(tenant.role || 'coach');
                                 setIsRoleModalOpen(true);
                               }}
-                              className="focus:bg-zinc-800 focus:text-white cursor-pointer px-3 py-2"
+                              className="focus:bg-muted focus:text-foreground cursor-pointer px-3 py-2"
                             >
                                <UserCog className="mr-2 h-4 w-4" /> Change Role
                             </DropdownMenuItem>
@@ -341,26 +345,26 @@ export default function TenantManagement() {
                                 setTempPassword('');
                                 setIsPasswordModalOpen(true);
                               }}
-                              className="focus:bg-zinc-800 focus:text-white cursor-pointer px-3 py-2"
+                              className="focus:bg-muted focus:text-foreground cursor-pointer px-3 py-2"
                             >
                                <Key className="mr-2 h-4 w-4" /> Set Provisory Password
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               onClick={() => handlePasswordReset(tenant.email)}
-                              className="focus:bg-zinc-800 focus:text-white cursor-pointer px-3 py-2"
+                              className="focus:bg-muted focus:text-foreground cursor-pointer px-3 py-2"
                             >
                                <Mail className="mr-2 h-4 w-4" /> Send Reset Email
                             </DropdownMenuItem>
-                            <DropdownMenuSeparator className="bg-zinc-800" />
+                            <DropdownMenuSeparator className="bg-border" />
                             <DropdownMenuItem 
                               onClick={() => handleSuspend(tenant.id, tenant.status)}
                               className={cn(
-                                "focus:text-white cursor-pointer px-3 py-2",
-                                tenant.status === 'suspended' ? "focus:bg-emerald-950 text-emerald-500" : "focus:bg-red-950 text-red-500"
+                                "cursor-pointer px-3 py-2 font-medium",
+                                tenant.status === 'suspended' ? "text-emerald-500 focus:text-emerald-500 focus:bg-emerald-500/10" : "text-red-500 focus:text-red-500 focus:bg-red-500/10"
                               )}
                             >
-                               <Ban className="mr-2 h-4 w-4" /> 
-                               {tenant.status === 'suspended' ? 'Activate Account' : 'Suspend Account'}
+                               {tenant.status === 'suspended' ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <Ban className="mr-2 h-4 w-4" />}
+                               {tenant.status === 'suspended' ? "Activate Account" : "Suspend Account"}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -369,8 +373,8 @@ export default function TenantManagement() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-zinc-500">
-                      No tenants found matching your search.
+                    <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                      No owners found matching your criteria.
                     </td>
                   </tr>
                 )}
@@ -382,31 +386,34 @@ export default function TenantManagement() {
 
       {/* Role Change Modal */}
       <Dialog open={isRoleModalOpen} onOpenChange={setIsRoleModalOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+        <DialogContent className="bg-card border-border text-card-foreground">
           <DialogHeader>
-            <DialogTitle>Change User Role</DialogTitle>
-            <DialogDescription className="text-zinc-400">
-              Update permissions for {selectedUser?.name}.
+            <DialogTitle>Update User Role</DialogTitle>
+            <DialogDescription className="text-muted-foreground font-medium">
+              Change permissions for {selectedUser?.name}.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-6">
-            <Select value={newRole} onValueChange={setNewRole}>
-              <SelectTrigger className="bg-zinc-950 border-zinc-800">
-                <SelectValue placeholder="Select new role" />
-              </SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
-                <SelectItem value="coach">Coach / Tenant Owner</SelectItem>
-                <SelectItem value="client">Client</SelectItem>
-                <SelectItem value="admin">Platform Administrator</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="py-6 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select New Role</label>
+              <Select value={newRole} onValueChange={setNewRole}>
+                <SelectTrigger className="bg-background border-input">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-card border-border text-card-foreground">
+                  <SelectItem value="coach">Coach</SelectItem>
+                  <SelectItem value="client">Client</SelectItem>
+                  <SelectItem value="admin">Administrator</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setIsRoleModalOpen(false)}>Cancel</Button>
             <Button 
               onClick={handleUpdateRole} 
               disabled={isUpdatingRole}
-              className="bg-orange-500 hover:bg-orange-600 text-zinc-950"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold"
             >
               {isUpdatingRole ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
             </Button>
@@ -416,10 +423,10 @@ export default function TenantManagement() {
 
       {/* Set Password Modal */}
       <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
-        <DialogContent className="bg-zinc-900 border-zinc-800 text-zinc-100">
+        <DialogContent className="bg-card border-border text-card-foreground">
           <DialogHeader>
             <DialogTitle>Set Provisory Password</DialogTitle>
-            <DialogDescription className="text-zinc-400">
+            <DialogDescription className="text-muted-foreground font-medium">
               This will update the password for {selectedUser?.name}. 
               The user will be required to change it upon their next login.
             </DialogDescription>
@@ -432,7 +439,7 @@ export default function TenantManagement() {
                 value={tempPassword} 
                 onChange={e => setTempPassword(e.target.value)}
                 placeholder="Enter temporary password" 
-                className="bg-zinc-950 border-zinc-800"
+                className="bg-background border-input"
               />
             </div>
           </div>
@@ -441,7 +448,7 @@ export default function TenantManagement() {
             <Button 
               onClick={handleSetPassword} 
               disabled={isSettingPassword || !tempPassword}
-              className="bg-orange-500 hover:bg-orange-600 text-zinc-950"
+              className="bg-orange-500 hover:bg-orange-600 text-white font-bold"
             >
               {isSettingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : "Update Password"}
             </Button>

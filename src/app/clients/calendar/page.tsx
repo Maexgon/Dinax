@@ -27,35 +27,28 @@ export default function ClientCalendarPage() {
     const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
     // 1. Get Tenant ID
-    const userProfileRef = useMemoFirebase(
-        () => (firestore && user ? doc(firestore, 'user_profile', user.uid) : null),
-        [firestore, user]
+    // We need to fetch 'users/{uid}' -> get tenantId
+    const { data: userProfile, isLoading: isProfileLoading } = useDoc<any>(
+        useMemo(() => (firestore && user ? doc(firestore, 'users', user.uid) : null), [firestore, user])
     );
-    const { data: userProfile, isLoading: isProfileLoading } = useDoc<UserProfile>(userProfileRef);
-    const tenantId = userProfile?.tenantId;
-    const clientId = user?.uid;
 
-    // 2. Fetch Events for the current month view (plus buffer maybe? or just fetch all future/recent?)
-    // Fetching by month range is efficient.
+    const tenantId = userProfile?.tenantId;
+
+    // 2. Fetch Events for the current month view
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
 
     const eventsRef = useMemoFirebase(
-        () => (firestore && tenantId && clientId ?
+        () => (firestore && tenantId && user ?
             query(
                 collection(firestore, `tenants/${tenantId}/events`),
-                where('clients', 'array-contains', clientId),
-                where('start', '>=', subMonths(monthStart, 1)), // Fetch bits of prev/next month for transitions
-                where('start', '<=', addMonths(monthEnd, 1))
+                where('uids', 'array-contains', user.uid),
+                where('start', '>=', Timestamp.fromDate(subMonths(monthStart, 1))),
+                where('start', '<=', Timestamp.fromDate(addMonths(monthEnd, 1)))
             ) : null),
-        [firestore, tenantId, clientId, monthStart, monthEnd]
+        [firestore, tenantId, user, monthStart, monthEnd]
     );
 
-    // Note: Firestore inequalities on different fields are tricky. 
-    // 'clients' array-contains AND 'start' range works if composite index exists.
-    // If not, we might need client-side filtering or just range.
-    // Let's rely on range primarily and client-side filter if needed? 
-    // Actually, 'array-contains' + range is allowed in Firestore.
     const { data: events, isLoading: areEventsLoading } = useCollection<CalendarEvent>(eventsRef);
 
     const daysWithEvents = useMemo(() => {
