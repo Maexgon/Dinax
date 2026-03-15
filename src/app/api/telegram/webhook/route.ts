@@ -83,8 +83,16 @@ export async function POST(req: Request) {
 
       const clientProfile = linkedUsers.docs[0].data();
       const clientId = linkedUsers.docs[0].id;
-      // Extract tenantId from path: tenants/{tenantId}/user_profile/{clientId}
-      const tenantId = linkedUsers.docs[0].ref.parent.parent?.id;
+      
+      let tenantId = clientProfile.tenantId;
+
+      // Unify tenantId retrieval. If not in user_profile, it is in 'users' doc.
+      if (!tenantId) {
+          const userDoc = await db.collection('users').doc(clientId).get();
+          if (userDoc.exists) {
+              tenantId = userDoc.data()?.tenantId;
+          }
+      }
 
       // 1. Fetch relevant training contextual data for today
       let todayWorkouts = '';

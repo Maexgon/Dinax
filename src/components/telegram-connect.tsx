@@ -10,19 +10,18 @@ import { MessageCircle, Copy, CheckCircle, Smartphone } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
 export function TelegramConnect() {
-    const { firestore, auth, user, tenantId } = useFirebase();
+    const { firestore, auth, user } = useFirebase();
     const { toast } = useToast();
     const [isGenerating, setIsGenerating] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    // Subscribe to user_profile to dynamically check if they generated a code or are already connected.
-    // Both coach and client use user_profile in tenant context
-    const profileRef = tenantId && user?.uid ? doc(firestore, `tenants/${tenantId}/user_profile/${user.uid}`) : null;
-    const { data: profile, loading } = useDoc<any>(profileRef, {
-        dependencies: [tenantId, user?.uid]
-    });
+    const profileRef = React.useMemo(() => {
+        return user?.uid ? doc(firestore, 'user_profile', user.uid) : null;
+    }, [firestore, user?.uid]);
 
-    if (loading) return null; // Or a skeleton
+    const { data: profile, isLoading } = useDoc<any>(profileRef);
+
+    if (isLoading) return null; // Or a skeleton
 
     const currentCode = profile?.telegramAuthCode;
     const isConnected = !!profile?.telegramChatId;
