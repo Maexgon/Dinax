@@ -21,6 +21,11 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: 'Dinax',
   description: 'Personalized fitness coaching powered by AI.',
+  appleWebApp: {
+    capable: true,
+    title: 'Dinax',
+    statusBarStyle: 'black-translucent',
+  },
 };
 
 export default function RootLayout({

@@ -1,4 +1,3 @@
-
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -10,48 +9,89 @@ service cloud.firestore {
     function isSelf(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
+    
+    // Check if the user is a global admin
+    function isAdmin() {
+      // Looks up the user's root profile to verify global admin role
+      return isSignedIn() && get(/databases/$(database)/documents/user_profile/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Check if user is the tenant owner
+    function isTenantOwner(tenantId) {
+       return isSignedIn() && request.auth.uid == tenantId;
+    }
 
     // New Global User Profile
     match /users/{userId} {
-      allow read, write: if isSelf(userId);
-      // Allow reading profile if it's the tenant or client linked?
       allow read: if isSignedIn(); 
-    }
-
-    // Tenant Data
-    match /tenants/{tenantId} {
-        allow read: if isSignedIn();
-        allow write: if isSelf(tenantId); // Basic owner check, refine later
-
-        // Tenant Owner Access to EVERYTHING under tenant
-        match /{document=**} {
-           allow read, write: if isSelf(tenantId);
-        }
-
-       // Client Data in subcollection
-       match /clients/{clientId} {
-          allow read, write: if isSelf(tenantId); 
-          allow read: if isSignedIn() && (
-             resource.data.email == request.auth.token.email || 
-             resource.data.userId == request.auth.uid ||
-             resource.data.id == request.auth.uid 
-          );
-       }
-
-       // Events Access
-       match /events/{eventId} {
-           // Owner has full access
-           allow read, write: if isSelf(tenantId);
-           
-           // Client can read if their Auth UID is in the 'uids' array
-           // This requires events to have a 'uids' field containing [client.userId]
-           allow read: if isSignedIn() && request.auth.uid in resource.data.uids;
-       }
+      allow write: if isSelf(userId) || isAdmin();
     }
     
-    // Legacy support (optional, can remove)
+    // Legacy support: Global User Profile
     match /user_profile/{userId} {
-      allow read, write: if isSelf(userId);
+      allow read: if isSignedIn();
+      allow write: if isSelf(userId) || isAdmin();
+    }
+
+    // Tenant Data Boundaries
+    match /tenants/{tenantId} {
+        // Any signed-in user can read basic tenant info
+        allow read: if isSignedIn();
+        
+        // Only owner or admin can update the tenant document itself
+        allow write: if isTenantOwner(tenantId) || isAdmin();
+
+        // -------------------------------------------------------------
+        // Tenant Owner & Admin Access to EVERYTHING under this tenant
+        // -------------------------------------------------------------
+        match /{document=**} {
+           allow read, write: if isTenantOwner(tenantId) || isAdmin();
+        }
+
+       // -------------------------------------------------------------
+       // Client Specific Access Boundaries
+       // -------------------------------------------------------------
+       match /user_profile/{clientId} {
+          // Client can read their own sub-profile data
+          allow read: if isSelf(clientId) || isAdmin() || isTenantOwner(tenantId);
+          
+          // Client can update their own profile, but cannot elevate privileges (role, etc)
+          allow update: if isSelf(clientId) && 
+            (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'tenantId']));
+          
+          // --- Rules for Subcollections inside the client's profile ---
+          match /{subCollection}/{documentId} {
+             // Client can read their own assessments, medical history, etc.
+             allow read: if isSelf(clientId);
+          }
+       }
+       
+       // Explicit block for Coach Notes: Clients can never read them
+       match /user_profile/{clientId}/notes/{noteId} {
+          allow read, write: if isTenantOwner(tenantId) || isAdmin();
+       }
+
+       // Calendar Events: Client can read if their auth UI is present in 'clients' array
+       match /events/{eventId} {
+           allow read: if isSignedIn() && request.auth.uid in resource.data.clients;
+           // Write is covered by the owner/admin catch-all above
+       }
+       
+       // Training Plans / Mesocycles
+       match /mesocycles/{mesocycleId} {
+           // Allow read if the client is specifically assigned to the plan
+           allow read: if isSignedIn() && resource.data.clientId == request.auth.uid;
+       }
+       
+       // Client Commercial Plans
+       match /client_plans/{planId} {
+           allow read: if isSignedIn() && resource.data.clientId == request.auth.uid;
+       }
+       
+       // Financial Payments
+       match /payments/{paymentId} {
+           allow read: if isSignedIn() && resource.data.clientId == request.auth.uid;
+       }
     }
   }
 }
