@@ -22,6 +22,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ReactCrop, { type Crop as CropType, centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import { TelegramConnect } from '@/components/telegram-connect';
 
 
 const experienceSchema = z.object({
@@ -385,6 +386,8 @@ export default function ProfilePage() {
                 </div>
             </CardContent>
             </Card>
+
+            <TelegramConnect />
 
             <Card className="mt-6">
                 <CardHeader>
